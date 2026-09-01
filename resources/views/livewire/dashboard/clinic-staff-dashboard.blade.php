@@ -130,7 +130,7 @@
                     <p class="chart-subtitle">Top locations · selected period</p>
                 </div>
             </div>
-            <div class="chart-container location-chart-container">
+            <div class="chart-container location-chart-container" wire:ignore>
                 @if (count($patientLocationData['labels']) > 0)
                     <canvas id="patientLocationChart"
                         data-labels='@json($patientLocationData['labels'])'
@@ -187,17 +187,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="chart-container">
-                    @if (count($last7DaysChart['labels']) > 0)
-                        <canvas id="visitsChart"
-                            data-labels='@json($last7DaysChart['labels'])'
-                            data-data='@json($last7DaysChart['data'])'></canvas>
-                    @else
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <p>No clinic visits found for the selected period.</p>
-                        </div>
-                    @endif
+                <div class="chart-container" wire:ignore>
+                    <canvas id="visitsChart"
+                        data-labels='@json($last7DaysChart['labels'])'
+                        data-data='@json($last7DaysChart['data'])'></canvas>
                 </div>
             </div>
 
@@ -208,17 +201,10 @@
                         <p class="chart-subtitle">Rolling momentum · filtered period</p>
                     </div>
                 </div>
-                <div class="chart-container">
-                    @if (count($visitsTrendData['labels']) > 0)
-                        <canvas id="visitsTrendChart"
-                            data-labels='@json($visitsTrendData['labels'])'
-                            data-data='@json($visitsTrendData['data'])'></canvas>
-                    @else
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <p>No data for the selected period.</p>
-                        </div>
-                    @endif
+                <div class="chart-container" wire:ignore>
+                    <canvas id="visitsTrendChart"
+                        data-labels='@json($visitsTrendData['labels'])'
+                        data-data='@json($visitsTrendData['data'])'></canvas>
                 </div>
             </div>
         </div>
@@ -284,19 +270,19 @@
                     <div class="legend-row">
                         <span class="legend-dot" style="background:#27ae60;"></span>
                         <span class="legend-label-text">Normal</span>
-                        <div class="legend-bar-wrap"><div class="legend-bar" style="width:{{ $vNormPct }}%;background:#27ae60;"></div></div>
+                        <div class="legend-bar-wrap"><div class="legend-bar" style="background:#27ae60;"></div></div>
                         <strong>{{ $vNormPct }}%</strong>
                     </div>
                     <div class="legend-row">
                         <span class="legend-dot" style="background:#f39c12;"></span>
                         <span class="legend-label-text">Elevated</span>
-                        <div class="legend-bar-wrap"><div class="legend-bar" style="width:{{ $vElevPct }}%;background:#f39c12;"></div></div>
+                        <div class="legend-bar-wrap"><div class="legend-bar" style="background:#f39c12;"></div></div>
                         <strong>{{ $vElevPct }}%</strong>
                     </div>
                     <div class="legend-row">
                         <span class="legend-dot" style="background:#e74c3c;"></span>
                         <span class="legend-label-text">Abnormal</span>
-                        <div class="legend-bar-wrap"><div class="legend-bar" style="width:{{ $vAbnPct }}%;background:#e74c3c;"></div></div>
+                        <div class="legend-bar-wrap"><div class="legend-bar" style="background:#e74c3c;"></div></div>
                         <strong>{{ $vAbnPct }}%</strong>
                     </div>
                 </div>
@@ -329,19 +315,19 @@
                     <div class="legend-row">
                         <span class="legend-dot" style="background:#27ae60;"></span>
                         <span class="legend-label-text">Healthy</span>
-                        <div class="legend-bar-wrap"><div class="legend-bar" style="width:{{ $mHlthPct }}%;background:#27ae60;"></div></div>
+                        <div class="legend-bar-wrap"><div class="legend-bar" style="background:#27ae60;"></div></div>
                         <strong>{{ $mHlthPct }}%</strong>
                     </div>
                     <div class="legend-row">
                         <span class="legend-dot" style="background:#e74c3c;"></span>
                         <span class="legend-label-text">Low Stock</span>
-                        <div class="legend-bar-wrap"><div class="legend-bar" style="width:{{ $mLowPct }}%;background:#e74c3c;"></div></div>
+                        <div class="legend-bar-wrap"><div class="legend-bar" style="background:#e74c3c;"></div></div>
                         <strong>{{ $mLowPct }}%</strong>
                     </div>
                     <div class="legend-row">
                         <span class="legend-dot" style="background:#f39c12;"></span>
                         <span class="legend-label-text">Expiring</span>
-                        <div class="legend-bar-wrap"><div class="legend-bar" style="width:{{ $mExpPct }}%;background:#f39c12;"></div></div>
+                        <div class="legend-bar-wrap"><div class="legend-bar" style="background:#f39c12;"></div></div>
                         <strong>{{ $mExpPct }}%</strong>
                     </div>
                 </div>
@@ -1103,6 +1089,27 @@
     <script>
         let clinicStaffCharts = {};
 
+        function syncDonutLegend(canvasId, values) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const card = canvas.closest('.overview-card');
+            if (!card) return;
+
+            const rows = Array.from(card.querySelectorAll('.legend-row'));
+            const total = values.reduce((sum, value) => sum + Number(value || 0), 0) || 1;
+
+            rows.forEach((row, index) => {
+                const value = Number(values[index] || 0);
+                const percent = total > 0 ? Math.round((value / total) * 100) : 0;
+                const bar = row.querySelector('.legend-bar');
+                const strong = row.querySelector('strong');
+
+                if (bar) bar.style.width = percent + '%';
+                if (strong) strong.textContent = percent + '%';
+            });
+        }
+
         function renderClinicStaffCharts() {
             const isDark = document.body.getAttribute('data-theme') !== 'light';
             const gridColor = isDark ? '#111f35' : '#e2e8f0';
@@ -1112,11 +1119,12 @@
             Object.values(clinicStaffCharts).forEach(chart => chart && chart.destroy());
             clinicStaffCharts = {};
 
-            @if (count($last7DaysChart['labels']) > 0)
-                const visitsCtx = document.getElementById('visitsChart');
-                if (visitsCtx) {
-                    const visitsLabels = JSON.parse(visitsCtx.dataset.labels || '[]');
-                    const visitsData = JSON.parse(visitsCtx.dataset.data || '[]');
+            const visitsCtx = document.getElementById('visitsChart');
+            if (visitsCtx) {
+                const visitsLabels = JSON.parse(visitsCtx.dataset.labels || '[]');
+                const visitsData = JSON.parse(visitsCtx.dataset.data || '[]');
+
+                if (visitsLabels.length > 0 && visitsData.length > 0) {
                     clinicStaffCharts.visits = new Chart(visitsCtx, {
                         type: 'bar',
                         data: {
@@ -1156,13 +1164,14 @@
                         },
                     });
                 }
-            @endif
+            }
 
-            @if (count($visitsTrendData['labels']) > 0)
-                const trendCtx = document.getElementById('visitsTrendChart');
-                if (trendCtx) {
-                    const trendLabels = JSON.parse(trendCtx.dataset.labels || '[]');
-                    const trendData = JSON.parse(trendCtx.dataset.data || '[]');
+            const trendCtx = document.getElementById('visitsTrendChart');
+            if (trendCtx) {
+                const trendLabels = JSON.parse(trendCtx.dataset.labels || '[]');
+                const trendData = JSON.parse(trendCtx.dataset.data || '[]');
+
+                if (trendLabels.length > 0 && trendData.length > 0) {
                     clinicStaffCharts.trend = new Chart(trendCtx, {
                         type: 'line',
                         data: {
@@ -1197,38 +1206,41 @@
                         },
                     });
                 }
-            @endif
+            }
 
             const locationCtx = document.getElementById('patientLocationChart');
             if (locationCtx) {
                 const locationLabels = JSON.parse(locationCtx.dataset.labels || '[]');
                 const locationData = JSON.parse(locationCtx.dataset.data || '[]');
-                clinicStaffCharts.location = new Chart(locationCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: locationLabels,
-                        datasets: [{
-                            label: 'Clinic visits',
-                            data: locationData,
-                            backgroundColor: '#f97316',
-                            borderRadius: 5,
-                            maxBarThickness: 34,
-                        }],
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        indexAxis: 'y',
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: { callbacks: { label: context => ` ${context.raw} visit(s)` } },
+
+                if (locationLabels.length > 0 && locationData.length > 0) {
+                    clinicStaffCharts.location = new Chart(locationCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: locationLabels,
+                            datasets: [{
+                                label: 'Clinic visits',
+                                data: locationData,
+                                backgroundColor: '#f97316',
+                                borderRadius: 5,
+                                maxBarThickness: 34,
+                            }],
                         },
-                        scales: {
-                            x: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor, precision: 0 } },
-                            y: { grid: { display: false }, ticks: { color: tickColor, font: { size: 11 } } },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { callbacks: { label: context => ` ${context.raw} visit(s)` } },
+                            },
+                            scales: {
+                                x: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor, precision: 0 } },
+                                y: { grid: { display: false }, ticks: { color: tickColor, font: { size: 11 } } },
+                            },
                         },
-                    },
-                });
+                    });
+                }
             }
 
             const donutOptions = {
@@ -1247,16 +1259,18 @@
 
             const vitalsCtx = document.getElementById('vitalsDonut');
             if (vitalsCtx) {
+                const vitalValues = [
+                    parseInt(vitalsCtx.dataset.normal || '0'),
+                    parseInt(vitalsCtx.dataset.elevated || '0'),
+                    parseInt(vitalsCtx.dataset.abnormal || '0'),
+                ];
+
                 clinicStaffCharts.vitals = new Chart(vitalsCtx, {
                     type: 'doughnut',
                     data: {
                         labels: ['Normal', 'Elevated', 'Abnormal'],
                         datasets: [{
-                            data: [
-                                parseInt(vitalsCtx.dataset.normal || '0'),
-                                parseInt(vitalsCtx.dataset.elevated || '0'),
-                                parseInt(vitalsCtx.dataset.abnormal || '0'),
-                            ],
+                            data: vitalValues,
                             backgroundColor: ['#27ae60', '#f39c12', '#e74c3c'],
                             borderWidth: 3,
                             borderColor: cardBg,
@@ -1264,20 +1278,24 @@
                     },
                     options: donutOptions,
                 });
+
+                syncDonutLegend('vitalsDonut', vitalValues);
             }
 
             const medCtx = document.getElementById('medicineDonut');
             if (medCtx) {
+                const medicineValues = [
+                    parseInt(medCtx.dataset.available || '0'),
+                    parseInt(medCtx.dataset.lowStock || '0'),
+                    parseInt(medCtx.dataset.expiring || '0'),
+                ];
+
                 clinicStaffCharts.medicine = new Chart(medCtx, {
                     type: 'doughnut',
                     data: {
                         labels: ['Healthy', 'Low Stock', 'Expiring'],
                         datasets: [{
-                            data: [
-                                parseInt(medCtx.dataset.available || '0'),
-                                parseInt(medCtx.dataset.lowStock || '0'),
-                                parseInt(medCtx.dataset.expiring || '0'),
-                            ],
+                            data: medicineValues,
                             backgroundColor: ['#27ae60', '#e74c3c', '#f39c12'],
                             borderWidth: 3,
                             borderColor: cardBg,
@@ -1285,12 +1303,25 @@
                     },
                     options: donutOptions,
                 });
+
+                syncDonutLegend('medicineDonut', medicineValues);
             }
         }
 
         renderClinicStaffCharts();
         window.addEventListener('clinic-theme-changed', renderClinicStaffCharts);
         document.addEventListener('livewire:navigated', renderClinicStaffCharts);
+        window.addEventListener('resize', renderClinicStaffCharts);
+        if (typeof Livewire !== 'undefined') {
+            Livewire.hook('morph.updated', ({ component }) => {
+                if (component?.el?.querySelector('.dashboard-wrapper')) {
+                    setTimeout(renderClinicStaffCharts, 0);
+                }
+            });
+            Livewire.hook('message.processed', () => {
+                setTimeout(renderClinicStaffCharts, 0);
+            });
+        }
 
         function navigateToVisits() {
             window.location.href = '{{ route("clinic-visit.index") }}';

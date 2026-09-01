@@ -321,25 +321,85 @@
         }
 
         @media print {
-            body {
-                margin: 0;
-                padding: 0;
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+
+            html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            body * {
+                visibility: hidden;
+            }
+
+            .form-container,
+            .form-container * {
+                visibility: visible;
+            }
+
+            .app-topbar,
+            .clinic-sidebar,
+            .sidebar-overlay,
+            .sidebar-toggle-btn,
+            .theme-toggle-btn,
+            .topbar-icon-btn,
+            .user-profile,
+            .app-content > :not(.form-container) {
+                display: none !important;
+                visibility: hidden !important;
+            }
+
+            .app-main,
+            .app-content {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .form-container {
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                position: static !important;
             }
 
             .form-actions {
-                display: none;
+                display: none !important;
             }
 
             .printable-form {
-                border: none;
-                box-shadow: none;
-                padding: 20px;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                transform: none !important;
+            }
+
+            .form-header {
+                margin-bottom: 20px !important;
             }
 
             .form-input,
             .form-textarea {
-                border: 1px solid #999;
-                background: white;
+                border: 1px solid #999 !important;
+                background: white !important;
+                font-size: 10px !important;
+                padding: 5px 6px !important;
+            }
+
+            .form-section {
+                page-break-inside: avoid;
             }
         }
 
