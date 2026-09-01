@@ -13,6 +13,16 @@ class ClinicVisitEditForm extends Component
     // ============ VISIT INFO ============
     public $visitDate;
 
+    // ============ PATIENT INFO ============
+    public $patientName;
+    public $patientCategory = 'student';
+    public $patientYearSection = '';
+    public $patientAge = '';
+    public $patientPhone = '';
+    public $patientEmail = '';
+    public $patientAddress = '';
+    public $patientProgram = '';
+
     // ============ VITAL SIGNS ============
     public $temperature = '';
     public $pulseRate = '';
@@ -47,6 +57,16 @@ class ClinicVisitEditForm extends Component
         $this->management = $this->visit->management;
         $this->diagnosis = $this->visit->diagnosis;
         $this->notes = $this->visit->notes;
+
+        $patient = $this->visit->patient;
+        $this->patientName = $patient->name ?? '';
+        $this->patientCategory = $patient->category ?? 'student';
+        $this->patientYearSection = $patient->year_section ?? '';
+        $this->patientAge = $patient->age ?? '';
+        $this->patientPhone = $patient->phone ?? '';
+        $this->patientEmail = $patient->email ?? '';
+        $this->patientAddress = $patient->address ?? '';
+        $this->patientProgram = $patient->program ?? '';
     }
 
     public function getBmiProperty()
@@ -93,6 +113,14 @@ class ClinicVisitEditForm extends Component
             'management' => 'nullable|string',
             'diagnosis' => 'nullable|string',
             'notes' => 'nullable|string',
+            'patientName' => 'required|string|max:255',
+            'patientCategory' => 'required|in:student,faculty,staff',
+            'patientYearSection' => 'nullable|string|max:50',
+            'patientAge' => 'nullable|integer|min:0',
+            'patientPhone' => 'nullable|string|max:20',
+            'patientEmail' => 'nullable|email|max:255',
+            'patientAddress' => 'nullable|string|max:500',
+            'patientProgram' => 'nullable|string|max:100',
         ]);
 
         $this->visit->update([
@@ -112,7 +140,20 @@ class ClinicVisitEditForm extends Component
             'notes' => $validated['notes'],
         ]);
 
-        session()->flash('success', 'Clinic visit updated successfully!');
+        if ($this->visit->patient) {
+            $this->visit->patient->update([
+                'name' => $validated['patientName'],
+                'category' => $validated['patientCategory'],
+                'year_section' => $validated['patientYearSection'],
+                'age' => $validated['patientAge'],
+                'phone' => $validated['patientPhone'],
+                'email' => $validated['patientEmail'],
+                'address' => $validated['patientAddress'],
+                'program' => $validated['patientProgram'],
+            ]);
+        }
+
+        session()->flash('success', 'Clinic visit and patient information updated successfully!');
 
         return redirect()->route('clinic-visit.index');
     }

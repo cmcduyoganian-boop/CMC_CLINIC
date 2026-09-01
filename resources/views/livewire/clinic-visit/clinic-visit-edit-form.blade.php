@@ -36,6 +36,61 @@
     @endif
 
     <form wire:submit="save" class="clinic-visit-form">
+        <!-- Patient Information -->
+        <div class="form-section">
+            <h2 class="section-title">Patient Information</h2>
+
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" wire:model="patientName" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Category *</label>
+                    <select wire:model="patientCategory" class="form-control">
+                        <option value="student">Student</option>
+                        <option value="faculty">Faculty</option>
+                        <option value="staff">Staff</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label class="form-label">Year / Section</label>
+                    <input type="text" wire:model="patientYearSection" class="form-control" placeholder="BSCS-2A">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Age</label>
+                    <input type="number" wire:model="patientAge" class="form-control" min="0" placeholder="20">
+                </div>
+            </div>
+
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="text" wire:model="patientPhone" class="form-control" placeholder="09123456789">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" wire:model="patientEmail" class="form-control" placeholder="student@cmc.edu.ph">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Address</label>
+                <input type="text" wire:model="patientAddress" class="form-control" placeholder="Carmen, Bohol">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Program</label>
+                <input type="text" wire:model="patientProgram" class="form-control" placeholder="BS Computer Science">
+            </div>
+        </div>
+
         <!-- Visit Date -->
         <div class="form-section">
             <h2 class="section-title">Visit Information</h2>

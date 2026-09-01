@@ -1,0 +1,257 @@
+<?php if (isset($component)) { $__componentOriginal5ebdfc507b19f550ccb8283aa8ef688c = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal5ebdfc507b19f550ccb8283aa8ef688c = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'f4ac99e09542ff494432bc959d4fee61::app-with-sidebar','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('app-with-sidebar'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+<?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::processComponentKey($component); ?>
+
+     <?php $__env->slot('header', null, []); ?> Appointment Details <?php $__env->endSlot(); ?>
+
+    <div class="appointment-details-page">
+        <div class="details-card">
+            <div class="details-header">
+                <div>
+                    <h1 class="patient-name"><?php echo e($appointment->patient->name ?? 'Unknown Patient'); ?></h1>
+                    <span class="badge <?php echo e($appointment->patient->getCategoryBadgeClass()); ?>">
+                        <?php echo e($appointment->patient->getCategoryLabel()); ?>
+
+                    </span>
+                </div>
+                <span class="status-badge <?php echo e($appointment->getStatusBadgeClass()); ?>">
+                    <?php echo e($appointment->getStatusLabel()); ?>
+
+                </span>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Date</label>
+                    <span class="info-value"><?php echo e($appointment->appointment_date->format('M d, Y')); ?></span>
+                </div>
+                <div class="info-item">
+                    <label>Time</label>
+                    <span class="info-value"><?php echo e(date('h:i A', strtotime($appointment->appointment_time))); ?></span>
+                </div>
+                <div class="info-item">
+                    <label>Year &amp; Section</label>
+                    <span class="info-value"><?php echo e($appointment->patient->year_section ?: '-'); ?></span>
+                </div>
+            </div>
+
+            <div class="info-item full-width">
+                <label>Reason for Appointment</label>
+                <span class="info-value"><?php echo e($appointment->reason ?: 'No reason provided'); ?></span>
+            </div>
+
+            <div class="info-item full-width">
+                <label>Additional Notes</label>
+                <span class="info-value"><?php echo e($appointment->notes ?: 'No notes'); ?></span>
+            </div>
+
+            <div class="details-actions">
+                <a href="<?php echo e(route('appointments.index')); ?>" class="btn btn-cancel">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+                <a href="<?php echo e(route('appointments.edit', $appointment->id)); ?>" class="btn btn-edit">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .appointment-details-page {
+            display: flex;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .details-card {
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 32px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-inner);
+        }
+
+        .patient-name {
+            margin: 0 0 8px 0;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-student {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .badge-faculty {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
+        .badge-staff {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .badge-scheduled {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .badge-completed {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .badge-no-show {
+            background: #ffeaa7;
+            color: #d68910;
+        }
+
+        .badge-cancelled {
+            background: #fadbd8;
+            color: #c0392b;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 16px;
+        }
+
+        .info-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .info-item label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: var(--text-heading);
+        }
+
+        .details-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-inner);
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-family: 'Figtree', sans-serif;
+            text-decoration: none;
+        }
+
+        .btn-cancel {
+            background: var(--bg-input);
+            color: var(--text-muted);
+        }
+
+        .btn-cancel:hover {
+            background: var(--border-input);
+        }
+
+        .btn-edit {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .details-card {
+                padding: 20px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .details-header {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .details-actions {
+                flex-direction: column-reverse;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal5ebdfc507b19f550ccb8283aa8ef688c)): ?>
+<?php $attributes = $__attributesOriginal5ebdfc507b19f550ccb8283aa8ef688c; ?>
+<?php unset($__attributesOriginal5ebdfc507b19f550ccb8283aa8ef688c); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal5ebdfc507b19f550ccb8283aa8ef688c)): ?>
+<?php $component = $__componentOriginal5ebdfc507b19f550ccb8283aa8ef688c; ?>
+<?php unset($__componentOriginal5ebdfc507b19f550ccb8283aa8ef688c); ?>
+<?php endif; ?><?php /**PATH C:\laragon\www\cmc_clinic\resources\views/appointments/show.blade.php ENDPATH**/ ?>

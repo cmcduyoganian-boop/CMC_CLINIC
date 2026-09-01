@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Patient;
+use App\Models\UserActivity;
 use App\Utilities\PasswordGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -14,6 +15,90 @@ class UserManagementController extends Controller
     public function index(Request $request)
     {
         return view('users.index');
+    }
+
+    // ============ CLINIC STAFF - LIST ============
+    public function clinicStaff(Request $request)
+    {
+        $query = User::clinicStaff()
+            ->with(['lastActivity' => function ($q) {
+                $q->orderByDesc('logged_in_at')->limit(1);
+            }])
+            ->orderByDesc('is_active')
+            ->orderBy('name');
+
+        $search = $request->input('search');
+        $status = $request->input('status');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status !== null && $status !== '') {
+            $query->where('is_active', $status === 'active' ? true : false);
+        }
+
+        $staff = $query->paginate(20);
+
+        $stats = [
+            'total' => User::clinicStaff()->count(),
+            'active' => User::clinicStaff()->active()->count(),
+            'inactive' => User::clinicStaff()->inactive()->count(),
+        ];
+
+        $topStaffByPatients = \App\Models\ClinicVisit::select('user_id', \Illuminate\Support\Facades\DB::raw('COUNT(*) as visit_count'))
+            ->whereNotNull('user_id')
+            ->groupBy('user_id')
+            ->orderByDesc('visit_count')
+            ->limit(8)
+            ->get()
+            ->map(function ($item) {
+                $user = User::find($item->user_id);
+                return [
+                    'name' => $user ? $user->name : 'Unknown',
+                    'count' => (int) $item->visit_count,
+                ];
+            });
+
+        $chartData = [
+            'status' => [
+                'labels' => ['Active', 'Inactive'],
+                'data' => [$stats['active'], $stats['inactive']],
+                'colors' => ['#27ae60', '#e74c3c'],
+            ],
+            'topStaff' => [
+                'labels' => $topStaffByPatients->pluck('name')->toArray(),
+                'data' => $topStaffByPatients->pluck('count')->toArray(),
+            ],
+        ];
+
+        return view('users.clinic-staff', compact('staff', 'stats', 'search', 'status', 'chartData'));
+    }
+
+    // ============ CLINIC STAFF - SHOW DETAIL ============
+    public function clinicStaffShow($id)
+    {
+        $staff = User::clinicStaff()->findOrFail($id);
+
+        $patients = Patient::whereHas('clinicVisits', function ($q) use ($id) {
+            $q->where('user_id', $id);
+        })->orderByDesc('updated_at')->paginate(15);
+
+        $activities = UserActivity::where('user_id', $id)
+            ->orderByDesc('logged_in_at')
+            ->paginate(20);
+
+        $stats = [
+            'total_patients' => $patients->total(),
+            'total_visits' => \App\Models\ClinicVisit::where('user_id', $id)->count(),
+            'last_login' => $activities->isNotEmpty() ? $activities->first()->logged_in_at : null,
+        ];
+
+        return view('users.clinic-staff-show', compact('staff', 'patients', 'activities', 'stats'));
     }
 
     // ============ CREATE - SHOW FORM ============

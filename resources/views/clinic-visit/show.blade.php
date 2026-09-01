@@ -43,8 +43,12 @@
                     <span class="info-value">{{ $visit->patient->age ?? 'N/A' }}</span>
                 </div>
                 <div class="info-item">
-                    <label>Phone</label>
+                    <label>Phone Number</label>
                     <span class="info-value">{{ $visit->patient->phone ?? 'N/A' }}</span>
+                </div>
+                <div class="info-item">
+                    <label>Address</label>
+                    <span class="info-value">{{ $visit->patient->address ?? 'N/A' }}</span>
                 </div>
                 <div class="info-item">
                     <label>Program</label>
@@ -82,11 +86,11 @@
                     <span class="vital-value">{{ $visit->weight ? $visit->weight . ' kg' : '-' }}</span>
                 </div>
                 <div class="vital-item">
-                    <span class="vital-label">BMI</span>
+                    <span class="vital-label">BMI</label>
                     <span class="vital-value">{{ $visit->getBMI() ? $visit->getBMI() : '-' }}</span>
                 </div>
                 <div class="vital-item">
-                    <span class="vital-label">SpO2</span>
+                    <span class="vital-label">SpO2</label>
                     <span class="vital-value">{{ $visit->spo2 ? $visit->spo2 . '%' : '-' }}</span>
                 </div>
             </div>
@@ -157,13 +161,13 @@
             margin: 0;
             font-size: 28px;
             font-weight: 700;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .page-subtitle {
             margin: 4px 0 0 0;
             font-size: 13px;
-            color: #95a5a6;
+            color: var(--text-muted);
         }
 
         .header-actions {
@@ -197,16 +201,16 @@
         }
 
         .btn-back {
-            background: #ecf0f1;
-            color: #7f8c8d;
+            background: var(--bg-input);
+            color: var(--text-muted);
         }
 
         .btn-back:hover {
-            background: #d4d9e0;
+            background: var(--border-input);
         }
 
         .info-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 24px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
@@ -216,8 +220,8 @@
             margin: 0 0 20px 0;
             font-size: 16px;
             font-weight: 700;
-            color: #2d3e50;
-            border-bottom: 2px solid #e8ecf1;
+            color: var(--text-heading);
+            border-bottom: 2px solid var(--border-inner);
             padding-bottom: 12px;
         }
 
@@ -235,7 +239,7 @@
         .info-item label {
             font-size: 11px;
             font-weight: 700;
-            color: #95a5a6;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.3px;
             margin-bottom: 6px;
@@ -243,7 +247,7 @@
 
         .info-value {
             font-size: 13px;
-            color: #2d3e50;
+            color: var(--text-heading);
             font-weight: 600;
         }
 
@@ -278,7 +282,7 @@
         }
 
         .vital-item {
-            background: #f9fafb;
+            background: var(--bg-input);
             border-radius: 8px;
             padding: 16px;
             display: flex;
@@ -289,7 +293,7 @@
         .vital-label {
             font-size: 11px;
             font-weight: 700;
-            color: #95a5a6;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.3px;
             margin-bottom: 8px;
@@ -313,7 +317,7 @@
             margin: 0 0 8px 0;
             font-size: 12px;
             font-weight: 700;
-            color: #2d3e50;
+            color: var(--text-heading);
             text-transform: uppercase;
             letter-spacing: 0.3px;
         }
@@ -321,10 +325,10 @@
         .section-content {
             margin: 0;
             font-size: 13px;
-            color: #2d3e50;
+            color: var(--text-heading);
             line-height: 1.6;
             padding: 12px;
-            background: #f9fafb;
+            background: var(--bg-input);
             border-radius: 6px;
             border-left: 4px solid #3498db;
         }
@@ -360,12 +364,12 @@
         }
 
         .btn-secondary {
-            background: #ecf0f1;
-            color: #7f8c8d;
+            background: var(--bg-input);
+            color: var(--text-muted);
         }
 
         .btn-secondary:hover {
-            background: #d4d9e0;
+            background: var(--border-input);
         }
 
         @media (max-width: 768px) {

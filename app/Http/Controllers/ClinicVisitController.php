@@ -59,6 +59,7 @@ class ClinicVisitController extends Controller
             // Create clinic visit
             ClinicVisit::create([
                 'patient_id' => $patient->id,
+                'user_id' => auth()->id(),
                 'visit_date' => $validated['visit_date'],
                 'complaints' => $validated['complaints'],
                 'diagnosis' => $validated['diagnosis'],

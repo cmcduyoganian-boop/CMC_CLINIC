@@ -144,7 +144,7 @@
                                     <button type="button" class="btn-action reject" title="Deny"
                                             wire:click="denyPendingRegistration({{ $pending->id }})"
                                             wire:confirm="Deny {{ $pending->name }}'s registration?">
-                                        <i class="fas fa-times"></i> Deny
+                                        <i class="fas fa-times"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -200,13 +200,13 @@
                                         <button type="button" class="btn-action approve" title="Confirm"
                                             wire:click="approveUser({{ $user->id }})"
                                             wire:confirm="Approve {{ $user->name }}'s account?">
-                                            <i class="fas fa-check"></i> Confirm
+                                            <i class="fas fa-check"></i>
                                         </button>
 
                                         <button type="button" class="btn-action reject" title="Deny"
                                             wire:click="rejectUser({{ $user->id }})"
                                             wire:confirm="Reject {{ $user->name }}'s account?">
-                                            <i class="fas fa-times"></i> Deny
+                                            <i class="fas fa-times"></i>
                                         </button>
                                     @endif
 
@@ -569,6 +569,36 @@
         color: #e74c3c;
     }
     .btn-action.delete:hover { background: rgba(231,76,60,0.22); }
+
+    body[data-theme="dark"] .btn-action.approve {
+        background: rgba(39,174,96,0.2);
+        color: #4ade80;
+    }
+    body[data-theme="dark"] .btn-action.approve:hover { background: rgba(39,174,96,0.35); }
+
+    body[data-theme="dark"] .btn-action.reject {
+        background: rgba(231,76,60,0.15);
+        color: #f87171;
+    }
+    body[data-theme="dark"] .btn-action.reject:hover { background: rgba(231,76,60,0.28); }
+
+    body[data-theme="dark"] .btn-action.disable {
+        background: rgba(243,156,18,0.15);
+        color: #fbbf24;
+    }
+    body[data-theme="dark"] .btn-action.disable:hover { background: rgba(243,156,18,0.28); }
+
+    body[data-theme="dark"] .btn-action.reset {
+        background: rgba(139,92,246,0.15);
+        color: #a78bfa;
+    }
+    body[data-theme="dark"] .btn-action.reset:hover { background: rgba(139,92,246,0.28); }
+
+    body[data-theme="dark"] .btn-action.delete {
+        background: rgba(231,76,60,0.15);
+        color: #f87171;
+    }
+    body[data-theme="dark"] .btn-action.delete:hover { background: rgba(231,76,60,0.28); }
 
     /* Empty State */
     .empty-state {

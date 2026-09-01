@@ -1,8 +1,8 @@
 <x-app-with-sidebar>
     <x-slot name="header">Clinic Visits</x-slot>
 
-    <div class="clinic-visit-page">
-        <!-- Header -->
+    <div class="clinic-visit-list-page">
+        <!-- Page Header -->
         <div class="page-header">
             <div class="header-left">
                 <h1 class="page-title">Clinic Visit Records</h1>
@@ -13,76 +13,96 @@
             </a>
         </div>
 
-        <!-- Success Message -->
-        @if (session('success'))
-            <div class="alert alert-success">
-                <i class="fas fa-check-circle"></i> {{ session('success') }}
-            </div>
-        @endif
-
-        <!-- Visits Table -->
+        <!-- Clinic Visits Table -->
         <div class="table-container">
-            @if($visits->isEmpty())
-                <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
-                    <p>No clinic visits recorded yet.</p>
-                    <a href="{{ route('clinic-visit.create') }}" class="btn-empty">
-                        Record First Visit
-                    </a>
-                </div>
-            @else
-                <table class="visits-table">
-                    <thead>
-                        <tr>
-                            <th>DATE</th>
-                            <th>PATIENT NAME</th>
-                            <th>CATEGORY</th>
-                            <th>YEAR & SECTION</th>
-                            <th>COMPLAINTS</th>
-                            <th>DIAGNOSIS</th>
-                            <th>ACTIONS</th>
+            <table class="visits-table">
+                <thead>
+                    <tr>
+                        <th>DATE</th>
+                        <th>FULL NAME</th>
+                        <th>YEAR & SECTION</th>
+                        <th>AGE</th>
+                        <th colspan="8">VITAL SIGNS</th>
+                        <th>COMPLAINTS</th>
+                        <th>DIAGNOSIS</th>
+                        <th>MANAGEMENT</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                    <tr class="vital-signs-header">
+                        <th colspan="4"></th>
+                        <th>T°</th>
+                        <th>PR</th>
+                        <th>RR</th>
+                        <th>BP</th>
+                        <th>HT</th>
+                        <th>WT</th>
+                        <th>BMI</th>
+                        <th>SpO2</th>
+                        <th colspan="4"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($visits as $visit)
+                        <tr class="visit-row">
+                            <td>{{ $visit->visit_date->format('m/d/Y') }}</td>
+                            <td class="patient-name">{{ $visit->patient->name ?? 'N/A' }}</td>
+                            <td class="year-section">{{ $visit->patient->year_section ?? 'N/A' }}</td>
+                            <td class="center">{{ $visit->patient->age ?? 'N/A' }}</td>
+                            <td class="vital-sign">{{ $visit->temperature ? $visit->temperature . '°C' : '-' }}</td>
+                            <td class="vital-sign">{{ $visit->pulse_rate ?: '-' }}</td>
+                            <td class="vital-sign">{{ $visit->respiratory_rate ?: '-' }}</td>
+                            <td class="vital-sign">{{ $visit->bp_systolic && $visit->bp_diastolic ? $visit->bp_systolic . '/' . $visit->bp_diastolic : '-' }}</td>
+                            <td class="vital-sign">{{ $visit->height ? $visit->height . 'cm' : '-' }}</td>
+                            <td class="vital-sign">{{ $visit->weight ? $visit->weight . 'kg' : '-' }}</td>
+                            <td class="vital-sign">{{ $visit->getBMI() ?: '-' }}</td>
+                            <td class="vital-sign">{{ $visit->spo2 ? $visit->spo2 . '%' : '-' }}</td>
+                            <td class="text-small">{{ $visit->complaints ?: '-' }}</td>
+                            <td class="text-small">{{ $visit->diagnosis ?: '-' }}</td>
+                            <td class="text-small">{{ $visit->management ?: '-' }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{{ route('clinic-visit.show', $visit->id) }}" class="btn-view" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ route('clinic-visit.edit', $visit->id) }}" class="btn-edit" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form method="POST" action="{{ route('clinic-visit.destroy', $visit->id) }}" style="display:inline;" onsubmit="return confirm('Delete this visit record?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-delete" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($visits as $visit)
-                            <tr class="visit-row">
-                                <td>{{ $visit->visit_date ? date('m/d/Y', strtotime($visit->visit_date)) : '-' }}</td>
-                                <td class="patient-name">{{ $visit->patient->name }}</td>
-                                <td>
-                                    <span class="badge {{ $visit->patient->getCategoryBadgeClass() }}">
-                                        {{ $visit->patient->getCategoryLabel() }}
-                                    </span>
-                                </td>
-                                <td class="year-section">{{ $visit->patient->year_section ?? '-' }}</td>
-                                <td class="text-small">{{ Str::limit($visit->complaints, 40) }}</td>
-                                <td class="text-small">{{ Str::limit($visit->diagnosis, 40) }}</td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a href="{{ route('clinic-visit.show', $visit->id) }}" class="btn-view" title="View">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        @if (auth()->user()->role !== 'clinic_staff')
-                                            <a href="{{ route('clinic-visit.edit', $visit->id) }}" class="btn-edit" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                    @empty
+                        <tr>
+                            <td colspan="16" style="text-align:center;padding:40px;color:var(--text-muted);">
+                                No clinic visits recorded yet.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
-                <!-- Pagination -->
-                <div class="pagination-wrapper">
+        <!-- Pagination -->
+        @if ($visits->hasPages())
+            <div class="pagination-section">
+                <p class="pagination-info">
+                    Showing {{ $visits->firstItem() ?? 0 }} to {{ $visits->lastItem() ?? 0 }} of {{ $visits->total() }} visits
+                </p>
+                <div class="pagination">
                     {{ $visits->links() }}
                 </div>
-            @endif
-        </div>
+            </div>
+        @endif
     </div>
 
     <style>
-        .clinic-visit-page {
+        .clinic-visit-list-page {
             display: flex;
             flex-direction: column;
             gap: 24px;
@@ -94,7 +114,9 @@
             align-items: flex-start;
         }
 
-        .header-left { flex: 1; }
+        .header-left {
+            flex: 1;
+        }
 
         .page-title {
             margin: 0;
@@ -106,15 +128,15 @@
         .page-description {
             margin: 4px 0 0 0;
             font-size: 13px;
-            color: var(--text-body);
+            color: var(--text-muted);
         }
 
         .btn-new-visit {
-            background: linear-gradient(135deg, #38bdf8, #2563eb);
+            background: #27ae60;
             color: white;
             border: none;
             border-radius: 8px;
-            padding: 10px 18px;
+            padding: 10px 16px;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
@@ -125,158 +147,250 @@
             text-decoration: none;
         }
 
-        .btn-new-visit:hover { opacity: 0.9; transform: translateY(-2px); }
-
-        .alert {
-            padding: 12px 16px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-        }
-
-        .alert-success {
-            background: rgba(39, 174, 96, 0.1);
-            color: #27ae60;
-            border: 1px solid rgba(39, 174, 96, 0.2);
+        .btn-new-visit:hover {
+            background: #229954;
+            transform: translateY(-2px);
         }
 
         .table-container {
             background: var(--bg-card);
-            border: 1px solid var(--border-card);
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
             overflow-x: auto;
         }
-
-        .empty-state {
-            padding: 60px 24px;
-            text-align: center;
-            color: var(--text-muted);
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            opacity: 0.3;
-            display: block;
-            margin-bottom: 16px;
-        }
-
-        .empty-state p {
-            margin: 0 0 16px 0;
-            font-size: 14px;
-        }
-
-        .btn-empty {
-            background: rgba(56, 189, 248, 0.1);
-            color: #38bdf8;
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            padding: 8px 16px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 600;
-            display: inline-block;
-            transition: all 0.2s;
-        }
-
-        .btn-empty:hover { background: rgba(56, 189, 248, 0.2); }
 
         .visits-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 12px;
         }
 
-        .visits-table th {
-            padding: 12px 16px;
+        .visits-table thead tr:first-child th {
+            padding: 14px 10px;
             text-align: left;
             font-size: 11px;
             font-weight: 700;
-            color: var(--text-muted);
+            color: white;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: transparent;
-            border-bottom: 2px solid var(--border-inner);
+            letter-spacing: 0.4px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border: 1px solid #2980b9;
+        }
+
+        .vital-signs-header th {
+            background: #34495e !important;
+            padding: 10px 6px !important;
+            font-size: 10px !important;
         }
 
         .visits-table tbody tr {
             border-bottom: 1px solid var(--border-inner);
-            transition: background 0.15s;
+            transition: all 0.2s;
         }
 
-        .visits-table tbody tr:hover { background: var(--bg-input); }
+        .visits-table tbody tr:hover {
+            background: var(--bg-input);
+        }
 
         .visits-table td {
-            padding: 12px 16px;
-            color: var(--text-body);
+            padding: 12px 10px;
+            color: var(--text-heading);
+            border-right: 1px solid var(--border-inner);
+        }
+
+        .visits-table td:last-child {
+            border-right: none;
         }
 
         .patient-name {
             font-weight: 700;
-            color: var(--text-heading);
+            color: #3498db;
+            min-width: 120px;
         }
 
         .year-section {
             font-weight: 600;
-            color: var(--text-body);
+            color: #9b59b6;
+            min-width: 100px;
         }
 
-        .text-small {
-            font-size: 12px;
-            color: var(--text-body);
-            max-width: 150px;
-            white-space: normal;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .badge-student { background: rgba(56,189,248,0.1);  color: #38bdf8; }
-        .badge-faculty { background: rgba(139,92,246,0.1);  color: #8b5cf6; }
-        .badge-staff   { background: rgba(39,174,96,0.1);   color: #27ae60; }
-        .badge-gray    { background: rgba(127,140,141,0.1); color: #7f8c8d; }
-
-        .action-buttons { display: flex; gap: 6px; }
-
-        .btn-view,
-        .btn-edit {
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            padding: 6px 8px;
-            border-radius: 6px;
-            transition: all 0.15s;
-            font-size: 14px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-view { color: #38bdf8; }
-        .btn-view:hover { background: rgba(56,189,248,0.1); }
-
-        .btn-edit { color: #f39c12; }
-        .btn-edit:hover { background: rgba(243,156,18,0.1); }
-
-        .pagination-wrapper {
-            padding: 16px 24px;
-            border-top: 1px solid var(--border-inner);
+        .center {
             text-align: center;
         }
 
+        .vital-sign {
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-heading);
+            min-width: 45px;
+        }
+
+        .text-small {
+            font-size: 11px;
+            color: var(--text-muted);
+            max-width: 80px;
+            white-space: normal;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+        }
+
+        .btn-view,
+        .btn-edit,
+        .btn-delete {
+            border: none;
+            background: transparent;
+            color: #3498db;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .btn-view:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: #2980b9;
+        }
+
+        .btn-edit:hover {
+            background: rgba(241, 196, 15, 0.1);
+            color: #f39c12;
+        }
+
+        .btn-delete:hover {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+
+        .pagination-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 16px 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .pagination-info {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pagination a,
+        .pagination span {
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-card);
+            background: var(--bg-card);
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .pagination a:hover {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .pagination .active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .pagination .disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 1024px) {
+            .visits-table {
+                font-size: 11px;
+            }
+
+            .visits-table td,
+            .visits-table th {
+                padding: 10px 8px;
+            }
+
+            .text-small {
+                max-width: 60px;
+                font-size: 10px;
+            }
+        }
+
         @media (max-width: 768px) {
-            .page-header { flex-direction: column; gap: 16px; }
-            .btn-new-visit { width: 100%; justify-content: center; }
-            .visits-table { font-size: 11px; }
-            .visits-table th, .visits-table td { padding: 8px; }
+            .page-header {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .btn-new-visit {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .table-container {
+                overflow-x: scroll;
+            }
+
+            .visits-table {
+                font-size: 10px;
+                min-width: 1200px;
+            }
+
+            .pagination-section {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .pagination {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 22px;
+            }
+
+            .visits-table {
+                font-size: 9px;
+                min-width: 1400px;
+            }
+
+            .visits-table th,
+            .visits-table td {
+                padding: 8px 4px;
+            }
+
+            .action-buttons {
+                gap: 2px;
+            }
+
+            .btn-view,
+            .btn-edit,
+            .btn-delete {
+                padding: 4px;
+                font-size: 12px;
+            }
         }
     </style>
 </x-app-with-sidebar>

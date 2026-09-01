@@ -97,6 +97,23 @@
                     </div>
                 @endif
             </div>
+
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label class="form-label">Age</label>
+                    <input type="number" wire:model="patientAge" class="form-control" min="0" max="150" placeholder="Enter age">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" wire:model="patientPhone" class="form-control" maxlength="30" placeholder="Enter phone number">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <input type="text" wire:model="patientAddress" class="form-control" maxlength="500" placeholder="Enter address">
+                </div>
+            </div>
         </div>
 
         <!-- Vital Signs -->

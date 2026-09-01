@@ -132,7 +132,9 @@
             </div>
             <div class="chart-container location-chart-container">
                 @if (count($patientLocationData['labels']) > 0)
-                    <canvas id="patientLocationChart"></canvas>
+                    <canvas id="patientLocationChart"
+                        data-labels='@json($patientLocationData['labels'])'
+                        data-data='@json($patientLocationData['data'])'></canvas>
                 @else
                     <div class="empty-state"><i class="fas fa-map-marker-alt"></i><p>No patient location data found.</p></div>
                 @endif
@@ -187,7 +189,9 @@
                 </div>
                 <div class="chart-container">
                     @if (count($last7DaysChart['labels']) > 0)
-                        <canvas id="visitsChart"></canvas>
+                        <canvas id="visitsChart"
+                            data-labels='@json($last7DaysChart['labels'])'
+                            data-data='@json($last7DaysChart['data'])'></canvas>
                     @else
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
@@ -206,7 +210,9 @@
                 </div>
                 <div class="chart-container">
                     @if (count($visitsTrendData['labels']) > 0)
-                        <canvas id="visitsTrendChart"></canvas>
+                        <canvas id="visitsTrendChart"
+                            data-labels='@json($visitsTrendData['labels'])'
+                            data-data='@json($visitsTrendData['data'])'></canvas>
                     @else
                         <div class="empty-state">
                             <i class="fas fa-inbox"></i>
@@ -259,7 +265,10 @@
             </div>
             <div class="overview-body">
                 <div class="donut-wrapper">
-                    <canvas id="vitalsDonut"></canvas>
+                    <canvas id="vitalsDonut"
+                        data-normal="{{ $vitalSignsOverview['normal'] }}"
+                        data-elevated="{{ $vitalSignsOverview['elevated'] }}"
+                        data-abnormal="{{ $vitalSignsOverview['abnormal'] }}"></canvas>
                     <div class="donut-center">
                         <span class="donut-value">{{ $vitalSignsOverview['total'] }}</span>
                         <span class="donut-label">RECORDS</span>
@@ -301,7 +310,10 @@
             </div>
             <div class="overview-body">
                 <div class="donut-wrapper">
-                    <canvas id="medicineDonut"></canvas>
+                    <canvas id="medicineDonut"
+                        data-available="{{ $medicineInventory['available'] }}"
+                        data-low-stock="{{ $medicineInventory['lowStock'] }}"
+                        data-expiring="{{ $medicineInventory['expiringSoon'] }}"></canvas>
                     <div class="donut-center">
                         <span class="donut-value">{{ $medicineInventory['total'] }}</span>
                         <span class="donut-label">MEDICINES</span>
@@ -1103,13 +1115,15 @@
             @if (count($last7DaysChart['labels']) > 0)
                 const visitsCtx = document.getElementById('visitsChart');
                 if (visitsCtx) {
+                    const visitsLabels = JSON.parse(visitsCtx.dataset.labels || '[]');
+                    const visitsData = JSON.parse(visitsCtx.dataset.data || '[]');
                     clinicStaffCharts.visits = new Chart(visitsCtx, {
                         type: 'bar',
                         data: {
-                            labels: @json($last7DaysChart['labels']),
+                            labels: visitsLabels,
                             datasets: [{
                                 label: 'Visits',
-                                data: @json($last7DaysChart['data']),
+                                data: visitsData,
                                 backgroundColor: '#38bdf8',
                                 borderRadius: 6,
                                 maxBarThickness: 36,
@@ -1147,13 +1161,15 @@
             @if (count($visitsTrendData['labels']) > 0)
                 const trendCtx = document.getElementById('visitsTrendChart');
                 if (trendCtx) {
+                    const trendLabels = JSON.parse(trendCtx.dataset.labels || '[]');
+                    const trendData = JSON.parse(trendCtx.dataset.data || '[]');
                     clinicStaffCharts.trend = new Chart(trendCtx, {
                         type: 'line',
                         data: {
-                            labels: @json($visitsTrendData['labels']),
+                            labels: trendLabels,
                             datasets: [{
                                 label: 'Visits',
-                                data: @json($visitsTrendData['data']),
+                                data: trendData,
                                 borderColor: '#2ecc71',
                                 backgroundColor: 'rgba(46, 204, 113, 0.1)',
                                 borderWidth: 2,
@@ -1185,13 +1201,15 @@
 
             const locationCtx = document.getElementById('patientLocationChart');
             if (locationCtx) {
+                const locationLabels = JSON.parse(locationCtx.dataset.labels || '[]');
+                const locationData = JSON.parse(locationCtx.dataset.data || '[]');
                 clinicStaffCharts.location = new Chart(locationCtx, {
                     type: 'bar',
                     data: {
-                        labels: @json($patientLocationData['labels']),
+                        labels: locationLabels,
                         datasets: [{
                             label: 'Clinic visits',
-                            data: @json($patientLocationData['data']),
+                            data: locationData,
                             backgroundColor: '#f97316',
                             borderRadius: 5,
                             maxBarThickness: 34,
@@ -1234,7 +1252,11 @@
                     data: {
                         labels: ['Normal', 'Elevated', 'Abnormal'],
                         datasets: [{
-                            data: [{{ $vitalSignsOverview['normal'] }}, {{ $vitalSignsOverview['elevated'] }}, {{ $vitalSignsOverview['abnormal'] }}],
+                            data: [
+                                parseInt(vitalsCtx.dataset.normal || '0'),
+                                parseInt(vitalsCtx.dataset.elevated || '0'),
+                                parseInt(vitalsCtx.dataset.abnormal || '0'),
+                            ],
                             backgroundColor: ['#27ae60', '#f39c12', '#e74c3c'],
                             borderWidth: 3,
                             borderColor: cardBg,
@@ -1251,7 +1273,11 @@
                     data: {
                         labels: ['Healthy', 'Low Stock', 'Expiring'],
                         datasets: [{
-                            data: [{{ $medicineInventory['available'] }}, {{ $medicineInventory['lowStock'] }}, {{ $medicineInventory['expiringSoon'] }}],
+                            data: [
+                                parseInt(medCtx.dataset.available || '0'),
+                                parseInt(medCtx.dataset.lowStock || '0'),
+                                parseInt(medCtx.dataset.expiring || '0'),
+                            ],
                             backgroundColor: ['#27ae60', '#e74c3c', '#f39c12'],
                             borderWidth: 3,
                             borderColor: cardBg,

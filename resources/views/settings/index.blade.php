@@ -4,8 +4,8 @@
     <div class="settings-page">
         <!-- Page Header -->
         <div class="page-header">
-            <h1 class="page-title">Settings & Profile</h1>
-            <p class="page-subtitle">Manage your account and clinic settings</p>
+        <h1 class="page-title">Profile Settings</h1>
+        <p class="page-subtitle">Manage your profile and account preferences</p>
         </div>
 
         <!-- Alert Messages -->
@@ -23,61 +23,6 @@
 
         <!-- Settings Container -->
         <div class="settings-container">
-            <!-- Sidebar Menu -->
-            <div class="settings-sidebar">
-                <div class="settings-menu">
-                    <a href="#profile-section" class="menu-item active" onclick="switchTab(event, 'profile')">
-                        <i class="fas fa-user"></i> Profile Information
-                    </a>
-                    <a href="#password-section" class="menu-item" onclick="switchTab(event, 'password')">
-                        <i class="fas fa-lock"></i> Change Password
-                    </a>
-                    <a href="#username-section" class="menu-item" onclick="switchTab(event, 'username')">
-                        <i class="fas fa-id-card"></i> Username
-                    </a>
-                    <a href="#clinic-section" class="menu-item" onclick="switchTab(event, 'clinic')">
-                        <i class="fas fa-hospital"></i> Clinic Settings
-                    </a>
-                </div>
-
-                <!-- User Info Card -->
-                <div class="user-info-card">
-                    <form action="{{ route('settings.avatar.update') }}" method="POST" enctype="multipart/form-data" id="avatarForm">
-                        @csrf
-                        <label for="avatarInput" class="avatar-upload-wrap" title="Change profile picture">
-                            <div class="user-avatar">
-                                @if (auth()->user()->getAvatarUrl())
-                                    <img src="{{ auth()->user()->getAvatarUrl() }}" alt="{{ auth()->user()->name }}" id="avatarPreview">
-                                @else
-                                    <span id="avatarInitial">{{ auth()->user()->getInitial() }}</span>
-                                    <img src="" alt="" id="avatarPreview" style="display:none;">
-                                @endif
-                            </div>
-                            <div class="avatar-edit-badge">
-                                <i class="fas fa-camera"></i>
-                            </div>
-                        </label>
-                        <input type="file" name="avatar" id="avatarInput" accept="image/png, image/jpeg, image/webp" hidden>
-                    </form>
-
-                    @if (auth()->user()->getAvatarUrl())
-                        <form action="{{ route('settings.avatar.delete') }}" method="POST" id="avatarDeleteForm">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="remove-avatar-link">Remove photo</button>
-                        </form>
-                    @endif
-
-                    <div class="user-details">
-                        <h3>{{ auth()->user()->name }}</h3>
-                        <p class="role-badge">{{ auth()->user()->getRoleLabel() }}</p>
-                        <p class="status-badge {{ auth()->user()->getStatusBadgeClass() }}">
-                            {{ ucfirst(auth()->user()->approval_status) }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
             <!-- Settings Content -->
             <div class="settings-content">
 
@@ -173,7 +118,7 @@
                                             required
                                             placeholder="Enter your current password"
                                         >
-                                        <button type="button" class="toggle-password" onclick="togglePassword('current_password')">
+                                        <button type="button" class="toggle-password" onclick="togglePassword('current_password', this)">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
@@ -227,7 +172,7 @@
                                             required
                                             placeholder="Enter new password"
                                         >
-                                        <button type="button" class="toggle-password" onclick="togglePassword('password')">
+                                        <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
@@ -248,7 +193,7 @@
                                             required
                                             placeholder="Confirm new password"
                                         >
-                                        <button type="button" class="toggle-password" onclick="togglePassword('password_confirmation')">
+                                        <button type="button" class="toggle-password" onclick="togglePassword('password_confirmation', this)">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
@@ -265,106 +210,45 @@
                     </div>
                 </div>
 
-                <!-- ============ USERNAME SECTION ============ -->
-                <div id="username-section" class="settings-section">
-                    <div class="section-card">
-                        <h2 class="section-title">
-                            <i class="fas fa-id-card"></i> Username
-                        </h2>
-                        <p class="section-subtitle">Change your login username</p>
+            </div>
 
-                        <form action="{{ route('settings.username.update') }}" method="POST" class="settings-form">
+            <!-- Right Profile Panel -->
+            <div class="settings-profile-panel">
+                <div class="user-info-card">
+                    <form action="{{ route('settings.avatar.update') }}" method="POST" enctype="multipart/form-data" id="avatarForm">
+                        @csrf
+                        <label for="avatarInput" class="avatar-upload-wrap" title="Change profile picture">
+                            <div class="user-avatar">
+                                @if (auth()->user()->getAvatarUrl())
+                                    <img src="{{ auth()->user()->getAvatarUrl() }}" alt="{{ auth()->user()->name }}" id="avatarPreview">
+                                @else
+                                    <span id="avatarInitial">{{ auth()->user()->getInitial() }}</span>
+                                    <img src="" alt="" id="avatarPreview" style="display:none;">
+                                @endif
+                            </div>
+                            <div class="avatar-edit-badge">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                        </label>
+                        <input type="file" name="avatar" id="avatarInput" accept="image/png, image/jpeg, image/webp" hidden>
+                    </form>
+
+                    @if (auth()->user()->getAvatarUrl())
+                        <form action="{{ route('settings.avatar.delete') }}" method="POST" id="avatarDeleteForm">
                             @csrf
-
-                            <div class="form-group">
-                                <label class="form-label">Current Username</label>
-                                <input 
-                                    type="text" 
-                                    class="form-input"
-                                    value="{{ auth()->user()->username }}"
-                                    disabled>
-                            </div>
-
-                            <div class="form-divider"></div>
-
-                            <div class="form-group">
-                                <label class="form-label">New Username *</label>
-                                <input 
-                                    type="text" 
-                                    name="username" 
-                                    class="form-input @error('username') error @enderror"
-                                    placeholder="Enter new username"
-                                    required>
-                                <small class="form-hint">Username must be unique and contain only letters, numbers, and underscores</small>
-                                @error('username')
-                                    <span class="form-error">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <button type="submit" class="btn btn-save">
-                                <i class="fas fa-check"></i> Update Username
-                            </button>
+                            @method('DELETE')
+                            <button type="submit" class="remove-avatar-link">Remove photo</button>
                         </form>
+                    @endif
+
+                    <div class="user-details">
+                        <h3>{{ auth()->user()->name }}</h3>
+                        <p class="role-badge">{{ auth()->user()->getRoleLabel() }}</p>
+                        <p class="status-badge {{ auth()->user()->getStatusBadgeClass() }}">
+                            {{ ucfirst(auth()->user()->approval_status) }}
+                        </p>
                     </div>
                 </div>
-
-                <!-- ============ CLINIC SECTION ============ -->
-                <div id="clinic-section" class="settings-section">
-                    <div class="section-card">
-                        <h2 class="section-title">
-                            <i class="fas fa-hospital"></i> Clinic Settings
-                        </h2>
-                        <p class="section-subtitle">Configure clinic information</p>
-
-                        <form action="{{ route('settings.clinic.update') }}" method="POST" class="settings-form">
-                            @csrf
-
-                            <div class="form-group">
-                                <label class="form-label">Clinic Name</label>
-                                <input 
-                                    type="text" 
-                                    name="clinic_name" 
-                                    class="form-input"
-                                    value="{{ old('clinic_name', auth()->user()->clinic_name) }}"
-                                    placeholder="Carmen Municipal College School Clinic">
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Clinic Phone</label>
-                                <input 
-                                    type="text" 
-                                    name="clinic_phone" 
-                                    class="form-input"
-                                    value="{{ old('clinic_phone', auth()->user()->clinic_phone) }}"
-                                    placeholder="09123456789">
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Clinic Address</label>
-                                <textarea 
-                                    name="clinic_address" 
-                                    class="form-textarea"
-                                    rows="3"
-                                    placeholder="Carmen, Bohol">{{ old('clinic_address', auth()->user()->clinic_address) }}</textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Operating Hours</label>
-                                <input 
-                                    type="text" 
-                                    name="clinic_hours" 
-                                    class="form-input"
-                                    value="{{ old('clinic_hours', auth()->user()->clinic_hours) }}"
-                                    placeholder="Monday - Friday: 8:00 AM - 5:00 PM">
-                            </div>
-
-                            <button type="submit" class="btn btn-save">
-                                <i class="fas fa-save"></i> Save Clinic Settings
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
@@ -429,167 +313,15 @@
 
         .settings-container {
             display: grid;
-            grid-template-columns: 280px 1fr;
+            grid-template-columns: 1fr 300px;
             gap: 24px;
-        }
-
-        .settings-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .settings-menu {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            overflow: hidden;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            color: #7f8c8d;
-            text-decoration: none;
-            border-left: 4px solid transparent;
-            transition: all 0.2s;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .menu-item:hover {
-            background: #f9fafb;
-            color: #3498db;
-        }
-
-        .menu-item.active {
-            background: #f0f8ff;
-            color: #3498db;
-            border-left-color: #3498db;
-        }
-
-        .menu-item i {
-            width: 20px;
-            text-align: center;
-        }
-
-        .user-info-card {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            border-radius: 10px;
-            padding: 20px;
-            color: white;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-        }
-
-        .avatar-upload-wrap {
-            position: relative;
-            display: inline-block;
-            cursor: pointer;
-            margin-bottom: 12px;
-        }
-
-        .user-avatar {
-            width: 88px;
-            height: 88px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            font-weight: 700;
-            overflow: hidden;
-            border: 3px solid rgba(255, 255, 255, 0.5);
-        }
-
-        .user-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        .avatar-edit-badge {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 28px;
-            height: 28px;
-            background: white;
-            color: #3498db;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-            transition: all 0.2s;
-        }
-
-        .avatar-upload-wrap:hover .avatar-edit-badge {
-            background: #3498db;
-            color: white;
-            transform: scale(1.1);
-        }
-
-        .remove-avatar-link {
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.85);
-            font-size: 11px;
-            text-decoration: underline;
-            cursor: pointer;
-            margin-bottom: 8px;
-            padding: 0;
-        }
-
-        .remove-avatar-link:hover {
-            color: white;
-        }
-
-        .user-details h3 {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 700;
-        }
-
-        .role-badge {
-            margin: 6px 0;
-            font-size: 12px;
-            opacity: 0.9;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            background: rgba(255,255,255,0.3);
-            color: white;
+            align-items: start;
         }
 
         .settings-content {
             display: flex;
             flex-direction: column;
-        }
-
-        .settings-section {
-            display: none;
-        }
-
-        .settings-section.active {
-            display: block;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            gap: 20px;
         }
 
         .section-card {
@@ -708,6 +440,7 @@
             font-size: 16px;
             transition: all 0.2s;
             padding: 6px;
+            z-index: 1;
         }
 
         .toggle-password:hover {
@@ -775,38 +508,141 @@
             cursor: not-allowed;
         }
 
-        @media (max-width: 768px) {
+        .settings-profile-panel {
+            position: sticky;
+            top: 92px;
+        }
+
+        .settings-profile-panel .user-info-card {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border-radius: 10px;
+            padding: 24px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .settings-profile-panel .avatar-upload-wrap {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .settings-profile-panel .user-avatar {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            overflow: hidden;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            margin: 0 auto;
+        }
+
+        .settings-profile-panel .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .settings-profile-panel .avatar-edit-badge {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 28px;
+            height: 28px;
+            background: white;
+            color: #3498db;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+
+        .settings-profile-panel .avatar-upload-wrap:hover .avatar-edit-badge {
+            background: #3498db;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .settings-profile-panel .remove-avatar-link {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 11px;
+            text-decoration: underline;
+            cursor: pointer;
+            margin-bottom: 8px;
+            padding: 0;
+        }
+
+        .settings-profile-panel .remove-avatar-link:hover {
+            color: white;
+        }
+
+        .settings-profile-panel .user-details h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .settings-profile-panel .role-badge {
+            margin: 6px 0;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .settings-profile-panel .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        @media (max-width: 1024px) {
             .settings-container {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 260px;
             }
 
-            .settings-sidebar {
-                order: 2;
+            .section-card {
+                padding: 22px;
+            }
+
+            .settings-profile-panel .user-avatar {
+                width: 72px;
+                height: 72px;
+                font-size: 28px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .settings-page {
+                gap: 18px;
+            }
+
+            .settings-container {
+                grid-template-columns: 1fr;
             }
 
             .settings-content {
                 order: 1;
             }
 
-            .settings-menu {
-                display: flex;
-                overflow-x: auto;
-            }
-
-            .menu-item {
-                white-space: nowrap;
-                flex: 1;
-                border-left: none;
-                border-bottom: 4px solid transparent;
-            }
-
-            .menu-item.active {
-                border-left: none;
-                border-bottom-color: #3498db;
-            }
-
-            .user-info-card {
-                display: none;
+            .settings-profile-panel {
+                order: 2;
+                position: static;
             }
 
             .section-card {
@@ -819,55 +655,131 @@
         }
 
         @media (max-width: 480px) {
-            .menu-item {
-                padding: 12px 8px;
-                font-size: 11px;
+            .settings-page {
+                padding-bottom: 24px;
             }
 
-            .menu-item span {
-                display: none;
+            .page-header {
+                margin-bottom: 0;
+            }
+
+            .section-title {
+                font-size: 18px;
             }
 
             .btn {
                 width: 100%;
                 justify-content: center;
             }
+
+            .settings-profile-panel .user-avatar {
+                width: 64px;
+                height: 64px;
+                font-size: 24px;
+            }
+        }
+
+        body[data-theme="dark"] .section-card {
+            background: #0b1629;
+            border-color: #162135;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        body[data-theme="dark"] .section-title {
+            color: #f1f5f9;
+        }
+
+        body[data-theme="dark"] .section-subtitle {
+            color: #94a3b8;
+        }
+
+        body[data-theme="dark"] .form-label {
+            color: #f1f5f9;
+        }
+
+        body[data-theme="dark"] .form-input,
+        body[data-theme="dark"] .form-textarea {
+            background: #060f1e;
+            border-color: #1a2a42;
+            color: #f1f5f9;
+        }
+
+        body[data-theme="dark"] .form-input:focus,
+        body[data-theme="dark"] .form-textarea:focus {
+            background: #0b1629;
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+        }
+
+        body[data-theme="dark"] .form-input.error,
+        body[data-theme="dark"] .form-textarea.error {
+            border-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.15);
+        }
+
+        body[data-theme="dark"] .form-hint {
+            color: #64748b;
+        }
+
+        body[data-theme="dark"] .info-box {
+            background: rgba(56, 189, 248, 0.1);
+            border-color: #1a2a42;
+            color: #38bdf8;
+        }
+
+        body[data-theme="dark"] .otp-input {
+            background: #060f1e;
+            border-color: #1a2a42;
+            color: #f1f5f9;
+        }
+
+        body[data-theme="dark"] .toggle-password {
+            color: #64748b;
+        }
+
+        body[data-theme="dark"] .toggle-password:hover {
+            color: #38bdf8;
+        }
+
+        body[data-theme="dark"] .page-title {
+            color: #f1f5f9;
+        }
+
+        body[data-theme="dark"] .page-subtitle {
+            color: #94a3b8;
+        }
+
+        body[data-theme="dark"] .alert-success {
+            background: rgba(39, 174, 96, 0.15);
+            border-color: #1a2a42;
+            color: #4ade80;
+        }
+
+        body[data-theme="dark"] .alert-error {
+            background: rgba(231, 76, 60, 0.15);
+            border-color: #1a2a42;
+            color: #f87171;
+        }
+
+        body[data-theme="dark"] .btn-save {
+            background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
         }
     </style>
 
     <script>
-        function switchTab(event, tabName) {
-            event.preventDefault();
-
-            // Hide all sections
-            const sections = document.querySelectorAll('.settings-section');
-            sections.forEach(section => {
-                section.classList.remove('active');
-            });
-
-            // Remove active class from all menu items
-            const menuItems = document.querySelectorAll('.menu-item');
-            menuItems.forEach(item => {
-                item.classList.remove('active');
-            });
-
-            // Show selected section
-            document.getElementById(tabName + '-section').classList.add('active');
-
-            // Add active class to clicked menu item
-            event.target.closest('.menu-item').classList.add('active');
-        }
-
-        function togglePassword(fieldId) {
+        function togglePassword(fieldId, button) {
             const field = document.getElementById(fieldId);
-            const button = event.currentTarget;
+            if (!field || !button) return;
+            
+            const icon = button.querySelector('i');
+            if (!icon) return;
             
             if (field.type === 'password') {
                 field.type = 'text';
-                button.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                icon.className = 'fas fa-eye-slash';
             } else {
                 field.type = 'password';
-                button.innerHTML = '<i class="fas fa-eye"></i>';
+                icon.className = 'fas fa-eye';
             }
         }
 
@@ -914,17 +826,8 @@
             });
         })();
 
-        // Auto-format OTP input
+        // Auto-dismiss alerts
         window.addEventListener('load', function() {
-            const otpInput = document.getElementById('otp');
-            if (otpInput) {
-                otpInput.addEventListener('keypress', function(e) {
-                    if (!/[0-9]/.test(e.key)) {
-                        e.preventDefault();
-                    }
-                });
-            }
-
             const successAlert = document.getElementById('successAlert');
             const errorAlert = document.getElementById('errorAlert');
 

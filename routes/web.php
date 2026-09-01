@@ -13,7 +13,14 @@ use Illuminate\Support\Facades\Route;
 
 // ============ PUBLIC LANDING PAGE ============
 Route::get('/', function () {
-    return view('landing');
+    $stats = [
+        'patients' => \App\Models\Patient::count(),
+        'visits' => \App\Models\ClinicVisit::count(),
+        'staff' => \App\Models\User::clinicStaff()->active()->count(),
+        'users' => \App\Models\User::count(),
+    ];
+
+    return view('landing', compact('stats'));
 })->name('landing');
 
 // ============ AUTHENTICATION ROUTES ============
@@ -71,6 +78,10 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
     })->name('dashboard');
 
     // ✅ PATIENT ROUTES
+    Route::get('/my-profile', [PatientController::class, 'myProfile'])->name('patient.profile');
+    Route::put('/my-profile', [PatientController::class, 'updateMyProfile'])->name('patient.profile.update');
+    Route::patch('/my-profile', [PatientController::class, 'updateMyProfile']);
+    Route::get('/my-records', [PatientController::class, 'myRecords'])->name('patient.records');
     Route::resource('patients', PatientController::class)->middleware('clinic.role:clinic_nurse');
 
     // ✅ CLINIC VISIT ROUTES
@@ -125,6 +136,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
         Route::get('/reports/medicines', [ReportController::class, 'medicines'])->name('reports.medicines');
         Route::get('/reports/appointments', [ReportController::class, 'appointments'])->name('reports.appointments');
         Route::get('/reports/vital-signs', [ReportController::class, 'vitalSigns'])->name('reports.vital-signs');
+        Route::get('/reports/download/{type}', [ReportController::class, 'download'])->name('reports.download');
     });
 
     // ✅ SETTINGS ROUTES
@@ -150,6 +162,10 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
             Route::post('/users/bulk/create', function () {
                 // Bulk create users
             })->name('users.bulk-create');
+
+            // Clinic Staff Management
+            Route::get('/clinic-staff', [UserManagementController::class, 'clinicStaff'])->name('clinic-staff.index');
+            Route::get('/clinic-staff/{id}', [UserManagementController::class, 'clinicStaffShow'])->name('clinic-staff.show');
         });
 
     // ✅ FORMS ROUTES

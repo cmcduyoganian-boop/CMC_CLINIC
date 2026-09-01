@@ -11,7 +11,7 @@ use Carbon\Carbon;
 class ClinicStaffDashboard extends Component
 {
     // ============ FILTER PROPERTIES ============
-    public $dateRange = 'this_month';
+    public $dateRange = 'last_30';
     public $patientType = 'all';
     public $customStartDate = null;
     public $customEndDate = null;

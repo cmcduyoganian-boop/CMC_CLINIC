@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 class NurseDashboard extends Component
 {
     // ============ FILTER PROPERTIES ============
-    public $dateRange = 'this_month';
+    public $dateRange = 'last_30';
     public $visitType = 'all';
     public $patientType = 'all';
     public $customStartDate = null;

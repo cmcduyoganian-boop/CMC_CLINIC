@@ -186,7 +186,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            background: white;
+            background: var(--bg-card);
             padding: 24px;
             border-radius: 10px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
@@ -216,13 +216,13 @@
             margin: 0;
             font-size: 28px;
             font-weight: 700;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .patient-meta {
             margin: 8px 0 0 0;
             font-size: 13px;
-            color: #95a5a6;
+            color: var(--text-muted);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -253,10 +253,11 @@
         }
 
         .meta-item {
-            background: #f0f0f0;
+            background: var(--bg-input);
             padding: 4px 12px;
             border-radius: 6px;
             font-weight: 600;
+            color: var(--text-heading);
         }
 
         .header-actions {
@@ -290,12 +291,12 @@
         }
 
         .btn-back {
-            background: #ecf0f1;
-            color: #7f8c8d;
+            background: var(--bg-input);
+            color: var(--text-muted);
         }
 
         .btn-back:hover {
-            background: #d4d9e0;
+            background: var(--border-input);
         }
 
         .info-cards-grid {
@@ -305,7 +306,7 @@
         }
 
         .info-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
@@ -315,8 +316,8 @@
             margin: 0 0 16px 0;
             font-size: 14px;
             font-weight: 700;
-            color: #2d3e50;
-            border-bottom: 2px solid #e8ecf1;
+            color: var(--text-heading);
+            border-bottom: 2px solid var(--border-inner);
             padding-bottom: 12px;
         }
 
@@ -332,7 +333,7 @@
             align-items: center;
             font-size: 12px;
             padding: 8px 0;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border-inner);
         }
 
         .info-row:last-child {
@@ -340,7 +341,7 @@
         }
 
         .info-label {
-            color: #95a5a6;
+            color: var(--text-muted);
             font-weight: 600;
             display: flex;
             align-items: center;
@@ -348,12 +349,12 @@
         }
 
         .info-value {
-            color: #2d3e50;
+            color: var(--text-heading);
             font-weight: 600;
         }
 
         .history-section {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 24px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
@@ -363,11 +364,11 @@
             margin: 0 0 20px 0;
             font-size: 18px;
             font-weight: 700;
-            color: #2d3e50;
+            color: var(--text-heading);
             display: flex;
             align-items: center;
             gap: 8px;
-            border-bottom: 2px solid #e8ecf1;
+            border-bottom: 2px solid var(--border-inner);
             padding-bottom: 12px;
         }
 
@@ -378,7 +379,7 @@
         .empty-history {
             text-align: center;
             padding: 48px 24px;
-            color: #95a5a6;
+            color: var(--text-muted);
         }
 
         .empty-history i {
@@ -416,7 +417,7 @@
         }
 
         .visit-card {
-            border: 1px solid #e8ecf1;
+            border: 1px solid var(--border-card);
             border-radius: 8px;
             overflow: hidden;
             transition: all 0.2s;
@@ -432,8 +433,8 @@
             align-items: center;
             gap: 16px;
             padding: 16px;
-            background: #f9fafb;
-            border-bottom: 1px solid #e8ecf1;
+            background: var(--bg-input);
+            border-bottom: 1px solid var(--border-inner);
         }
 
         .visit-date-badge {
@@ -467,7 +468,7 @@
             margin: 0;
             font-size: 13px;
             font-weight: 600;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .visit-diagnosis {
@@ -513,12 +514,12 @@
 
         .label {
             font-weight: 600;
-            color: #2d3e50;
+            color: var(--text-heading);
             min-width: 100px;
         }
 
         .value {
-            color: #95a5a6;
+            color: var(--text-muted);
             flex: 1;
             line-height: 1.4;
         }
@@ -538,7 +539,7 @@
         }
 
         .vital {
-            background: #eef2f5;
+            background: var(--bg-input);
             padding: 4px 10px;
             border-radius: 4px;
             font-size: 11px;
@@ -550,8 +551,8 @@
             display: flex;
             gap: 16px;
             padding: 12px 16px;
-            background: #f9fafb;
-            border-top: 1px solid #e8ecf1;
+            background: var(--bg-input);
+            border-top: 1px solid var(--border-inner);
             justify-content: flex-end;
         }
 

@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 
 class ClinicVisit extends Model
 {
     protected $fillable = [
         'patient_id',
+        'user_id',
+        'visit_date',
         'visit_date',
         'visit_type',
         'complaints',
@@ -32,6 +35,11 @@ class ClinicVisit extends Model
     public function patient()
     {
         return $this->belongsTo(Patient::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function getBMI()

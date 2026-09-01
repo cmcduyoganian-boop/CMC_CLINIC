@@ -14,6 +14,9 @@ class ClinicVisitCreateForm extends Component
     public $patientCategory = '';
     public $patientProgram = '';
     public $patientYearSection = '';
+    public $patientAge = '';
+    public $patientAddress = '';
+    public $patientPhone = '';
     public $showPatientDropdown = false;
 
     // ============ VISIT INFO ============
@@ -120,6 +123,9 @@ class ClinicVisitCreateForm extends Component
         $this->patientYearSection = in_array($patient->category, ['faculty', 'staff'], true)
             ? ''
             : $patient->year_section;
+        $this->patientAge = $patient->age ?? '';
+        $this->patientAddress = $patient->address ?? '';
+        $this->patientPhone = $patient->phone ?? '';
         $this->showPatientDropdown = false;
     }
 
@@ -135,6 +141,9 @@ class ClinicVisitCreateForm extends Component
             'patientCategory' => 'required|in:student,faculty,staff',
             'patientProgram' => 'nullable|string|max:255',
             'patientYearSection' => 'nullable|string|max:255',
+            'patientAge' => 'nullable|integer|min:0|max:150',
+            'patientAddress' => 'nullable|string|max:500',
+            'patientPhone' => 'nullable|string|max:30',
             'visitDate' => 'required|date',
             'visitType' => 'required|in:walk_in,appointment,follow_up',
             'temperature' => 'nullable|numeric',
@@ -162,12 +171,22 @@ class ClinicVisitCreateForm extends Component
                 'category' => $validated['patientCategory'],
                 'program' => $validated['patientProgram'],
                 'year_section' => $validated['patientYearSection'],
+                'age' => $validated['patientAge'],
+                'address' => $validated['patientAddress'],
+                'phone' => $validated['patientPhone'],
                 'status' => 'active',
+            ]);
+        } else {
+            $patient->update([
+                'age' => $validated['patientAge'],
+                'address' => $validated['patientAddress'],
+                'phone' => $validated['patientPhone'],
             ]);
         }
 
         ClinicVisit::create([
             'patient_id' => $patient->id,
+            'user_id' => auth()->id(),
             'visit_date' => $validated['visitDate'],
             'visit_type' => $validated['visitType'],
             'temperature' => $validated['temperature'] ?: null,

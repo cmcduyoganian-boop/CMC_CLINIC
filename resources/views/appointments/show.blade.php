@@ -59,7 +59,7 @@
         }
 
         .details-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 32px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
@@ -73,14 +73,14 @@
             align-items: flex-start;
             margin-bottom: 24px;
             padding-bottom: 20px;
-            border-bottom: 1px solid #e8ecf1;
+            border-bottom: 1px solid var(--border-inner);
         }
 
         .patient-name {
             margin: 0 0 8px 0;
             font-size: 22px;
             font-weight: 700;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .badge {
@@ -155,14 +155,14 @@
         .info-item label {
             font-size: 11px;
             font-weight: 700;
-            color: #95a5a6;
+            color: var(--text-muted);
             text-transform: uppercase;
             margin-bottom: 6px;
         }
 
         .info-value {
             font-size: 14px;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .details-actions {
@@ -171,7 +171,7 @@
             justify-content: flex-end;
             margin-top: 24px;
             padding-top: 20px;
-            border-top: 1px solid #e8ecf1;
+            border-top: 1px solid var(--border-inner);
         }
 
         .btn {
@@ -190,12 +190,12 @@
         }
 
         .btn-cancel {
-            background: #ecf0f1;
-            color: #7f8c8d;
+            background: var(--bg-input);
+            color: var(--text-muted);
         }
 
         .btn-cancel:hover {
-            background: #d4d9e0;
+            background: var(--border-input);
         }
 
         .btn-edit {

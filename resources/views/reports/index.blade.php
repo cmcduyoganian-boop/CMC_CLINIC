@@ -68,9 +68,14 @@
                         <small>Staff</small>
                     </span>
                 </div>
-                <a href="{{ route('reports.patients') }}" class="btn-view-report">
-                    View Report <i class="fas fa-arrow-right"></i>
-                </a>
+                <div class="report-actions">
+                    <a href="{{ route('reports.patients') }}" class="btn-view-report">
+                        View Report <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="{{ route('reports.download', 'patients') }}" class="btn-download-report">
+                        <i class="fas fa-download"></i> Excel
+                    </a>
+                </div>
             </div>
 
             <!-- Clinic Visits Report -->
@@ -90,9 +95,14 @@
                         <small>Today</small>
                     </span>
                 </div>
-                <a href="{{ route('reports.clinic-visits') }}" class="btn-view-report">
-                    View Report <i class="fas fa-arrow-right"></i>
-                </a>
+                <div class="report-actions">
+                    <a href="{{ route('reports.clinic-visits') }}" class="btn-view-report">
+                        View Report <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="{{ route('reports.download', 'clinic-visits') }}" class="btn-download-report">
+                        <i class="fas fa-download"></i> Excel
+                    </a>
+                </div>
             </div>
 
             <!-- Diagnosis Report -->
@@ -108,9 +118,14 @@
                         <small>Unique Diagnoses</small>
                     </span>
                 </div>
-                <a href="{{ route('reports.diagnosis') }}" class="btn-view-report">
-                    View Report <i class="fas fa-arrow-right"></i>
-                </a>
+                <div class="report-actions">
+                    <a href="{{ route('reports.diagnosis') }}" class="btn-view-report">
+                        View Report <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="{{ route('reports.download', 'diagnosis') }}" class="btn-download-report">
+                        <i class="fas fa-download"></i> Excel
+                    </a>
+                </div>
             </div>
 
             <!-- Medicines Report -->
@@ -126,9 +141,14 @@
                         <small>Low Stock</small>
                     </span>
                 </div>
-                <a href="{{ route('reports.medicines') }}" class="btn-view-report">
-                    View Report <i class="fas fa-arrow-right"></i>
-                </a>
+                <div class="report-actions">
+                    <a href="{{ route('reports.medicines') }}" class="btn-view-report">
+                        View Report <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="{{ route('reports.download', 'medicines') }}" class="btn-download-report">
+                        <i class="fas fa-download"></i> Excel
+                    </a>
+                </div>
             </div>
 
             <!-- Appointments Report -->
@@ -144,9 +164,14 @@
                         <small>Upcoming</small>
                     </span>
                 </div>
-                <a href="{{ route('reports.appointments') }}" class="btn-view-report">
-                    View Report <i class="fas fa-arrow-right"></i>
-                </a>
+                <div class="report-actions">
+                    <a href="{{ route('reports.appointments') }}" class="btn-view-report">
+                        View Report <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="{{ route('reports.download', 'appointments') }}" class="btn-download-report">
+                        <i class="fas fa-download"></i> Excel
+                    </a>
+                </div>
             </div>
 
             <!-- Vital Signs Report -->
@@ -162,9 +187,14 @@
                         <small>High Fever Cases</small>
                     </span>
                 </div>
-                <a href="{{ route('reports.vital-signs') }}" class="btn-view-report">
-                    View Report <i class="fas fa-arrow-right"></i>
-                </a>
+                <div class="report-actions">
+                    <a href="{{ route('reports.vital-signs') }}" class="btn-view-report">
+                        View Report <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="{{ route('reports.download', 'vital-signs') }}" class="btn-download-report">
+                        <i class="fas fa-download"></i> Excel
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -346,6 +376,33 @@
         .btn-view-report:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-download-report {
+            flex: 1;
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-download-report:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
         }
 
         @media (max-width: 768px) {

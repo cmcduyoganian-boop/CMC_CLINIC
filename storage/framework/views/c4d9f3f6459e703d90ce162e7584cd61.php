@@ -28,6 +28,18 @@
             --text-label:   #64748b;
             --chart-grid:   #111f35;
             --chart-tick:   #64748b;
+            --bg-success:   rgba(39, 174, 96, 0.15);
+            --border-success: rgba(39, 174, 96, 0.25);
+            --text-success: #4ade80;
+            --bg-danger:    rgba(231, 76, 60, 0.15);
+            --border-danger: rgba(231, 76, 60, 0.25);
+            --text-danger:  #f87171;
+            --bg-info:      rgba(56, 189, 248, 0.1);
+            --border-info:  rgba(56, 189, 248, 0.2);
+            --text-info:    #38bdf8;
+            --bg-warning:   rgba(245, 158, 11, 0.15);
+            --border-warning: rgba(245, 158, 11, 0.25);
+            --text-warning: #fbbf24;
         }
 
         body[data-theme="light"] {
@@ -43,6 +55,18 @@
             --text-label:   #64748b;
             --chart-grid:   #e2e8f0;
             --chart-tick:   #94a3b8;
+            --bg-success:   #e8f7ee;
+            --border-success: #b7e4c7;
+            --text-success: #157347;
+            --bg-danger:    #fef2f2;
+            --border-danger: #fecaca;
+            --text-danger:  #b91c1c;
+            --bg-info:      #e7f3ff;
+            --border-info:  #b3d9ff;
+            --text-info:    #0066cc;
+            --bg-warning:   #fffbeb;
+            --border-warning: #fde68a;
+            --text-warning: #92400e;
         }
 
         body {
@@ -104,6 +128,18 @@
             flex-shrink: 0;
         }
 
+        .sidebar-brand-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar-brand {
+                padding-top: 96px;
+            }
+        }
+
         .sidebar-nav {
             flex: 1;
             display: flex;
@@ -118,12 +154,15 @@
             gap: 10px;
             padding: 10px 12px;
             border-radius: 10px;
-            font-size: 12px;
-            font-weight: 500;
+            font-size: 11px;
+            font-weight: 600;
             color: var(--text-body);
             text-decoration: none;
             transition: all 0.15s;
             border-left: 3px solid transparent;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .sidebar-link:hover {
@@ -170,6 +209,14 @@
             justify-content: center;
             text-transform: uppercase;
             flex-shrink: 0;
+        }
+
+        .sidebar-avatar img,
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: inherit;
         }
 
         .sidebar-user-info {
@@ -246,6 +293,10 @@
             .clinic-sidebar.sidebar-open ~ .app-wrapper .app-main {
                 margin-left: 260px;
             }
+
+            .clinic-sidebar.sidebar-open ~ .app-wrapper .app-topbar {
+                left: 260px;
+            }
         }
 
         /* ============ MAIN LAYOUT ============ */
@@ -270,9 +321,11 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            position: sticky;
+            position: fixed;
             top: 0;
-            z-index: 100;
+            left: 0;
+            right: 0;
+            z-index: 300;
             gap: 20px;
         }
 
@@ -434,7 +487,7 @@
         /* CONTENT AREA */
         .app-content {
             flex: 1;
-            padding: 24px;
+            padding: 100px 24px 24px 24px;
             overflow-y: auto;
         }
 
@@ -444,11 +497,43 @@
             }
 
             .app-content {
-                padding: 16px;
+                padding: 92px 16px 16px 16px;
             }
 
             .topbar-search {
-                display: none;
+                max-width: 180px;
+            }
+
+            .search-input {
+                font-size: 12px;
+                padding: 8px 10px 8px 30px;
+                height: 32px;
+            }
+
+            .search-icon {
+                left: 10px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .topbar-search {
+                max-width: 140px;
+            }
+
+            .search-input {
+                font-size: 11px;
+                padding: 6px 8px 6px 26px;
+                height: 28px;
+            }
+
+            .search-icon {
+                left: 8px;
+                font-size: 11px;
+            }
+
+            .search-input::placeholder {
+                font-size: 10px;
             }
         }
 
@@ -465,6 +550,180 @@
             background: var(--border-input);
             border-radius: 3px;
         }
+
+        /* ============ TOPBAR PROFILE POPUP ============ */
+        .user-profile {
+            position: relative;
+        }
+
+        .profile-popup {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 320px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.2s ease;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .profile-popup.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .profile-popup-header {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--border-inner);
+        }
+
+        .popup-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .popup-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .popup-user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .popup-user-info h3 {
+            margin: 0 0 4px 0;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-heading);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .popup-user-info p {
+            margin: 0 0 4px 0;
+            font-size: 12px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .popup-role {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            background: rgba(52, 152, 219, 0.15);
+            color: #3498db;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .profile-popup-body {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-inner);
+        }
+
+        .popup-info-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 12px;
+            color: var(--text-body);
+        }
+
+        .popup-info-row i {
+            width: 16px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .popup-info-row span {
+            color: var(--text-heading);
+            font-weight: 600;
+        }
+
+        .profile-popup-footer {
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .popup-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: var(--text-body);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.15s;
+        }
+
+        .popup-link:hover {
+            background: var(--bg-input);
+            color: var(--text-heading);
+        }
+
+        .popup-link i {
+            width: 18px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .popup-logout-form {
+            display: block;
+        }
+
+        .popup-logout {
+            width: 100%;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            text-align: left;
+        }
+
+        .popup-logout:hover {
+            background: rgba(231, 76, 60, 0.1);
+            color: #f87171;
+        }
+
+        .popup-logout:hover i {
+            color: #f87171;
+        }
     </style>
 </head>
 <body data-theme="dark">
@@ -479,35 +738,53 @@
         </div>
 
         <nav class="sidebar-nav">
-            <a href="<?php echo e(route('dashboard')); ?>" class="sidebar-link <?php echo e(request()->routeIs('dashboard') ? 'active' : ''); ?>">
-                <i class="fas fa-chart-line sidebar-icon"></i> Dashboard
-            </a>
-            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->role !== 'clinic_staff'): ?>
-                <a href="<?php echo e(route('patients.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('patients.*') ? 'active' : ''); ?>">
-                    <i class="fas fa-users sidebar-icon"></i> Patients
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(in_array(auth()->user()->role, ['student', 'faculty', 'staff'], true)): ?>
+                <a href="<?php echo e(route('dashboard')); ?>" class="sidebar-link <?php echo e(request()->routeIs('dashboard') ? 'active' : ''); ?>">
+                    <i class="fas fa-chart-line sidebar-icon"></i> Dashboard
                 </a>
-            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-            <a href="<?php echo e(route('clinic-visit.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('clinic-visit.*') ? 'active' : ''); ?>">
-                <i class="fas fa-file-medical sidebar-icon"></i> Clinical Records
-            </a>
-            <a href="<?php echo e(route('medicines.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('medicines.*') ? 'active' : ''); ?>">
-                <i class="fas fa-pills sidebar-icon"></i> Inventory
-            </a>
-            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->role !== 'clinic_staff'): ?>
-                <a href="<?php echo e(route('appointments.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('appointments.*') ? 'active' : ''); ?>">
+                <a href="<?php echo e(route('patient.records')); ?>" class="sidebar-link <?php echo e(request()->routeIs('patient.records') ? 'active' : ''); ?>">
+                    <i class="fas fa-file-medical sidebar-icon"></i> Records
+                </a>
+                <a href="<?php echo e(route('patient.profile')); ?>" class="sidebar-link <?php echo e(request()->routeIs('patient.profile') || request()->routeIs('patient.profile.update') ? 'active' : ''); ?>">
+                    <i class="fas fa-user sidebar-icon"></i> Profile
+                </a>
+                <a href="<?php echo e(route('dashboard')); ?>#appointments" class="sidebar-link <?php echo e(request()->fullUrlIs(route('dashboard') . '#appointments') ? 'active' : ''); ?>">
                     <i class="fas fa-calendar-alt sidebar-icon"></i> Appointments
                 </a>
-                <a href="<?php echo e(route('reports.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('reports.*') ? 'active' : ''); ?>">
-                    <i class="fas fa-chart-bar sidebar-icon"></i> Reports
+            <?php else: ?>
+                <a href="<?php echo e(route('dashboard')); ?>" class="sidebar-link <?php echo e(request()->routeIs('dashboard') ? 'active' : ''); ?>">
+                    <i class="fas fa-chart-line sidebar-icon"></i> Dashboard
                 </a>
-                <a href="<?php echo e(route('forms.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('forms.*') ? 'active' : ''); ?>">
-                    <i class="fas fa-file-contract sidebar-icon"></i> Forms
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->role !== 'clinic_staff'): ?>
+                    <a href="<?php echo e(route('patients.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('patients.*') ? 'active' : ''); ?>">
+                        <i class="fas fa-users sidebar-icon"></i> Patients
+                    </a>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <a href="<?php echo e(route('clinic-visit.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('clinic-visit.*') ? 'active' : ''); ?>">
+                    <i class="fas fa-file-medical sidebar-icon"></i> Clinical Records
                 </a>
-            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user() && auth()->user()->role === 'clinic_nurse'): ?>
-                <a href="<?php echo e(route('users.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('users.*') ? 'active' : ''); ?>">
-                    <i class="fas fa-user-shield sidebar-icon"></i> User Management
+                <a href="<?php echo e(route('medicines.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('medicines.*') ? 'active' : ''); ?>">
+                    <i class="fas fa-pills sidebar-icon"></i> Inventory
                 </a>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->role !== 'clinic_staff'): ?>
+                    <a href="<?php echo e(route('appointments.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('appointments.*') ? 'active' : ''); ?>">
+                        <i class="fas fa-calendar-alt sidebar-icon"></i> Appointments
+                    </a>
+                    <a href="<?php echo e(route('reports.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('reports.*') ? 'active' : ''); ?>">
+                        <i class="fas fa-chart-bar sidebar-icon"></i> Reports
+                    </a>
+                    <a href="<?php echo e(route('forms.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('forms.*') ? 'active' : ''); ?>">
+                        <i class="fas fa-file-contract sidebar-icon"></i> Forms
+                    </a>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user() && auth()->user()->role === 'clinic_nurse'): ?>
+                    <a href="<?php echo e(route('users.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('users.*') ? 'active' : ''); ?>">
+                        <i class="fas fa-user-shield sidebar-icon"></i> User Management
+                    </a>
+                    <a href="<?php echo e(route('clinic-staff.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('clinic-staff.*') ? 'active' : ''); ?>">
+                        <i class="fas fa-user-md sidebar-icon"></i> Clinic Staff
+                    </a>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             <a href="<?php echo e(route('settings.index')); ?>" class="sidebar-link <?php echo e(request()->routeIs('settings.*') ? 'active' : ''); ?>">
                 <i class="fas fa-sliders-h sidebar-icon"></i> Settings
@@ -516,7 +793,14 @@
 
         <div class="sidebar-footer">
             <div class="sidebar-user">
-                <div class="sidebar-avatar"><?php echo e(substr(auth()->user()->name, 0, 2)); ?></div>
+                <div class="sidebar-avatar">
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->getAvatarUrl()): ?>
+                        <img src="<?php echo e(auth()->user()->getAvatarUrl()); ?>" alt="<?php echo e(auth()->user()->name); ?>">
+                    <?php else: ?>
+                        <?php echo e(substr(auth()->user()->name, 0, 2)); ?>
+
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                </div>
                 <div class="sidebar-user-info">
                     <span class="sidebar-user-name"><?php echo e(auth()->user()->name); ?></span>
                     <span class="sidebar-user-role"><?php echo e(str_replace('_', ' ', auth()->user()->role)); ?></span>
@@ -556,13 +840,66 @@
                         <i class="fas fa-bell"></i>
                         <div class="notification-badge"></div>
                     </button>
-                    <div class="user-profile">
-                        <div class="user-avatar"><?php echo e(substr(auth()->user()->name, 0, 1)); ?></div>
+                    <div class="user-profile" id="topbarUserProfile">
+                        <div class="user-avatar">
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->getAvatarUrl()): ?>
+                                <img src="<?php echo e(auth()->user()->getAvatarUrl()); ?>" alt="<?php echo e(auth()->user()->name); ?>">
+                            <?php else: ?>
+                                <?php echo e(substr(auth()->user()->name, 0, 1)); ?>
+
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        </div>
                         <div class="user-info">
                             <p class="user-name"><?php echo e(auth()->user()->name); ?></p>
                             <p class="user-role"><?php echo e(ucfirst(str_replace('_', ' ', auth()->user()->role))); ?></p>
                         </div>
                         <span class="dropdown-arrow"><i class="fas fa-chevron-down"></i></span>
+
+                        <div class="profile-popup" id="profilePopup">
+                            <div class="profile-popup-header">
+                                <div class="popup-avatar">
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->getAvatarUrl()): ?>
+                                        <img src="<?php echo e(auth()->user()->getAvatarUrl()); ?>" alt="<?php echo e(auth()->user()->name); ?>">
+                                    <?php else: ?>
+                                        <?php echo e(substr(auth()->user()->name, 0, 1)); ?>
+
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </div>
+                                <div class="popup-user-info">
+                                    <h3><?php echo e(auth()->user()->name); ?></h3>
+                                    <p><?php echo e(auth()->user()->email); ?></p>
+                                    <span class="popup-role"><?php echo e(ucfirst(str_replace('_', ' ', auth()->user()->role))); ?></span>
+                                </div>
+                            </div>
+                            <div class="profile-popup-body">
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->phone): ?>
+                                    <div class="popup-info-row">
+                                        <i class="fas fa-phone"></i>
+                                        <span><?php echo e(auth()->user()->phone); ?></span>
+                                    </div>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->approval_status): ?>
+                                    <div class="popup-info-row">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Status: <?php echo e(ucfirst(auth()->user()->approval_status)); ?></span>
+                                    </div>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            </div>
+                            <div class="profile-popup-footer">
+                                <a href="<?php echo e(route('settings.index')); ?>" class="popup-link">
+                                    <i class="fas fa-user-cog"></i> Account Settings
+                                </a>
+                                <a href="<?php echo e(route('patient.profile')); ?>" class="popup-link">
+                                    <i class="fas fa-user"></i> My Profile
+                                </a>
+                                <form method="POST" action="<?php echo e(route('logout')); ?>" class="popup-logout-form">
+                                    <?php echo csrf_field(); ?>
+                                    <button type="submit" class="popup-link popup-logout">
+                                        <i class="fas fa-sign-out-alt"></i> Logout
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -649,6 +986,30 @@
                         Livewire.dispatch('global-search', { term: term });
                     }
                 }, 300);
+            });
+        })();
+
+        // ============ TOPBAR PROFILE POPUP ============
+        (function () {
+            const profileTrigger = document.getElementById('topbarUserProfile');
+            const popup = document.getElementById('profilePopup');
+            if (!profileTrigger || !popup) return;
+
+            profileTrigger.addEventListener('click', function (e) {
+                e.stopPropagation();
+                popup.classList.toggle('open');
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!profileTrigger.contains(e.target)) {
+                    popup.classList.remove('open');
+                }
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    popup.classList.remove('open');
+                }
             });
         })();
     </script>

@@ -239,4 +239,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->is_active ? 'Active' : 'Inactive';
     }
+
+    public function activities()
+    {
+        return $this->hasMany(UserActivity::class)->orderByDesc('logged_in_at');
+    }
+
+    public function lastActivity()
+    {
+        return $this->hasOne(UserActivity::class)->orderByDesc('logged_in_at');
+    }
 }

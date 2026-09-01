@@ -15,7 +15,15 @@
             --text-head:#f0f8ff;--text-body:#94b8d8;--text-muted:#4a6b8a;
             --glass-bg:rgba(9,26,51,.65);--glass-border:rgba(56,189,248,.12);
         }
-        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--navy-deep);color:var(--text-body);line-height:1.6;overflow-x:hidden;}
+        body{
+            font-family:'Segoe UI',system-ui,sans-serif;
+            background:
+                linear-gradient(rgba(2,11,24,.72), rgba(2,11,24,.78)),
+                url("{{ asset('images/cmc_background.jpg') }}") center center / cover no-repeat fixed;
+            color:var(--text-body);
+            line-height:1.6;
+            overflow-x:hidden;
+        }
         #bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
         nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(2,11,24,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border);transition:all .3s;}
         nav.scrolled{background:rgba(2,11,24,.98);box-shadow:0 4px 30px rgba(0,0,0,.5);}
@@ -40,6 +48,35 @@
         .mobile-menu.open{display:flex;}
         .mobile-menu a{color:var(--text-body);text-decoration:none;font-size:14px;padding:10px 0;border-bottom:1px solid var(--navy-border);transition:color .2s;}
         .mobile-menu a:hover{color:var(--blue-bright);}
+        .cmc-static-section{position:relative;z-index:1;padding:40px 24px 80px;}
+        .cmc-static-wrap{max-width:1100px;margin:0 auto;}
+        .cmc-static-card{
+            background:transparent;
+            border:none;
+            box-shadow:none;
+            padding:0;
+            position:relative;
+            overflow:visible;
+        }
+        .cmc-static-card::before{display:none;}
+        .cmc-static-header{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 18px;flex-wrap:wrap;}
+        .cmc-header-text{text-align:center;}
+        .cmc-header-text h2{
+            margin:0; color:var(--text-head); font-size:clamp(18px,2vw,30px); font-weight:800; letter-spacing:0.5px;
+            text-transform:uppercase;
+        }
+        .cmc-header-text p{
+            margin:6px 0 0; color:var(--text-body); font-size:13px; font-style:italic;
+        }
+        .cmc-copy-block{color:var(--text-head); max-width:760px; margin:0 auto;}
+        .cmc-copy-block h3{
+            margin:26px 0 10px; font-size:clamp(18px,1.7vw,24px); line-height:1.2; font-weight:800; color:var(--text-head);
+            text-transform:uppercase;
+        }
+        .cmc-copy-block p{
+            margin:0 0 12px; color:var(--text-body); font-size:16px; line-height:1.7;
+        }
+        .cmc-copy-block p strong{display:block; margin-bottom:4px; font-size:17px; color:var(--text-head);}
         .hero{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;padding:100px 24px 60px;}
         .hero-inner{max-width:1300px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;width:100%;}
         .hero-centered{grid-template-columns:1fr;text-align:center;max-width:820px;}
@@ -114,14 +151,14 @@
         .community-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
         .community-card{background:var(--navy-card);border:1px solid var(--navy-border);border-radius:14px;padding:28px 22px;transition:all .3s;text-align:center;}
         .community-card:hover{border-color:rgba(56,189,248,.3);transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.4);}
-        .comm-icon{font-size:32px;margin-bottom:14px;display:block;}
+        .comm-icon{font-size:30px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;color:var(--blue-bright);}
         .community-card h3{font-size:16px;font-weight:700;color:var(--text-head);margin-bottom:10px;}
         .community-card p{font-size:13px;color:var(--text-body);line-height:1.7;}
         .wellness-section{padding:100px 24px;background:linear-gradient(135deg,rgba(7,24,48,.5),transparent);}
         .wellness-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
         .wellness-item{background:var(--navy-card);border:1px solid var(--navy-border);border-left:3px solid var(--blue-bright);border-radius:12px;padding:22px 20px;transition:all .3s;display:flex;gap:14px;align-items:flex-start;}
         .wellness-item:hover{border-left-color:var(--cyan);transform:translateX(4px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
-        .well-emoji{font-size:22px;flex-shrink:0;margin-top:2px;}
+        .well-emoji{font-size:22px;flex-shrink:0;margin-top:2px;color:var(--blue-bright);display:flex;align-items:center;justify-content:center;}
         .wellness-item h4{font-size:14px;font-weight:700;color:var(--text-head);margin-bottom:6px;}
         .wellness-item p{font-size:12px;color:var(--text-body);line-height:1.7;}
         .cta-section{padding:100px 24px;text-align:center;position:relative;overflow:hidden;}
@@ -136,7 +173,7 @@
         .btn-cta-ghost:hover{background:rgba(56,189,248,.1);border-color:var(--blue-bright);}
         footer{background:var(--navy-dark);border-top:1px solid var(--navy-border);padding:60px 24px 24px;}
         .footer-grid{max-width:1300px;margin:0 auto 40px;display:grid;grid-template-columns:1.5fr 1fr 1fr 1.5fr;gap:40px;}
-        .footer-brand img{width:36px;margin-bottom:12px;}
+        .footer-brand img{width:36px;height:36px;object-fit:cover;border-radius:50%;margin-bottom:12px;}
         .footer-brand-name{font-size:15px;font-weight:700;color:var(--text-head);}
         .footer-brand p{font-size:13px;color:var(--text-muted);line-height:1.8;margin-top:10px;}
         footer h5{font-size:12px;font-weight:700;color:var(--text-head);margin-bottom:16px;text-transform:uppercase;letter-spacing:.8px;}
@@ -195,13 +232,46 @@
         </div>
     </div>
 </section>
+
 <div class="stats-band" id="about">
     <div class="section-wrap">
         <div class="stats-grid">
-            <div class="stat-item reveal"><div class="stat-num" data-count="500" data-suffix="+">0+</div><div class="stat-lbl">Patients Served</div></div>
-            <div class="stat-item reveal reveal-d1"><div class="stat-num" data-count="6" data-suffix="">0</div><div class="stat-lbl">Core Services</div></div>
-            <div class="stat-item reveal reveal-d2"><div class="stat-num" data-count="24" data-suffix="">0</div><div class="stat-lbl">Hours Access</div></div>
-            <div class="stat-item reveal reveal-d3"><div class="stat-num" data-count="100" data-suffix="%">0%</div><div class="stat-lbl">Digital Records</div></div>
+            <div class="stat-item reveal"><div class="stat-num" data-count="{{ $stats['patients'] }}" data-suffix="+">0+</div><div class="stat-lbl">Patients Served</div></div>
+            <div class="stat-item reveal reveal-d1"><div class="stat-num" data-count="{{ $stats['visits'] }}" data-suffix="">0</div><div class="stat-lbl">Clinic Visits</div></div>
+            <div class="stat-item reveal reveal-d2"><div class="stat-num" data-count="{{ $stats['staff'] }}" data-suffix="">0</div><div class="stat-lbl">Active Staff</div></div>
+            <div class="stat-item reveal reveal-d3"><div class="stat-num" data-count="{{ $stats['users'] }}" data-suffix="+">0+</div><div class="stat-lbl">Registered Users</div></div>
+        </div>
+
+        <div class="cmc-static-card" style="margin-top:32px;">
+            <div class="cmc-static-header">
+                <div class="cmc-header-text">
+                    <h2>CARMEN MUNICIPAL COLLEGE</h2>
+                    <p>Where Competence Meets Character</p>
+                </div>
+            </div>
+
+            <div class="cmc-copy-block">
+                <h3>VISION</h3>
+                <p>A renowned educational institution providing quality education highly responsive to the dynamic needs of the community.</p>
+
+                <h3>MISSION</h3>
+                <p>Carmen Municipal College commits to empowering students to become competent and responsible citizens through academic excellence, research, and community collaboration.</p>
+
+                <h3>GOALS</h3>
+                <p><strong>Cultivating Excellence</strong><br>To nurture a culture of excellence across all facets of instruction, research, and community extension.</p>
+                <p><strong>Aligned Academic Programs</strong><br>To continually align the academic programs with the evolving demands of industries and the community.</p>
+                <p><strong>Research Culture Promotion</strong><br>To promote and enhance a robust research culture within the institution.</p>
+                <p><strong>Multi-sectoral Approach</strong><br>To collaborate with various sectors to drive positive change.</p>
+                <p><strong>Engagement with Stakeholders</strong><br>To actively engage with stakeholders to ensure educational offerings are relevant and effective.</p>
+                <p><strong>Network and Linkages</strong><br>To establish networks and linkages with government agencies and other institutions to enhance our capacity and impact.</p>
+
+                <h3>OBJECTIVES</h3>
+                <p>1. To serve with utmost dedication in the field of Liberal Arts, Business, and Science and Technology and prepare students to contribute positively to the betterment of society.</p>
+                <p>2. To provide high-quality education to a diverse student body, globally, without discrimination based on race, color, gender, religion, physical disabilities, or age.</p>
+                <p>3. To expand its academic programs through Outcome-Based Education in alignment with the demands of the international market.</p>
+                <p>4. To foster and maintain meaningful collaborations between industry and academia.</p>
+                <p>5. To continue nurturing a mutually beneficial relationship with the community through impactful outreach programs.</p>
+            </div>
         </div>
     </div>
 </div>
@@ -233,10 +303,10 @@
     <div class="section-wrap">
         <div class="section-head reveal"><span class="section-tag">Who We Serve</span><h2 class="section-title">Serving the CMC Community</h2><p class="section-desc">Healthcare services designed for every member of Carmen Municipal College.</p></div>
         <div class="community-grid">
-            <div class="community-card reveal"><span class="comm-icon">&#x1F468;&#x200D;&#x1F393;</span><h3>Students</h3><p>Easy access to clinic services, health records, and appointment management tailored for student needs.</p></div>
-            <div class="community-card reveal reveal-d1"><span class="comm-icon">&#x1F468;&#x200D;&#x1F3EB;</span><h3>Faculty</h3><p>Organized healthcare information and clinic assistance with priority scheduling and record access.</p></div>
-            <div class="community-card reveal reveal-d2"><span class="comm-icon">&#x1F454;</span><h3>Staff</h3><p>Accessible clinic services and appointment management integrated with your work schedule.</p></div>
-            <div class="community-card reveal reveal-d3"><span class="comm-icon">&#x2695;&#xFE0F;</span><h3>Clinic Personnel</h3><p>Powerful tools for managing patient records, visits, medicines, and follow-ups efficiently.</p></div>
+            <div class="community-card reveal"><span class="comm-icon"><i class="fas fa-user-graduate"></i></span><h3>Students</h3><p>Easy access to clinic services, health records, and appointment management tailored for student needs.</p></div>
+            <div class="community-card reveal reveal-d1"><span class="comm-icon"><i class="fas fa-user-tie"></i></span><h3>Faculty</h3><p>Organized healthcare information and clinic assistance with priority scheduling and record access.</p></div>
+            <div class="community-card reveal reveal-d2"><span class="comm-icon"><i class="fas fa-briefcase"></i></span><h3>Staff</h3><p>Accessible clinic services and appointment management integrated with your work schedule.</p></div>
+            <div class="community-card reveal reveal-d3"><span class="comm-icon"><i class="fas fa-user-doctor"></i></span><h3>Clinic Personnel</h3><p>Powerful tools for managing patient records, visits, medicines, and follow-ups efficiently.</p></div>
         </div>
     </div>
 </section>
@@ -244,12 +314,12 @@
     <div class="section-wrap">
         <div class="section-head reveal"><span class="section-tag">Health Information</span><h2 class="section-title">Promoting Health &amp; Wellness</h2><p class="section-desc">Key health guidance for the CMC community.</p></div>
         <div class="wellness-grid">
-            <div class="wellness-item reveal"><span class="well-emoji">&#x1F6E1;&#xFE0F;</span><div><h4>Preventive Healthcare</h4><p>Regular checkups and preventive care help identify and prevent health issues early.</p></div></div>
-            <div class="wellness-item reveal reveal-d1"><span class="well-emoji">&#x1F3C3;</span><div><h4>Healthy Habits</h4><p>Healthy eating, regular exercise, and adequate sleep support overall wellness.</p></div></div>
-            <div class="wellness-item reveal reveal-d2"><span class="well-emoji">&#x1F48A;</span><div><h4>Medication Awareness</h4><p>Understanding medications, dosages, and proper usage ensures safe healthcare.</p></div></div>
-            <div class="wellness-item reveal reveal-d3"><span class="well-emoji">&#x1F4CA;</span><div><h4>Health Monitoring</h4><p>Tracking vital signs and health metrics helps maintain awareness of your health status.</p></div></div>
-            <div class="wellness-item reveal reveal-d4"><span class="well-emoji">&#x2705;</span><div><h4>Clinic Follow-ups</h4><p>Attending scheduled follow-ups ensures continuity of care and better outcomes.</p></div></div>
-            <div class="wellness-item reveal reveal-d5"><span class="well-emoji">&#x1F9E0;</span><div><h4>Mental Wellness</h4><p>Mental health is equally important - seek support when needed for total wellbeing.</p></div></div>
+            <div class="wellness-item reveal"><span class="well-emoji"><i class="fas fa-shield-heart"></i></span><div><h4>Preventive Healthcare</h4><p>Regular checkups and preventive care help identify and prevent health issues early.</p></div></div>
+            <div class="wellness-item reveal reveal-d1"><span class="well-emoji"><i class="fas fa-person-running"></i></span><div><h4>Healthy Habits</h4><p>Healthy eating, regular exercise, and adequate sleep support overall wellness.</p></div></div>
+            <div class="wellness-item reveal reveal-d2"><span class="well-emoji"><i class="fas fa-capsules"></i></span><div><h4>Medication Awareness</h4><p>Understanding medications, dosages, and proper usage ensures safe healthcare.</p></div></div>
+            <div class="wellness-item reveal reveal-d3"><span class="well-emoji"><i class="fas fa-chart-line"></i></span><div><h4>Health Monitoring</h4><p>Tracking vital signs and health metrics helps maintain awareness of your health status.</p></div></div>
+            <div class="wellness-item reveal reveal-d4"><span class="well-emoji"><i class="fas fa-calendar-check"></i></span><div><h4>Clinic Follow-ups</h4><p>Attending scheduled follow-ups ensures continuity of care and better outcomes.</p></div></div>
+            <div class="wellness-item reveal reveal-d5"><span class="well-emoji"><i class="fas fa-brain"></i></span><div><h4>Mental Wellness</h4><p>Mental health is equally important - seek support when needed for total wellbeing.</p></div></div>
         </div>
     </div>
 </section>

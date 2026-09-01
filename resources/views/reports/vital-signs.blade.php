@@ -12,6 +12,9 @@
                 <button onclick="window.print()" class="btn btn-print">
                     <i class="fas fa-print"></i> Print
                 </button>
+                <a href="{{ route('reports.download', 'vital-signs') }}" class="btn btn-download">
+                    <i class="fas fa-file-excel"></i> Download Excel
+                </a>
                 <a href="{{ route('reports.index') }}" class="btn btn-back">
                     <i class="fas fa-arrow-left"></i> Back
                 </a>
@@ -154,6 +157,15 @@
 
         .btn-print:hover {
             background: #2980b9;
+        }
+
+        .btn-download {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-download:hover {
+            background: #229954;
         }
 
         .btn-back {

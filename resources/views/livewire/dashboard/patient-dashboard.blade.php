@@ -3,7 +3,7 @@
     <div class="page-header">
         <div>
             <h1 class="page-title">My Health Records</h1>
-            <p class="page-subtitle">Welcome, {{ auth()->user()->name }}</p>
+            <p class="page-subtitle">Good {{ now()->hour < 12 ? 'morning' : (now()->hour < 18 ? 'afternoon' : 'evening') }}, {{ auth()->user()->name }}</p>
         </div>
     </div>
 
@@ -60,7 +60,7 @@
             <div class="card-section info-section">
                 <div class="card-header">
                     <h2 class="card-title">Personal Information</h2>
-                    <a href="{{ route('settings.index') }}" class="edit-link">
+                    <a href="{{ route('patient.profile') }}" class="edit-link">
                         <i class="fas fa-edit"></i> Edit Profile
                     </a>
                 </div>
@@ -149,7 +149,7 @@
         <div class="card-section">
             <div class="card-header">
                 <h2 class="card-title">Clinic Visit History</h2>
-                <a href="{{ route('patients.show', $patient->id) }}" class="view-all">View All</a>
+                <a href="{{ route('patient.records') }}" class="view-all">View All</a>
             </div>
 
             @if($visits->isEmpty())
@@ -185,7 +185,7 @@
 
         <!-- Upcoming Appointments -->
         @if($appointments->isNotEmpty())
-            <div class="card-section">
+            <div class="card-section" id="appointments">
                 <div class="card-header">
                     <h2 class="card-title">Upcoming Appointments</h2>
                     <a href="{{ route('appointments.create') }}" class="btn-small btn-new">
@@ -221,7 +221,7 @@
         <div class="quick-actions">
             <h3 class="actions-title">Quick Actions</h3>
             <div class="actions-grid">
-                <a href="{{ route('patients.show', $patient->id) }}" class="action-card">
+                <a href="{{ route('patient.records') }}" class="action-card">
                     <i class="fas fa-history"></i>
                     <span>Medical History</span>
                 </a>
@@ -261,13 +261,13 @@
             margin: 0;
             font-size: 28px;
             font-weight: 700;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .page-subtitle {
             margin: 4px 0 0 0;
             font-size: 13px;
-            color: #95a5a6;
+            color: var(--text-muted);
         }
 
         .alert {
@@ -276,9 +276,9 @@
             display: flex;
             gap: 12px;
             font-size: 13px;
-            background: #e7f3ff;
-            border: 1px solid #b3d9ff;
-            color: #0066cc;
+            background: var(--bg-info);
+            border: 1px solid var(--border-info);
+            color: var(--text-info);
         }
 
         .alert i {
@@ -293,7 +293,7 @@
         }
 
         .stat-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
@@ -335,7 +335,7 @@
             margin: 0;
             font-size: 12px;
             font-weight: 600;
-            color: #95a5a6;
+            color: var(--text-muted);
             text-transform: uppercase;
         }
 
@@ -343,7 +343,7 @@
             margin: 8px 0 0 0;
             font-size: 28px;
             font-weight: 700;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .category-label {
@@ -380,7 +380,7 @@
         }
 
         .card-section {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
@@ -391,7 +391,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 16px;
-            border-bottom: 2px solid #e8ecf1;
+            border-bottom: 2px solid var(--border-inner);
             padding-bottom: 12px;
         }
 
@@ -399,7 +399,7 @@
             margin: 0;
             font-size: 16px;
             font-weight: 700;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .edit-link,
@@ -433,7 +433,7 @@
         .info-item label {
             font-size: 11px;
             font-weight: 700;
-            color: #95a5a6;
+            color: var(--text-muted);
             text-transform: uppercase;
             margin-bottom: 4px;
         }
@@ -441,7 +441,7 @@
         .info-item p {
             margin: 0;
             font-size: 13px;
-            color: #2d3e50;
+            color: var(--text-heading);
             font-weight: 600;
         }
 
@@ -455,7 +455,7 @@
 
         .visit-date {
             font-size: 12px;
-            color: #95a5a6;
+            color: var(--text-muted);
         }
 
         .visit-summary {
@@ -472,14 +472,14 @@
         .summary-item .label {
             font-size: 10px;
             font-weight: 700;
-            color: #95a5a6;
+            color: var(--text-muted);
             text-transform: uppercase;
             margin-bottom: 4px;
         }
 
         .summary-item .value {
             font-size: 13px;
-            color: #2d3e50;
+            color: var(--text-heading);
             font-weight: 600;
         }
 
@@ -488,7 +488,7 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
             padding: 12px;
-            background: #f9fafb;
+            background: var(--bg-input);
             border-radius: 6px;
             margin: 8px 0;
         }
@@ -501,13 +501,13 @@
 
         .vital-label {
             font-size: 10px;
-            color: #95a5a6;
+            color: var(--text-muted);
             font-weight: 600;
         }
 
         .vital-value {
             font-size: 12px;
-            color: #2d3e50;
+            color: var(--text-heading);
             font-weight: 700;
             margin-top: 4px;
         }
@@ -528,7 +528,7 @@
         .notes-section p {
             margin: 6px 0 0 0;
             font-size: 12px;
-            color: #2d3e50;
+            color: var(--text-heading);
             line-height: 1.5;
         }
 
@@ -551,7 +551,7 @@
         .empty-state {
             text-align: center;
             padding: 40px 20px;
-            color: #95a5a6;
+            color: var(--text-muted);
         }
 
         .empty-state i {
@@ -576,7 +576,7 @@
             display: flex;
             gap: 16px;
             padding: 12px;
-            background: #f9fafb;
+            background: var(--bg-input);
             border-radius: 8px;
             transition: all 0.2s;
         }
@@ -611,7 +611,7 @@
 
         .visit-header strong {
             font-size: 12px;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .visit-type {
@@ -625,12 +625,12 @@
 
         .visit-info {
             font-size: 11px;
-            color: #95a5a6;
+            color: var(--text-muted);
             margin-bottom: 6px;
         }
 
         .visit-info span {
-            color: #2d3e50;
+            color: var(--text-heading);
             font-weight: 600;
         }
 
@@ -659,7 +659,7 @@
             display: flex;
             gap: 16px;
             padding: 12px;
-            background: #f9fafb;
+            background: var(--bg-input);
             border-radius: 8px;
             border-left: 4px solid #27ae60;
             transition: all 0.2s;
@@ -696,13 +696,13 @@
 
         .month {
             font-size: 10px;
-            color: #95a5a6;
+            color: var(--text-muted);
             font-weight: 600;
         }
 
         .time {
             font-size: 11px;
-            color: #2d3e50;
+            color: var(--text-heading);
             font-weight: 700;
         }
 
@@ -715,7 +715,7 @@
 
         .appointment-details strong {
             font-size: 12px;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .status-badge {
@@ -738,7 +738,7 @@
         }
 
         .quick-actions {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
@@ -748,7 +748,7 @@
             margin: 0 0 16px 0;
             font-size: 14px;
             font-weight: 700;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .actions-grid {
