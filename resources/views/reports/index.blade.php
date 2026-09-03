@@ -212,18 +212,18 @@
             align-items: flex-start;
         }
 
-        .page-title {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 700;
-            color: #2d3e50;
-        }
+         .page-title {
+             margin: 0;
+             font-size: 28px;
+             font-weight: 700;
+             color: var(--text-heading);
+         }
 
-        .page-description {
-            margin: 4px 0 0 0;
-            font-size: 13px;
-            color: #95a5a6;
-        }
+         .page-description {
+             margin: 4px 0 0 0;
+             font-size: 13px;
+             color: var(--text-muted);
+         }
 
         .stats-grid {
             display: grid;
@@ -232,10 +232,10 @@
         }
 
         .stat-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             display: flex;
             align-items: center;
             gap: 16px;
@@ -243,16 +243,16 @@
         }
 
         .stat-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             transform: translateY(-2px);
         }
 
         .stat-card .icon {
             font-size: 32px;
-            color: #3498db;
+            color: #38bdf8;
             width: 50px;
             height: 50px;
-            background: #dbeafe;
+            background: rgba(56, 189, 248, 0.15);
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -264,7 +264,7 @@
             margin: 0;
             font-size: 12px;
             font-weight: 600;
-            color: #95a5a6;
+            color: var(--text-muted);
             text-transform: uppercase;
         }
 
@@ -272,7 +272,7 @@
             margin: 8px 0 0 0;
             font-size: 28px;
             font-weight: 700;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .reports-grid {
@@ -282,10 +282,10 @@
         }
 
         .report-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -293,7 +293,7 @@
         }
 
         .report-card:hover {
-            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
             transform: translateY(-4px);
         }
 
@@ -307,7 +307,7 @@
             font-size: 24px;
             width: 50px;
             height: 50px;
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
             color: white;
             border-radius: 10px;
             display: flex;
@@ -319,13 +319,13 @@
             margin: 0;
             font-size: 16px;
             font-weight: 700;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .report-description {
             margin: 0;
             font-size: 12px;
-            color: #95a5a6;
+            color: var(--text-muted);
             line-height: 1.4;
         }
 
@@ -336,30 +336,30 @@
 
         .stat-item {
             flex: 1;
-            background: #f9fafb;
+            background: var(--bg-input);
             padding: 12px;
             border-radius: 6px;
             text-align: center;
-            border-left: 3px solid #3498db;
+            border-left: 3px solid #38bdf8;
         }
 
         .stat-item strong {
             display: block;
             font-size: 20px;
-            color: #3498db;
+            color: #38bdf8;
             font-weight: 700;
         }
 
         .stat-item small {
             display: block;
             font-size: 10px;
-            color: #95a5a6;
+            color: var(--text-muted);
             margin-top: 4px;
             text-transform: uppercase;
         }
 
         .btn-view-report {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
             color: white;
             padding: 12px 16px;
             border-radius: 8px;
@@ -375,7 +375,7 @@
 
         .btn-view-report:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
         }
 
         .report-actions {

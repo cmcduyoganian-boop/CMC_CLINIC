@@ -15,11 +15,14 @@ use Illuminate\Support\Facades\DB;
 class NurseDashboard extends Component
 {
     // ============ FILTER PROPERTIES ============
-    public $dateRange = 'last_30';
+    public $dateRange = 'today';
     public $visitType = 'all';
     public $patientType = 'all';
     public $customStartDate = null;
     public $customEndDate = null;
+
+    // ============ MODAL ============
+    public $showActivitiesModal = false;
 
     // ============ AUTO-REFRESH ============
     public $autoRefreshInterval = 30000; // 30 seconds
@@ -150,16 +153,30 @@ class NurseDashboard extends Component
         return $query->count();
     }
 
-    // ============ KPI: ABNORMAL VITALS ============
+    // ============ KPI: ABNORMAL / CRITICAL VITALS ============
     public function getAbnormalVitals()
     {
         [$start, $end] = $this->getDateRange();
 
         $query = ClinicVisit::whereBetween('created_at', [$start, $end])
             ->where(function ($q) {
-                $q->where('temperature', '<', 36)
-                  ->orWhere('temperature', '>', 38)
-                  ->orWhere('spo2', '<', 95);
+                // Temperature: Abnormal if <35.0 or ≥38.0
+                $q->where(fn($s) => $s->whereNotNull('temperature')->where('temperature', '<', 35.0))
+                  ->orWhere(fn($s) => $s->whereNotNull('temperature')->where('temperature', '>=', 38.0))
+                  // Pulse Rate: Abnormal if <50 or >120
+                  ->orWhere(fn($s) => $s->whereNotNull('pulse_rate')->where('pulse_rate', '<', 50))
+                  ->orWhere(fn($s) => $s->whereNotNull('pulse_rate')->where('pulse_rate', '>', 120))
+                  // Respiratory Rate: Abnormal if <8 or >30
+                  ->orWhere(fn($s) => $s->whereNotNull('respiratory_rate')->where('respiratory_rate', '<', 8))
+                  ->orWhere(fn($s) => $s->whereNotNull('respiratory_rate')->where('respiratory_rate', '>', 30))
+                  // Systolic BP: Abnormal if <80 or ≥180
+                  ->orWhere(fn($s) => $s->whereNotNull('bp_systolic')->where('bp_systolic', '<', 80))
+                  ->orWhere(fn($s) => $s->whereNotNull('bp_systolic')->where('bp_systolic', '>=', 180))
+                  // Diastolic BP: Abnormal if <50 or ≥120
+                  ->orWhere(fn($s) => $s->whereNotNull('bp_diastolic')->where('bp_diastolic', '<', 50))
+                  ->orWhere(fn($s) => $s->whereNotNull('bp_diastolic')->where('bp_diastolic', '>=', 120))
+                  // SpO2: Abnormal if ≤90
+                  ->orWhere(fn($s) => $s->whereNotNull('spo2')->where('spo2', '<=', 90));
             });
 
         if ($this->patientType !== 'all') {
@@ -179,7 +196,7 @@ class NurseDashboard extends Component
             ->count() + PendingRegistration::count();
     }
 
-    // ============ CHART DATA: LAST 7 DAYS (fixed window, independent of filters) ============
+    // ============ CHART DATA: VISITS BAR/LINE (respects filters) ============
     public function getLast7DaysChart()
     {
         [$start, $end] = $this->getDateRange();
@@ -220,12 +237,19 @@ class NurseDashboard extends Component
         ];
     }
 
-    // ============ CHART DATA: VISITS TREND ============
+    // ============ CHART DATA: VISITS TREND (always min 7 days for context) ============
     public function getVisitsTrendData()
     {
         [$start, $end] = $this->getDateRange();
-        
+
         $daysDiff = $start->diffInDays($end);
+
+        // Always show at least 7 days so the trend line is meaningful
+        if ($daysDiff < 6) {
+            $start = now()->subDays(6)->startOfDay();
+            $end   = now()->endOfDay();
+            $daysDiff = 6;
+        }
 
         if ($daysDiff > 30) {
             // Weekly data
@@ -246,8 +270,9 @@ class NurseDashboard extends Component
                 ->get();
 
             $labels = $visits->map(fn($v) => 'Week ' . substr($v->week, -2))->toArray();
+            $data   = $visits->pluck('count')->toArray();
         } else {
-            // Daily data
+            // Daily data — fill every day in range (including zeros)
             $visits = ClinicVisit::selectRaw('DATE(visit_date) as date, COUNT(*) as count')
                 ->whereBetween('visit_date', [$start, $end])
                 ->when($this->patientType !== 'all', function ($q) {
@@ -258,36 +283,66 @@ class NurseDashboard extends Component
                 ->when($this->visitType !== 'all', fn ($q) => $q->where('visit_type', $this->visitType))
                 ->groupBy('date')
                 ->orderBy('date')
-                ->get();
+                ->pluck('count', 'date');
 
-            $labels = $visits->map(fn($v) => Carbon::parse($v->date)->format('M d'))->toArray();
+            $labels = [];
+            $data   = [];
+            for ($day = $start->copy(); $day->lte($end); $day->addDay()) {
+                $key      = $day->format('Y-m-d');
+                $labels[] = $day->format('M d');
+                $data[]   = (int) ($visits[$key] ?? 0);
+            }
         }
 
-        return [
-            'labels' => $labels,
-            'data' => $visits->pluck('count')->toArray(),
-        ];
+        return compact('labels', 'data');
+    }
+
+    // ============ NORMALIZE ADDRESS for grouping ============
+    private function normalizeAddress(string $address): string
+    {
+        // Lowercase, strip punctuation, collapse spaces, sort words for consistent grouping
+        $clean = strtolower(trim($address));
+        $clean = preg_replace('/[^\w\s]/', ' ', $clean); // remove punctuation
+        $clean = preg_replace('/\s+/', ' ', $clean);      // collapse whitespace
+        $words = array_filter(explode(' ', $clean));
+        sort($words);
+        return implode(' ', $words);
     }
 
     public function getPatientLocationData()
     {
-        $locations = $this->buildVisitQuery()
+        $visits = $this->buildVisitQuery()
             ->with('patient:id,address')
-            ->get()
-            ->groupBy(function ($visit) {
-                $address = trim((string) ($visit->patient?->address ?? ''));
+            ->get();
 
-                return $address !== '' ? $address : 'Address not provided';
-            })
-            ->map(fn ($visits) => $visits->count())
-            ->sortDesc()
-            ->take(10);
+        // Group by normalized address, then display the most common raw form
+        $grouped = $visits->groupBy(function ($visit) {
+            $address = trim((string) ($visit->patient?->address ?? ''));
+            if ($address === '') return '__unknown__';
+            return $this->normalizeAddress($address);
+        });
+
+        // For each normalized group, pick the most frequent raw address as the label
+        $locations = $grouped->map(function ($groupVisits, $key) {
+            if ($key === '__unknown__') return ['label' => 'Address not provided', 'count' => $groupVisits->count()];
+
+            $rawCounts = $groupVisits->groupBy(fn ($v) => trim((string) ($v->patient?->address ?? '')))
+                ->map->count()
+                ->sortDesc();
+
+            return ['label' => $rawCounts->keys()->first(), 'count' => $groupVisits->count()];
+        })
+        ->sortByDesc('count')
+        ->take(10);
+
+        $labels = $locations->pluck('label')->values()->toArray();
+        $data   = $locations->pluck('count')->values()->map(fn($c) => (int) $c)->toArray();
 
         return [
-            'labels' => $locations->keys()->values()->toArray(),
-            'data' => $locations->values()->map(fn ($count) => (int) $count)->toArray(),
-            'topLocation' => $locations->keys()->first() ?? 'No location data',
-            'topCount' => (int) ($locations->first() ?? 0),
+            'labels'      => $labels,
+            'data'        => $data,
+            'topLocation' => $labels[0] ?? 'No location data',
+            'topCount'    => $data[0] ?? 0,
         ];
     }
 
@@ -304,35 +359,32 @@ class NurseDashboard extends Component
             });
         }
 
-        $total = $query->count();
+        $visits = $query->get(['temperature', 'pulse_rate', 'respiratory_rate',
+                               'bp_systolic', 'bp_diastolic', 'spo2', 'height', 'weight']);
 
-        if ($total === 0) {
-            return [
-                'normal' => 0,
-                'elevated' => 0,
-                'abnormal' => 0,
-                'total' => 0,
-            ];
+        $total    = $visits->count();
+        $abnormal = 0;
+        $elevated = 0; // above_normal or below_normal
+        $normal   = 0;
+
+        foreach ($visits as $visit) {
+            $assessment = $visit->getVitalSignsAssessment();
+            $overall    = $assessment['overall'];
+
+            if ($overall === \App\Support\VitalSigns::ABNORMAL) {
+                $abnormal++;
+            } elseif (in_array($overall, [\App\Support\VitalSigns::ABOVE_NORMAL, \App\Support\VitalSigns::BELOW_NORMAL])) {
+                $elevated++;
+            } else {
+                $normal++;
+            }
         }
 
-        $abnormal = $query->where(function ($q) {
-            $q->where('temperature', '<', 36)
-              ->orWhere('temperature', '>', 38)
-              ->orWhere('spo2', '<', 95);
-        })->count();
-
-        $elevated = $query->where(function ($q) {
-            $q->whereBetween('temperature', [37.1, 38])
-              ->orWhereBetween('spo2', [95, 98]);
-        })->count();
-
-        $normal = $total - $abnormal - $elevated;
-
         return [
-            'normal' => $normal,
+            'normal'   => $normal,
             'elevated' => $elevated,
             'abnormal' => $abnormal,
-            'total' => $total,
+            'total'    => $total,
         ];
     }
 
@@ -483,28 +535,157 @@ class NurseDashboard extends Component
         return array_slice($activities, 0, 10);
     }
 
+    // ============ MODAL: OPEN / CLOSE ============
+    public function openActivitiesModal(): void
+    {
+        $this->showActivitiesModal = true;
+    }
+
+    public function closeActivitiesModal(): void
+    {
+        $this->showActivitiesModal = false;
+    }
+
+    // ============ ALL ACTIVITIES (for modal — last 50) ============
+    public function getAllActivities(): array
+    {
+        $activities = [];
+
+        // All clinic visits (last 100, we'll sort and trim)
+        $visits = ClinicVisit::with('patient')
+            ->orderBy('created_at', 'desc')
+            ->limit(30)
+            ->get()
+            ->map(function ($visit) {
+                return [
+                    'type'      => 'visit',
+                    'icon'      => 'fa-stethoscope',
+                    'color'     => 'blue',
+                    'message'   => ($visit->patient->name ?? 'Patient') . ' — Clinic Visit Recorded',
+                    'detail'    => $visit->visit_type ? ucfirst(str_replace('_', ' ', $visit->visit_type)) : null,
+                    'timestamp' => $visit->created_at,
+                    'link'      => route('clinic-visit.index'),
+                ];
+            });
+        $activities = array_merge($activities, $visits->toArray());
+
+        // All appointments
+        $appointments = Appointment::with('patient')
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get()
+            ->map(function ($apt) {
+                return [
+                    'type'      => 'appointment',
+                    'icon'      => 'fa-calendar-check',
+                    'color'     => 'green',
+                    'message'   => ($apt->patient->name ?? 'Patient') . ' — Appointment ' . ucfirst($apt->status ?? 'Scheduled'),
+                    'detail'    => $apt->appointment_date ? \Carbon\Carbon::parse($apt->appointment_date)->format('M d, Y') : null,
+                    'timestamp' => $apt->created_at,
+                    'link'      => route('appointments.index'),
+                ];
+            });
+        $activities = array_merge($activities, $appointments->toArray());
+
+        // Low stock alerts
+        $lowStock = Medicine::whereRaw('quantity <= minimum_stock')
+            ->where('status', 'active')
+            ->orderBy('updated_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($med) {
+                return [
+                    'type'      => 'inventory',
+                    'icon'      => 'fa-exclamation-triangle',
+                    'color'     => 'orange',
+                    'message'   => $med->name . ' — Low Stock Alert',
+                    'detail'    => 'Qty: ' . $med->quantity . ' (Min: ' . $med->minimum_stock . ')',
+                    'timestamp' => $med->updated_at,
+                    'link'      => route('medicines.index'),
+                ];
+            });
+        $activities = array_merge($activities, $lowStock->toArray());
+
+        // Expiring medicines
+        $expiringSoon = Medicine::where('status', 'active')
+            ->whereNotNull('expiration_date')
+            ->whereDate('expiration_date', '>=', now())
+            ->whereDate('expiration_date', '<=', now()->addDays(30))
+            ->orderBy('expiration_date')
+            ->limit(10)
+            ->get()
+            ->map(function ($med) {
+                return [
+                    'type'      => 'inventory',
+                    'icon'      => 'fa-hourglass-half',
+                    'color'     => 'orange',
+                    'message'   => $med->name . ' — Expiring Soon',
+                    'detail'    => 'Expires: ' . $med->expiration_date->format('M d, Y'),
+                    'timestamp' => $med->updated_at,
+                    'link'      => route('medicines.index'),
+                ];
+            });
+        $activities = array_merge($activities, $expiringSoon->toArray());
+
+        // Pending user approvals
+        $pendingUsers = User::where('approval_status', 'pending')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'type'      => 'user',
+                    'icon'      => 'fa-user-clock',
+                    'color'     => 'purple',
+                    'message'   => $user->name . ' — Pending Account Approval',
+                    'detail'    => $user->email ?? null,
+                    'timestamp' => $user->created_at,
+                    'link'      => route('admin.users'),
+                ];
+            });
+        $activities = array_merge($activities, $pendingUsers->toArray());
+
+        // Sort by timestamp desc, limit to 50
+        usort($activities, fn($a, $b) => $b['timestamp']->timestamp <=> $a['timestamp']->timestamp);
+
+        return array_slice($activities, 0, 50);
+    }
+
     public function render()
     {
-        return view('livewire.dashboard.nurse-dashboard', [
-            'visitsToday' => $this->getVisitsToday(),
-            'lowStockMedicines' => $this->getLowStockMedicines(),
+        $data = [
+            'visitsToday'         => $this->getVisitsToday(),
+            'lowStockMedicines'   => $this->getLowStockMedicines(),
             'pendingAppointments' => $this->getPendingAppointments(),
-            'abnormalVitals' => $this->getAbnormalVitals(),
-            'pendingUserApprovals' => $this->getPendingUserApprovals(),
-            'visitsTrendData' => $this->getVisitsTrendData(),
+            'abnormalVitals'      => $this->getAbnormalVitals(),
+            'pendingUserApprovals'=> $this->getPendingUserApprovals(),
+            'visitsTrendData'     => $this->getVisitsTrendData(),
             'patientLocationData' => $this->getPatientLocationData(),
-            'last7DaysChart' => $this->getLast7DaysChart(),
-            'vitalSignsOverview' => $this->getVitalSignsOverview(),
-            'medicineInventory' => $this->getMedicineInventoryStatus(),
-            'appointmentStats' => $this->getAppointmentStats(),
-            'recentActivities' => $this->getRecentActivities(),
+            'last7DaysChart'      => $this->getLast7DaysChart(),
+            'vitalSignsOverview'  => $this->getVitalSignsOverview(),
+            'medicineInventory'   => $this->getMedicineInventoryStatus(),
+            'appointmentStats'    => $this->getAppointmentStats(),
+            'recentActivities'    => $this->getRecentActivities(),
+            'allActivities'       => $this->showActivitiesModal ? $this->getAllActivities() : [],
+        ];
+
+        // Dispatch chart data to JS after every render so graphs stay reactive
+        $this->dispatch('dashboard-charts-update', chartData: [
+            'visits'       => $data['last7DaysChart'],
+            'trend'        => $data['visitsTrendData'],
+            'location'     => $data['patientLocationData'],
+            'vitals'       => $data['vitalSignsOverview'],
+            'appointments' => $data['appointmentStats'],
+            'medicine'     => $data['medicineInventory'],
         ]);
+
+        return view('livewire.dashboard.nurse-dashboard', $data);
     }
 
     public function resetFilters()
     {
-        $this->dateRange = 'this_month';
-        $this->visitType = 'all';
+        $this->dateRange   = 'today';
+        $this->visitType   = 'all';
         $this->patientType = 'all';
     }
 }

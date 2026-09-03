@@ -23,7 +23,7 @@
     @if ($showPasswordResult)
         <div class="alert alert-success" style="flex-direction:column;align-items:flex-start;gap:8px;">
             <strong><i class="fas fa-key"></i> New password for {{ $resultUsername }}:</strong>
-            <div style="background:white;padding:10px 14px;border-radius:6px;font-family:monospace;font-size:15px;font-weight:700;letter-spacing:1px;">
+            <div style="background:var(--bg-input);padding:10px 14px;border-radius:6px;font-family:monospace;font-size:15px;font-weight:700;letter-spacing:1px;color:var(--text-heading);">
                 {{ $resultPassword }}
             </div>
             <small>Share this password securely with {{ $resultEmail }}. They will be asked to change it on next login.</small>
@@ -281,7 +281,7 @@
     .page-header p {
         margin: 0;
         font-size: 13px;
-        color: var(--text-body);
+        color: var(--text-muted);
     }
 
     /* Primary Button */
@@ -489,27 +489,31 @@
     .users-table {
         width: 100%;
         border-collapse: collapse;
+        font-size: 13px;
     }
     .users-table thead {
         background: transparent;
     }
     .users-table th {
-        padding: 12px 16px;
+        padding: 13px 16px;
         text-align: left;
         font-size: 11px;
         font-weight: 700;
-        color: var(--text-muted);
+        color: #fff;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        border-bottom: 2px solid var(--border-inner);
+        white-space: nowrap;
+        background: linear-gradient(135deg, #2980b9, #1a6ea8);
     }
+    .users-table th:last-child { border-right: none; }
     .users-table td {
         padding: 12px 16px;
         border-bottom: 1px solid var(--border-inner);
         font-size: 13px;
-        color: var(--text-body);
+        color: var(--text-heading);
         vertical-align: middle;
     }
+    .users-table tbody tr:last-child td { border-bottom: none; }
     .users-table tbody tr:hover {
         background: var(--bg-input);
     }

@@ -45,6 +45,8 @@
                         <th>COMPLAINTS</th>
                         <th>DIAGNOSIS</th>
                         <th>MANAGEMENT</th>
+                        <th>ADDRESS</th>
+                        <th>SEX</th>
                         <th>ACTIONS</th>
                     </tr>
                     <tr class="vital-signs-header">
@@ -57,7 +59,7 @@
                         <th>WT</th>
                         <th>BMI</th>
                         <th>SpO2</th>
-                        <th colspan="4"></th>
+                        <th colspan="6"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -78,6 +80,8 @@
                         <td class="text-small">Fever, Cough</td>
                         <td class="text-small">Influenza</td>
                         <td class="text-small">Rest, Fluids, Paracetamol</td>
+                        <td class="text-small">Bohol, Philippines</td>
+                        <td class="text-small">Male</td>
                         <td>
                             <div class="action-buttons">
                                 <button class="btn-view" title="View">
@@ -110,6 +114,8 @@
                         <td class="text-small">Headache</td>
                         <td class="text-small">Migraine</td>
                         <td class="text-small">Rest, Ibuprofen</td>
+                        <td class="text-small">Tagbilaran City</td>
+                        <td class="text-small">Female</td>
                         <td>
                             <div class="action-buttons">
                                 <button class="btn-view" title="View">
@@ -142,6 +148,8 @@
                         <td class="text-small">Allergy, Itching</td>
                         <td class="text-small">Allergic Reaction</td>
                         <td class="text-small">Antihistamine, Hydration</td>
+                        <td class="text-small">Tagbilaran City</td>
+                        <td class="text-small">Male</td>
                         <td>
                             <div class="action-buttons">
                                 <button class="btn-view" title="View">
@@ -174,6 +182,8 @@
                         <td class="text-small">Routine Checkup</td>
                         <td class="text-small">Healthy</td>
                         <td class="text-small">Vaccination</td>
+                        <td class="text-small">Baclayon, Bohol</td>
+                        <td class="text-small">Female</td>
                         <td>
                             <div class="action-buttons">
                                 <button class="btn-view" title="View">
@@ -206,6 +216,8 @@
                         <td class="text-small">Sore Throat</td>
                         <td class="text-small">Pharyngitis</td>
                         <td class="text-small">Antibiotics, Warm Water Gargle</td>
+                        <td class="text-small">Tagbilaran City</td>
+                        <td class="text-small">Male</td>
                         <td>
                             <div class="action-buttons">
                                 <button class="btn-view" title="View">

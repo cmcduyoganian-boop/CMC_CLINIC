@@ -105,13 +105,13 @@
             margin: 0;
             font-size: 28px;
             font-weight: 700;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .report-subtitle {
             margin: 4px 0 0 0;
             font-size: 13px;
-            color: #95a5a6;
+            color: var(--text-muted);
         }
 
         .header-actions {
@@ -152,12 +152,12 @@
         }
 
         .btn-back {
-            background: #ecf0f1;
-            color: #7f8c8d;
+            background: var(--bg-input);
+            color: var(--text-body);
         }
 
         .btn-back:hover {
-            background: #d4d9e0;
+            background: var(--border-inner);
         }
 
         .summary-cards {
@@ -167,10 +167,10 @@
         }
 
         .card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             text-align: center;
         }
 
@@ -178,7 +178,7 @@
             margin: 0;
             font-size: 12px;
             font-weight: 600;
-            color: #95a5a6;
+            color: var(--text-muted);
             text-transform: uppercase;
         }
 
@@ -186,30 +186,30 @@
             margin: 12px 0 0 0;
             font-size: 32px;
             font-weight: 700;
-            color: #3498db;
+            color: #38bdf8;
         }
 
         .card.warning .card-value {
-            color: #f39c12;
+            color: #fbbf24;
         }
 
         .card.danger .card-value {
-            color: #e74c3c;
+            color: #f87171;
         }
 
         .table-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
 
         .table-title {
             margin: 0 0 16px 0;
             font-size: 16px;
             font-weight: 700;
-            color: #2d3e50;
-            border-bottom: 2px solid #e8ecf1;
+            color: var(--text-heading);
+            border-bottom: 2px solid var(--border-inner);
             padding-bottom: 12px;
         }
 
@@ -226,22 +226,22 @@
         .report-table th {
             padding: 12px;
             text-align: left;
-            background: #f9fafb;
+            background: var(--bg-input);
             font-weight: 700;
-            color: #2d3e50;
-            border-bottom: 2px solid #e8ecf1;
+            color: var(--text-heading);
+            border-bottom: 2px solid var(--border-inner);
             text-transform: uppercase;
             font-size: 11px;
         }
 
         .report-table td {
             padding: 12px;
-            border-bottom: 1px solid #e8ecf1;
-            color: #2d3e50;
+            border-bottom: 1px solid var(--border-inner);
+            color: var(--text-body);
         }
 
         .report-table tr:hover {
-            background: #f9fafb;
+            background: var(--bg-input);
         }
 
         .status-badge {
@@ -253,35 +253,51 @@
         }
 
         .badge-good-stock {
-            background: #d5f4e6;
+            background: rgba(39, 174, 96, 0.15);
             color: #27ae60;
         }
 
         .badge-low-stock {
-            background: #ffeaa7;
-            color: #d68910;
+            background: rgba(243, 156, 18, 0.15);
+            color: #fbbf24;
         }
 
         .badge-out-of-stock {
-            background: #fadbd8;
-            color: #c0392b;
+            background: rgba(248, 113, 113, 0.15);
+            color: #f87171;
         }
 
         .expired {
-            color: #e74c3c;
+            color: #f87171;
             font-weight: 600;
         }
 
         .report-footer {
             text-align: center;
             padding: 20px;
-            border-top: 2px solid #e8ecf1;
-            color: #95a5a6;
+            border-top: 2px solid var(--border-inner);
+            color: var(--text-muted);
             font-size: 12px;
         }
 
         @media print {
             .header-actions { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .header-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .summary-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </x-app-with-sidebar>

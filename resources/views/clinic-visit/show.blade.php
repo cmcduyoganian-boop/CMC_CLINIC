@@ -57,49 +57,162 @@
             </div>
         </div>
 
+        <!-- Visit Info Card -->
+        <div class="info-card visit-card">
+            <h2 class="card-title">Visit Information</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Visit Date</label>
+                    <span class="info-value">{{ $visit->visit_date->format('F d, Y') }}</span>
+                </div>
+                <div class="info-item">
+                    <label>Visit Type</label>
+                    <span class="info-value">{{ ucfirst(str_replace('_', ' ', $visit->visit_type ?? 'walk_in')) }}</span>
+                </div>
+                <div class="info-item">
+                    <label>Address</label>
+                    <span class="info-value">{{ $visit->address ?: 'N/A' }}</span>
+                </div>
+                <div class="info-item">
+                    <label>Sex</label>
+                    <span class="info-value">{{ ucfirst($visit->sex ?: 'N/A') }}</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Vital Signs Card -->
+        @php
+            use App\Support\VitalSigns;
+            $assessment = $visit->getVitalSignsAssessment();
+            $statuses   = $assessment['statuses'];
+            $overall    = $assessment['overall'];
+            $bmi        = $visit->getBMI();
+
+            $vitalRows = [
+                [
+                    'label'  => 'Temperature',
+                    'value'  => $visit->temperature ? $visit->temperature . ' °C' : null,
+                    'status' => $statuses['temperature'],
+                    'ref'    => '36.0–37.5 °C',
+                ],
+                [
+                    'label'  => 'Pulse Rate',
+                    'value'  => $visit->pulse_rate ? $visit->pulse_rate . ' bpm' : null,
+                    'status' => $statuses['pulse_rate'],
+                    'ref'    => '60–100 bpm',
+                ],
+                [
+                    'label'  => 'Respiratory Rate',
+                    'value'  => $visit->respiratory_rate ? $visit->respiratory_rate . ' breaths/min' : null,
+                    'status' => $statuses['respiratory_rate'],
+                    'ref'    => '10–20 breaths/min',
+                ],
+                [
+                    'label'  => 'Systolic BP',
+                    'value'  => $visit->bp_systolic ? $visit->bp_systolic . ' mmHg' : null,
+                    'status' => $statuses['bp_systolic'],
+                    'ref'    => '90–139 mmHg',
+                ],
+                [
+                    'label'  => 'Diastolic BP',
+                    'value'  => $visit->bp_diastolic ? $visit->bp_diastolic . ' mmHg' : null,
+                    'status' => $statuses['bp_diastolic'],
+                    'ref'    => '60–89 mmHg',
+                ],
+                [
+                    'label'  => 'SpO₂',
+                    'value'  => $visit->spo2 ? $visit->spo2 . '%' : null,
+                    'status' => $statuses['spo2'],
+                    'ref'    => '93–100%',
+                ],
+                [
+                    'label'  => 'Height',
+                    'value'  => $visit->height ? $visit->height . ' cm' : null,
+                    'status' => null,
+                    'ref'    => null,
+                ],
+                [
+                    'label'  => 'Weight',
+                    'value'  => $visit->weight ? $visit->weight . ' kg' : null,
+                    'status' => null,
+                    'ref'    => null,
+                ],
+                [
+                    'label'  => 'BMI',
+                    'value'  => $bmi,
+                    'status' => $statuses['bmi'],
+                    'ref'    => '18.5–24.9',
+                ],
+            ];
+        @endphp
+
         <div class="info-card vitals-card">
             <h2 class="card-title">Vital Signs</h2>
-            <div class="vitals-grid">
-                <div class="vital-item">
-                    <span class="vital-label">Temperature</span>
-                    <span class="vital-value">{{ $visit->temperature ? $visit->temperature . '°C' : '-' }}</span>
+
+            {{-- Overall Assessment Banner --}}
+            @if ($overall)
+                <div class="assessment-banner assessment-{{ $overall }}">
+                    <div class="assessment-icon">
+                        @if ($overall === 'abnormal') 🚨
+                        @elseif ($overall === 'above_normal') ⬆️
+                        @elseif ($overall === 'below_normal') ⬇️
+                        @else ✅
+                        @endif
+                    </div>
+                    <div class="assessment-text">
+                        <strong>Overall Vital Signs Assessment:</strong>
+                        {{ VitalSigns::label($overall) }}
+                        @if ($overall === 'abnormal')
+                            — One or more readings are outside safe limits. Please attend to this patient immediately.
+                        @elseif ($overall !== 'normal')
+                            — Some readings are outside the normal range. Monitoring recommended.
+                        @else
+                            — All recorded vital signs are within normal range.
+                        @endif
+                    </div>
                 </div>
-                <div class="vital-item">
-                    <span class="vital-label">Pulse Rate</span>
-                    <span class="vital-value">{{ $visit->pulse_rate ? $visit->pulse_rate . ' bpm' : '-' }}</span>
-                </div>
-                <div class="vital-item">
-                    <span class="vital-label">Respiratory Rate</span>
-                    <span class="vital-value">{{ $visit->respiratory_rate ? $visit->respiratory_rate . ' breaths/min' : '-' }}</span>
-                </div>
-                <div class="vital-item">
-                    <span class="vital-label">Blood Pressure</span>
-                    <span class="vital-value">{{ $visit->bp_systolic && $visit->bp_diastolic ? $visit->bp_systolic . '/' . $visit->bp_diastolic . ' mmHg' : '-' }}</span>
-                </div>
-                <div class="vital-item">
-                    <span class="vital-label">Height</span>
-                    <span class="vital-value">{{ $visit->height ? $visit->height . ' cm' : '-' }}</span>
-                </div>
-                <div class="vital-item">
-                    <span class="vital-label">Weight</span>
-                    <span class="vital-value">{{ $visit->weight ? $visit->weight . ' kg' : '-' }}</span>
-                </div>
-                <div class="vital-item">
-                    <span class="vital-label">BMI</label>
-                    <span class="vital-value">{{ $visit->getBMI() ? $visit->getBMI() : '-' }}</span>
-                </div>
-                <div class="vital-item">
-                    <span class="vital-label">SpO2</label>
-                    <span class="vital-value">{{ $visit->spo2 ? $visit->spo2 . '%' : '-' }}</span>
-                </div>
+            @endif
+
+            {{-- Per-vital detail table --}}
+            <div class="vitals-detail-table">
+                <table class="vs-table">
+                    <thead>
+                        <tr>
+                            <th>Vital Sign</th>
+                            <th>Recorded Value</th>
+                            <th>Normal Range</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($vitalRows as $row)
+                            @if ($row['value'] !== null)
+                                <tr class="{{ $row['status'] ? 'vs-row-' . $row['status'] : '' }}">
+                                    <td class="vs-name">{{ $row['label'] }}</td>
+                                    <td class="vs-val">{{ $row['value'] }}</td>
+                                    <td class="vs-ref">{{ $row['ref'] ?? '—' }}</td>
+                                    <td>
+                                        @if ($row['status'])
+                                            <span class="vs-badge vs-badge-{{ $row['status'] }}">
+                                                {{ VitalSigns::icon($row['status']) }}
+                                                {{ VitalSigns::label($row['status']) }}
+                                            </span>
+                                        @else
+                                            <span class="vs-badge vs-badge-na">—</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endif
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
 
         <!-- Clinical Info Card -->
         <div class="info-card clinical-card">
             <h2 class="card-title">Clinical Information</h2>
-            
+
             @if($visit->complaints)
                 <div class="clinical-section">
                     <h3 class="section-label">Chief Complaints</h3>
@@ -275,35 +388,104 @@
             color: #15803d;
         }
 
-        .vitals-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 16px;
+        .vitals-card {
+            border: 1px solid var(--border-card);
         }
 
-        .vital-item {
-            background: var(--bg-input);
-            border-radius: 8px;
-            padding: 16px;
+        /* ── Assessment Banner ──────────────────────────────────── */
+        .assessment-banner {
             display: flex;
-            flex-direction: column;
-            text-align: center;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.5;
+            border: 1.5px solid;
         }
 
-        .vital-label {
+        .assessment-normal     { background: rgba(39,174,96,0.10); border-color: rgba(39,174,96,0.35); color: #27ae60; }
+        .assessment-above_normal { background: rgba(243,156,18,0.10); border-color: rgba(243,156,18,0.35); color: #b87e00; }
+        .assessment-below_normal { background: rgba(52,152,219,0.10); border-color: rgba(52,152,219,0.35); color: #2980b9; }
+        .assessment-abnormal   { background: rgba(231,76,60,0.12); border-color: rgba(231,76,60,0.5); color: #e74c3c; }
+
+        .assessment-normal .assessment-text strong     { color: #27ae60; }
+        .assessment-above_normal .assessment-text strong { color: #b87e00; }
+        .assessment-below_normal .assessment-text strong { color: #2980b9; }
+        .assessment-abnormal .assessment-text strong   { color: #c0392b; }
+
+        .assessment-text { color: var(--text-heading); }
+        .assessment-text strong { font-size: 13px; }
+
+        .assessment-icon { font-size: 22px; flex-shrink: 0; line-height: 1.2; }
+
+        /* ── Vital Signs Table ──────────────────────────────────── */
+        .vitals-detail-table { overflow-x: auto; }
+
+        .vs-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .vs-table thead tr {
+            background: linear-gradient(135deg, #2980b9, #1a6ea8);
+        }
+
+        .vs-table thead th {
+            padding: 10px 14px;
+            text-align: left;
             font-size: 11px;
             font-weight: 700;
-            color: var(--text-muted);
+            color: #fff;
+            letter-spacing: 0.4px;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
-            margin-bottom: 8px;
+            white-space: nowrap;
         }
 
-        .vital-value {
-            font-size: 16px;
-            font-weight: 700;
-            color: #3498db;
+        .vs-table tbody tr {
+            border-bottom: 1px solid var(--border-inner);
+            transition: background 0.15s;
         }
+
+        .vs-table tbody tr:last-child { border-bottom: none; }
+        .vs-table tbody tr:hover { background: var(--bg-input); }
+
+        /* Row tinting by status */
+        .vs-row-abnormal   { background: rgba(231,76,60,0.05) !important; }
+        .vs-row-above_normal { background: rgba(243,156,18,0.04) !important; }
+        .vs-row-below_normal { background: rgba(52,152,219,0.04) !important; }
+
+        .vs-table td {
+            padding: 11px 14px;
+            color: var(--text-heading);
+            vertical-align: middle;
+        }
+
+        .vs-name { font-weight: 600; white-space: nowrap; }
+
+        .vs-val  { font-weight: 700; color: #3498db; }
+
+        .vs-ref  { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+        /* ── Status Badges ─────────────────────────────────────── */
+        .vs-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .vs-badge-normal       { background: rgba(39,174,96,0.15); color: #27ae60; }
+        .vs-badge-above_normal { background: rgba(243,156,18,0.15); color: #b87e00; }
+        .vs-badge-below_normal { background: rgba(52,152,219,0.15); color: #2980b9; }
+        .vs-badge-abnormal     { background: rgba(231,76,60,0.15); color: #e74c3c; font-weight: 800; }
+        .vs-badge-na           { background: transparent; color: var(--text-muted); }
 
         .clinical-section {
             margin-bottom: 20px;

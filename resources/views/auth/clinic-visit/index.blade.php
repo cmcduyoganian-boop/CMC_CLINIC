@@ -33,15 +33,17 @@
             @else
                 <table class="visits-table">
                     <thead>
-                        <tr>
-                            <th>DATE</th>
-                            <th>PATIENT NAME</th>
-                            <th>CATEGORY</th>
-                            <th>YEAR & SECTION</th>
-                            <th>COMPLAINTS</th>
-                            <th>DIAGNOSIS</th>
-                            <th>ACTIONS</th>
-                        </tr>
+                    <tr>
+                        <th>DATE</th>
+                        <th>PATIENT NAME</th>
+                        <th>CATEGORY</th>
+                        <th>YEAR & SECTION</th>
+                        <th>COMPLAINTS</th>
+                        <th>DIAGNOSIS</th>
+                        <th>ADDRESS</th>
+                        <th>SEX</th>
+                        <th>ACTIONS</th>
+                    </tr>
                     </thead>
                     <tbody>
                         @foreach($visits as $visit)
@@ -56,6 +58,8 @@
                                 <td class="year-section">{{ $visit->patient->year_section ?? '-' }}</td>
                                 <td class="text-small">{{ Str::limit($visit->complaints, 40) }}</td>
                                 <td class="text-small">{{ Str::limit($visit->diagnosis, 40) }}</td>
+                                <td class="text-small">{{ Str::limit($visit->address, 30) ?: '-' }}</td>
+                                <td class="text-small">{{ Str::limit($visit->sex, 10) ?: '-' }}</td>
                                 <td>
                                     <div class="action-buttons">
                                         <a href="{{ route('clinic-visit.show', $visit->id) }}" class="btn-view" title="View">

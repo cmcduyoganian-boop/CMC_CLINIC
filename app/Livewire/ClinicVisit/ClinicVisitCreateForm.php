@@ -15,13 +15,14 @@ class ClinicVisitCreateForm extends Component
     public $patientProgram = '';
     public $patientYearSection = '';
     public $patientAge = '';
-    public $patientAddress = '';
     public $patientPhone = '';
     public $showPatientDropdown = false;
 
     // ============ VISIT INFO ============
     public $visitDate;
     public $visitType = 'walk_in';
+    public $address = '';
+    public $sex = '';
 
     // ============ VITAL SIGNS ============
     public $temperature = '';
@@ -124,8 +125,8 @@ class ClinicVisitCreateForm extends Component
             ? ''
             : $patient->year_section;
         $this->patientAge = $patient->age ?? '';
-        $this->patientAddress = $patient->address ?? '';
         $this->patientPhone = $patient->phone ?? '';
+        $this->address = trim((string) ($patient->address ?? ''));
         $this->showPatientDropdown = false;
     }
 
@@ -142,10 +143,11 @@ class ClinicVisitCreateForm extends Component
             'patientProgram' => 'nullable|string|max:255',
             'patientYearSection' => 'nullable|string|max:255',
             'patientAge' => 'nullable|integer|min:0|max:150',
-            'patientAddress' => 'nullable|string|max:500',
             'patientPhone' => 'nullable|string|max:30',
             'visitDate' => 'required|date',
             'visitType' => 'required|in:walk_in,appointment,follow_up',
+            'address' => 'required|string|max:500',
+            'sex' => 'required|in:male,female',
             'temperature' => 'nullable|numeric',
             'pulseRate' => 'nullable|numeric',
             'respiratoryRate' => 'nullable|numeric',
@@ -165,6 +167,8 @@ class ClinicVisitCreateForm extends Component
             ? Patient::find($this->patientId)
             : Patient::where('name', $validated['patientName'])->first();
 
+        $validated['address'] = trim((string) ($validated['address'] ?: ($patient->address ?? '')));
+
         if (!$patient) {
             $patient = Patient::create([
                 'name' => $validated['patientName'],
@@ -172,15 +176,15 @@ class ClinicVisitCreateForm extends Component
                 'program' => $validated['patientProgram'],
                 'year_section' => $validated['patientYearSection'],
                 'age' => $validated['patientAge'],
-                'address' => $validated['patientAddress'],
                 'phone' => $validated['patientPhone'],
+                'address' => $validated['address'],
                 'status' => 'active',
             ]);
         } else {
             $patient->update([
                 'age' => $validated['patientAge'],
-                'address' => $validated['patientAddress'],
                 'phone' => $validated['patientPhone'],
+                'address' => $validated['address'],
             ]);
         }
 
@@ -189,6 +193,8 @@ class ClinicVisitCreateForm extends Component
             'user_id' => auth()->id(),
             'visit_date' => $validated['visitDate'],
             'visit_type' => $validated['visitType'],
+            'address' => $validated['address'],
+            'sex' => $validated['sex'],
             'temperature' => $validated['temperature'] ?: null,
             'pulse_rate' => $validated['pulseRate'] ?: null,
             'respiratory_rate' => $validated['respiratoryRate'] ?: null,
@@ -202,6 +208,12 @@ class ClinicVisitCreateForm extends Component
             'management' => $validated['management'],
             'diagnosis' => $validated['diagnosis'],
             'notes' => $validated['notes'],
+        ]);
+
+        \Log::info('Clinic visit created', [
+            'visit_id' => $patient->id,
+            'address' => $validated['address'],
+            'all_data' => $validated
         ]);
 
         session()->flash('success', 'Clinic visit recorded successfully! Patient: ' . $patient->name);

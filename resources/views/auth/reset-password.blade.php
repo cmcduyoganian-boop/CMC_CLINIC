@@ -46,6 +46,7 @@
         }
         .toggle-btn:hover { color:#374151; }
         .err-msg { font-size:11px; color:#ef4444; margin-top:4px; }
+        .hint { font-size:11px; color:#6b7280; margin-top:4px; }
 
         .btn-submit {
             width:100%; background:#2563eb; color:white; border:none;
@@ -105,6 +106,7 @@
                 </button>
             </div>
             @error('password')<div class="err-msg">{{ $message }}</div>@enderror
+            <div class="hint">6-8 characters, must include uppercase, lowercase, number, and special character</div>
         </div>
 
         <div class="field">

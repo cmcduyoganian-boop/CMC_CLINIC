@@ -129,6 +129,15 @@ class ClinicVisitController extends Controller
             ->with('success', 'Clinic visit updated successfully!');
     }
 
+    public function destroy($id)
+    {
+        $visit = ClinicVisit::findOrFail($id);
+        $visit->delete();
+
+        return redirect()->route('clinic-visit.index')
+            ->with('success', 'Clinic visit deleted successfully!');
+    }
+
     public function search(Request $request)
     {
         $query = $request->input('q');

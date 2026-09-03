@@ -110,6 +110,53 @@
                     @enderror
                 </div>
 
+                <!-- Password -->
+                <div class="form-group">
+                    <label for="password">Password *</label>
+                    <div class="password-input-group">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            value="{{ old('password') }}"
+                            class="form-input @error('password') is-invalid @enderror"
+                            placeholder="Create a password"
+                            required
+                            maxlength="8"
+                        >
+                        <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <small class="form-hint">6-8 characters, must include uppercase, lowercase, number, and special character</small>
+                    @error('password')
+                        <span class="error-text">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="form-group">
+                    <label for="password_confirmation">Confirm Password *</label>
+                    <div class="password-input-group">
+                        <input 
+                            type="password" 
+                            id="password_confirmation" 
+                            name="password_confirmation" 
+                            value="{{ old('password_confirmation') }}"
+                            class="form-input @error('password_confirmation') is-invalid @enderror"
+                            placeholder="Confirm your password"
+                            required
+                            maxlength="8"
+                        >
+                        <button type="button" class="toggle-password" onclick="togglePassword('password_confirmation', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    @error('password_confirmation')
+                        <span class="error-text">{{ $message }}</span>
+                    @enderror
+                </div>
+
                 <!-- Info Box -->
                 <div class="info-box">
                     <i class="fas fa-info-circle"></i>
@@ -244,6 +291,26 @@
             color: #95a5a6;
         }
 
+        .password-input-group {
+            position: relative;
+        }
+
+        .password-input-group .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #95a5a6;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .password-input-group .toggle-password i {
+            font-size: 14px;
+        }
+
         .error-text {
             font-size: 11px;
             color: #c0392b;
@@ -328,6 +395,20 @@
         }
     </style>
     <script>
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
         document.getElementById('clinicStaffRegisterForm').addEventListener('submit', function () {
             var button = document.getElementById('clinicStaffRegisterBtn');
             button.disabled = true;

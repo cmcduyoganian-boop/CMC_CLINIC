@@ -6,6 +6,7 @@ use App\Models\Patient;
 use App\Models\ClinicVisit;
 use App\Models\Appointment;
 use App\Models\Medicine;
+use App\Support\VitalSigns;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -19,13 +20,13 @@ class ReportController extends Controller
             ->get();
 
         return view('reports.patients', [
-            'totalPatients' => Patient::count(),
-            'students' => Patient::where('category', 'student')->count(),
-            'faculty' => Patient::where('category', 'faculty')->count(),
-            'staff' => Patient::where('category', 'staff')->count(),
-            'activePatients' => Patient::where('status', 'active')->count(),
-            'inactivePatients' => Patient::where('status', 'inactive')->count(),
-            'patients' => $patients,
+            'totalPatients'   => Patient::count(),
+            'students'        => Patient::where('category', 'student')->count(),
+            'faculty'         => Patient::where('category', 'faculty')->count(),
+            'staff'           => Patient::where('category', 'staff')->count(),
+            'activePatients'  => Patient::where('status', 'active')->count(),
+            'inactivePatients'=> Patient::where('status', 'inactive')->count(),
+            'patients'        => $patients,
         ]);
     }
 
@@ -34,21 +35,21 @@ class ReportController extends Controller
         $last30Days = collect(range(29, 0))->map(function ($days) {
             $date = now()->subDays($days);
             return [
-                'date' => $date->format('M d'),
+                'date'  => $date->format('M d'),
                 'count' => ClinicVisit::whereDate('visit_date', $date)->count(),
             ];
         });
 
         return view('reports.clinic-visits', [
-            'totalVisits' => ClinicVisit::count(),
-            'todayVisits' => ClinicVisit::whereDate('visit_date', today())->count(),
-            'monthVisits' => ClinicVisit::whereBetween('visit_date', [
+            'totalVisits'    => ClinicVisit::count(),
+            'todayVisits'    => ClinicVisit::whereDate('visit_date', today())->count(),
+            'monthVisits'    => ClinicVisit::whereBetween('visit_date', [
                 now()->startOfMonth(),
                 now()->endOfMonth()
             ])->count(),
             'uniquePatients' => ClinicVisit::distinct('patient_id')->count('patient_id'),
-            'last30Days' => $last30Days,
-            'recentVisits' => ClinicVisit::with('patient')
+            'last30Days'     => $last30Days,
+            'recentVisits'   => ClinicVisit::with('patient')
                 ->orderBy('visit_date', 'desc')
                 ->limit(20)
                 ->get(),
@@ -67,8 +68,8 @@ class ReportController extends Controller
             ->get();
 
         return view('reports.diagnosis', [
-            'topDiagnoses' => $topDiagnoses,
-            'totalUniqueDiagnoses' => ClinicVisit::whereNotNull('diagnosis')
+            'topDiagnoses'        => $topDiagnoses,
+            'totalUniqueDiagnoses'=> ClinicVisit::whereNotNull('diagnosis')
                 ->distinct('diagnosis')
                 ->count('diagnosis'),
         ]);
@@ -82,9 +83,9 @@ class ReportController extends Controller
 
         return view('reports.medicines', [
             'totalMedicines' => Medicine::count(),
-            'lowStock' => Medicine::whereRaw('quantity <= minimum_stock')->count(),
-            'outOfStock' => Medicine::where('quantity', '<=', 0)->count(),
-            'medicines' => $medicines,
+            'lowStock'       => Medicine::whereRaw('quantity <= minimum_stock')->count(),
+            'outOfStock'     => Medicine::where('quantity', '<=', 0)->count(),
+            'medicines'      => $medicines,
         ]);
     }
 
@@ -92,11 +93,11 @@ class ReportController extends Controller
     {
         return view('reports.appointments', [
             'totalAppointments' => Appointment::count(),
-            'scheduled' => Appointment::where('status', 'scheduled')->count(),
-            'completed' => Appointment::where('status', 'completed')->count(),
-            'noShow' => Appointment::where('status', 'no-show')->count(),
-            'cancelled' => Appointment::where('status', 'cancelled')->count(),
-            'appointments' => Appointment::with('patient')
+            'scheduled'         => Appointment::where('status', 'scheduled')->count(),
+            'completed'         => Appointment::where('status', 'completed')->count(),
+            'noShow'            => Appointment::where('status', 'no-show')->count(),
+            'cancelled'         => Appointment::where('status', 'cancelled')->count(),
+            'appointments'      => Appointment::with('patient')
                 ->orderBy('appointment_date', 'desc')
                 ->limit(20)
                 ->get(),
@@ -105,58 +106,114 @@ class ReportController extends Controller
 
     public function vitalSigns()
     {
-        $abnormal = ClinicVisit::where(function ($query) {
-            $query->where('temperature', '>', 38)
-                  ->orWhere('temperature', '<', 36)
-                  ->orWhere('spo2', '<', 95);
-        })->with('patient')
-        ->orderBy('visit_date', 'desc')
-        ->get();
+        // Fetch ALL visits that have at least one vital sign recorded
+        $allReadings = ClinicVisit::with('patient')
+            ->where(function ($q) {
+                $q->whereNotNull('temperature')
+                  ->orWhereNotNull('pulse_rate')
+                  ->orWhereNotNull('respiratory_rate')
+                  ->orWhereNotNull('bp_systolic')
+                  ->orWhereNotNull('spo2')
+                  ->orWhereNotNull('height')
+                  ->orWhereNotNull('weight');
+            })
+            ->orderBy('visit_date', 'desc')
+            ->get();
 
-        return view('reports.vital-signs', [
-            'highFever' => ClinicVisit::where('temperature', '>', 38)->count(),
-            'lowTemperature' => ClinicVisit::where('temperature', '<', 36)->count(),
-            'lowOxygen' => ClinicVisit::where('spo2', '<', 95)->count(),
-            'abnormalReadings' => $abnormal,
-        ]);
+        // Build summary counts using correct VitalSigns thresholds
+        // ── Temperature ──
+        $highFever      = ClinicVisit::whereNotNull('temperature')->where('temperature', '>=', 38.0)->count();
+        $lowTemperature = ClinicVisit::whereNotNull('temperature')->where('temperature', '<', 36.0)->count();
+        $criticalTemp   = ClinicVisit::whereNotNull('temperature')
+            ->where(fn($q) => $q->where('temperature', '<', 35.0)->orWhere('temperature', '>=', 38.0))
+            ->count();
+
+        // ── SpO₂ ──
+        $lowOxygen      = ClinicVisit::whereNotNull('spo2')->where('spo2', '<=', 92)->count();
+        $criticalOxygen = ClinicVisit::whereNotNull('spo2')->where('spo2', '<=', 90)->count();
+
+        // ── Blood Pressure ──
+        $highBP = ClinicVisit::where(fn($q) => $q
+            ->where('bp_systolic', '>=', 140)->orWhere('bp_diastolic', '>=', 90))->count();
+        $lowBP  = ClinicVisit::where(fn($q) => $q
+            ->where('bp_systolic', '<', 90)->orWhere('bp_diastolic', '<', 60))->count();
+        $criticalBP = ClinicVisit::where(fn($q) => $q
+            ->where('bp_systolic', '>=', 180)->orWhere('bp_diastolic', '>=', 120)
+            ->orWhere('bp_systolic', '<', 80)->orWhere('bp_diastolic', '<', 50))->count();
+
+        // ── Pulse Rate ──
+        $highPulse    = ClinicVisit::whereNotNull('pulse_rate')->where('pulse_rate', '>', 100)->count();
+        $lowPulse     = ClinicVisit::whereNotNull('pulse_rate')->where('pulse_rate', '<', 60)->count();
+        $criticalPulse = ClinicVisit::whereNotNull('pulse_rate')
+            ->where(fn($q) => $q->where('pulse_rate', '<', 50)->orWhere('pulse_rate', '>', 120))
+            ->count();
+
+        // ── Respiratory Rate ──
+        $highRespRate    = ClinicVisit::whereNotNull('respiratory_rate')->where('respiratory_rate', '>', 20)->count();
+        $lowRespRate     = ClinicVisit::whereNotNull('respiratory_rate')->where('respiratory_rate', '<', 10)->count();
+        $criticalRespRate = ClinicVisit::whereNotNull('respiratory_rate')
+            ->where(fn($q) => $q->where('respiratory_rate', '<', 8)->orWhere('respiratory_rate', '>', 30))
+            ->count();
+
+        // Overall counts per classification
+        $normalCount   = 0;
+        $aboveCount    = 0;
+        $belowCount    = 0;
+        $abnormalCount = 0;
+
+        foreach ($allReadings as $r) {
+            $overall = $r->getVitalSignsAssessment()['overall'];
+            match ($overall) {
+                VitalSigns::ABNORMAL     => $abnormalCount++,
+                VitalSigns::ABOVE_NORMAL => $aboveCount++,
+                VitalSigns::BELOW_NORMAL => $belowCount++,
+                default                  => $normalCount++,
+            };
+        }
+
+        return view('reports.vital-signs', compact(
+            'allReadings',
+            'highFever', 'lowTemperature', 'criticalTemp',
+            'lowOxygen', 'criticalOxygen',
+            'highBP', 'lowBP', 'criticalBP',
+            'highPulse', 'lowPulse', 'criticalPulse',
+            'highRespRate', 'lowRespRate', 'criticalRespRate',
+            'normalCount', 'aboveCount', 'belowCount', 'abnormalCount',
+        ));
     }
 
     public function download($type)
     {
         $filename = match ($type) {
-            'patients' => 'patients-report.csv',
+            'patients'      => 'patients-report.csv',
             'clinic-visits' => 'clinic-visits-report.csv',
-            'diagnosis' => 'diagnosis-report.csv',
-            'medicines' => 'medicines-report.csv',
-            'appointments' => 'appointments-report.csv',
-            'vital-signs' => 'vital-signs-report.csv',
-            default => null,
+            'diagnosis'     => 'diagnosis-report.csv',
+            'medicines'     => 'medicines-report.csv',
+            'appointments'  => 'appointments-report.csv',
+            'vital-signs'   => 'vital-signs-report.csv',
+            default         => null,
         };
 
-        if (!$filename) {
-            abort(404);
-        }
+        if (!$filename) abort(404);
 
         $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Type'        => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-            'Pragma' => 'no-cache',
-            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Pragma'              => 'no-cache',
+            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
         ];
 
         $callback = match ($type) {
-            'patients' => $this->exportPatients(),
+            'patients'      => $this->exportPatients(),
             'clinic-visits' => $this->exportClinicVisits(),
-            'diagnosis' => $this->exportDiagnosis(),
-            'medicines' => $this->exportMedicines(),
-            'appointments' => $this->exportAppointments(),
-            'vital-signs' => $this->exportVitalSigns(),
-            default => null,
+            'diagnosis'     => $this->exportDiagnosis(),
+            'medicines'     => $this->exportMedicines(),
+            'appointments'  => $this->exportAppointments(),
+            'vital-signs'   => $this->exportVitalSigns(),
+            default         => null,
         };
 
-        if (!$callback) {
-            abort(404);
-        }
+        if (!$callback) abort(404);
 
         return response()->stream($callback, 200, $headers);
     }
@@ -167,170 +224,158 @@ class ReportController extends Controller
             $handle = fopen('php://output', 'w');
             fwrite($handle, "\xEF\xBB\xBF");
             fputcsv($handle, $headers);
-
             foreach ($rows as $row) {
                 fputcsv($handle, $row);
             }
-
             fclose($handle);
         };
-
         return $callback;
     }
 
     protected function exportPatients()
     {
-        $patients = Patient::with('clinicVisits')
-            ->withCount('clinicVisits')
-            ->orderBy('name')
-            ->get();
-
-        $rows = $patients->map(function ($patient) {
-            return [
-                'Name' => $patient->name,
-                'Category' => ucfirst($patient->category),
-                'Year/Section' => $patient->year_section ?? 'N/A',
-                'Age' => $patient->age ?? 'N/A',
-                'Phone' => $patient->phone ?? 'N/A',
-                'Email' => $patient->email ?? 'N/A',
-                'Address' => $patient->address ?? 'N/A',
-                'Program' => $patient->program ?? 'N/A',
-                'Status' => ucfirst($patient->status),
-                'Total Visits' => $patient->clinic_visits_count,
-            ];
-        })->toArray();
+        $patients = Patient::with('clinicVisits')->withCount('clinicVisits')->orderBy('name')->get();
+        $rows = $patients->map(fn($p) => [
+            'Name'         => $p->name,
+            'Category'     => ucfirst($p->category),
+            'Year/Section' => $p->year_section ?? 'N/A',
+            'Age'          => $p->age ?? 'N/A',
+            'Phone'        => $p->phone ?? 'N/A',
+            'Email'        => $p->email ?? 'N/A',
+            'Address'      => $p->address ?? 'N/A',
+            'Program'      => $p->program ?? 'N/A',
+            'Status'       => ucfirst($p->status),
+            'Total Visits' => $p->clinic_visits_count,
+        ])->toArray();
 
         return $this->outputCsv($rows, [
-            'Name', 'Category', 'Year/Section', 'Age', 'Phone', 'Email', 'Address', 'Program', 'Status', 'Total Visits'
+            'Name','Category','Year/Section','Age','Phone','Email','Address','Program','Status','Total Visits'
         ]);
     }
 
     protected function exportClinicVisits()
     {
-        $visits = ClinicVisit::with('patient')
-            ->orderBy('visit_date', 'desc')
-            ->get();
-
-        $rows = $visits->map(function ($visit) {
-            $date = \Carbon\Carbon::parse($visit->visit_date)->format('Y-m-d');
-
-            return [
-                'Date' => $date,
-                'Patient' => $visit->patient->name ?? 'N/A',
-                'Category' => $visit->patient->category ?? 'N/A',
-                'Year/Section' => $visit->patient->year_section ?? 'N/A',
-                'Temperature' => $visit->temperature ? $visit->temperature . '°C' : '-',
-                'Pulse Rate' => $visit->pulse_rate ?: '-',
-                'Respiratory Rate' => $visit->respiratory_rate ?: '-',
-                'Blood Pressure' => ($visit->bp_systolic && $visit->bp_diastolic) ? $visit->bp_systolic . '/' . $visit->bp_diastolic . ' mmHg' : '-',
-                'Height' => $visit->height ? $visit->height . ' cm' : '-',
-                'Weight' => $visit->weight ? $visit->weight . ' kg' : '-',
-                'BMI' => $visit->getBMI() ?: '-',
-                'SpO2' => $visit->spo2 ? $visit->spo2 . '%' : '-',
-                'Complaints' => $visit->complaints ?: '-',
-                'Diagnosis' => $visit->diagnosis ?: '-',
-                'Management' => $visit->management ?: '-',
-                'Notes' => $visit->notes ?: '-',
-            ];
-        })->toArray();
+        $visits = ClinicVisit::with('patient')->orderBy('visit_date', 'desc')->get();
+        $rows = $visits->map(fn($v) => [
+            'Date'             => Carbon::parse($v->visit_date)->format('Y-m-d'),
+            'Patient'          => $v->patient->name ?? 'N/A',
+            'Category'         => $v->patient->category ?? 'N/A',
+            'Year/Section'     => $v->patient->year_section ?? 'N/A',
+            'Temperature'      => $v->temperature ? $v->temperature . '°C' : '-',
+            'Pulse Rate'       => $v->pulse_rate ?: '-',
+            'Respiratory Rate' => $v->respiratory_rate ?: '-',
+            'Blood Pressure'   => ($v->bp_systolic && $v->bp_diastolic) ? $v->bp_systolic . '/' . $v->bp_diastolic . ' mmHg' : '-',
+            'Height'           => $v->height ? $v->height . ' cm' : '-',
+            'Weight'           => $v->weight ? $v->weight . ' kg' : '-',
+            'BMI'              => $v->getBMI() ?: '-',
+            'SpO2'             => $v->spo2 ? $v->spo2 . '%' : '-',
+            'Complaints'       => $v->complaints ?: '-',
+            'Diagnosis'        => $v->diagnosis ?: '-',
+            'Management'       => $v->management ?: '-',
+            'Notes'            => $v->notes ?: '-',
+        ])->toArray();
 
         return $this->outputCsv($rows, [
-            'Date', 'Patient', 'Category', 'Year/Section', 'Temperature', 'Pulse Rate', 'Respiratory Rate',
-            'Blood Pressure', 'Height', 'Weight', 'BMI', 'SpO2', 'Complaints', 'Diagnosis', 'Management', 'Notes'
+            'Date','Patient','Category','Year/Section','Temperature','Pulse Rate','Respiratory Rate',
+            'Blood Pressure','Height','Weight','BMI','SpO2','Complaints','Diagnosis','Management','Notes'
         ]);
     }
 
     protected function exportDiagnosis()
     {
         $diagnoses = ClinicVisit::select('diagnosis')
-            ->whereNotNull('diagnosis')
-            ->where('diagnosis', '!=', '')
-            ->groupBy('diagnosis')
-            ->selectRaw('diagnosis, COUNT(*) as count')
-            ->orderByRaw('COUNT(*) DESC')
-            ->get();
+            ->whereNotNull('diagnosis')->where('diagnosis', '!=', '')
+            ->groupBy('diagnosis')->selectRaw('diagnosis, COUNT(*) as count')
+            ->orderByRaw('COUNT(*) DESC')->get();
 
-        $rows = $diagnoses->map(function ($item) {
-            return [
-                'Diagnosis' => $item->diagnosis,
-                'Count' => $item->count,
-            ];
-        })->toArray();
-
-        return $this->outputCsv($rows, ['Diagnosis', 'Count']);
+        return $this->outputCsv(
+            $diagnoses->map(fn($i) => ['Diagnosis' => $i->diagnosis, 'Count' => $i->count])->toArray(),
+            ['Diagnosis', 'Count']
+        );
     }
 
     protected function exportMedicines()
     {
-        $medicines = Medicine::where('status', 'active')
-            ->orderBy('quantity')
-            ->get();
+        $medicines = Medicine::where('status', 'active')->orderBy('quantity')->get();
+        $rows = $medicines->map(fn($m) => [
+            'Name'          => $m->name,
+            'Category'      => $m->category ?? 'N/A',
+            'Quantity'      => $m->quantity,
+            'Minimum Stock' => $m->minimum_stock,
+            'Unit'          => $m->unit ?? 'N/A',
+            'Status'        => $m->quantity <= 0 ? 'Out of Stock' : ($m->quantity <= $m->minimum_stock ? 'Low Stock' : 'In Stock'),
+        ])->toArray();
 
-        $rows = $medicines->map(function ($medicine) {
-            return [
-                'Name' => $medicine->name,
-                'Category' => $medicine->category ?? 'N/A',
-                'Quantity' => $medicine->quantity,
-                'Minimum Stock' => $medicine->minimum_stock,
-                'Unit' => $medicine->unit ?? 'N/A',
-                'Status' => $medicine->quantity <= 0 ? 'Out of Stock' : ($medicine->quantity <= $medicine->minimum_stock ? 'Low Stock' : 'In Stock'),
-            ];
-        })->toArray();
-
-        return $this->outputCsv($rows, ['Name', 'Category', 'Quantity', 'Minimum Stock', 'Unit', 'Status']);
+        return $this->outputCsv($rows, ['Name','Category','Quantity','Minimum Stock','Unit','Status']);
     }
 
     protected function exportAppointments()
     {
-        $appointments = Appointment::with('patient')
-            ->orderBy('appointment_date', 'desc')
-            ->get();
+        $appointments = Appointment::with('patient')->orderBy('appointment_date', 'desc')->get();
+        $rows = $appointments->map(fn($a) => [
+            'Date'     => Carbon::parse($a->appointment_date)->format('Y-m-d'),
+            'Time'     => $a->appointment_time ?? 'N/A',
+            'Patient'  => $a->patient->name ?? 'N/A',
+            'Category' => $a->patient->category ?? 'N/A',
+            'Reason'   => $a->reason ?? 'N/A',
+            'Status'   => ucfirst($a->status),
+            'Notes'    => $a->notes ?? 'N/A',
+        ])->toArray();
 
-        $rows = $appointments->map(function ($appointment) {
-            $date = \Carbon\Carbon::parse($appointment->appointment_date)->format('Y-m-d');
-
-            return [
-                'Date' => $date,
-                'Time' => $appointment->appointment_time ?? 'N/A',
-                'Patient' => $appointment->patient->name ?? 'N/A',
-                'Category' => $appointment->patient->category ?? 'N/A',
-                'Reason' => $appointment->reason ?? 'N/A',
-                'Status' => ucfirst($appointment->status),
-                'Notes' => $appointment->notes ?? 'N/A',
-            ];
-        })->toArray();
-
-        return $this->outputCsv($rows, ['Date', 'Time', 'Patient', 'Category', 'Reason', 'Status', 'Notes']);
+        return $this->outputCsv($rows, ['Date','Time','Patient','Category','Reason','Status','Notes']);
     }
 
     protected function exportVitalSigns()
     {
-        $abnormal = ClinicVisit::where(function ($query) {
-            $query->where('temperature', '>', 38)
-                  ->orWhere('temperature', '<', 36)
-                  ->orWhere('spo2', '<', 95);
-        })->with('patient')
-        ->orderBy('visit_date', 'desc')
-        ->get();
+        $visits = ClinicVisit::with('patient')
+            ->where(function ($q) {
+                $q->whereNotNull('temperature')->orWhereNotNull('pulse_rate')
+                  ->orWhereNotNull('respiratory_rate')->orWhereNotNull('bp_systolic')
+                  ->orWhereNotNull('spo2')->orWhereNotNull('height')->orWhereNotNull('weight');
+            })
+            ->orderBy('visit_date', 'desc')
+            ->get();
 
-        $rows = $abnormal->map(function ($visit) {
-            $alerts = [];
-            if ($visit->temperature > 38) $alerts[] = 'High Fever';
-            if ($visit->temperature < 36) $alerts[] = 'Low Temperature';
-            if ($visit->spo2 < 95) $alerts[] = 'Low Oxygen';
+        $rows = $visits->map(function ($v) {
+            $a   = $v->getVitalSignsAssessment();
+            $st  = $a['statuses'];
+            $bmi = $v->getBMI();
 
-            $date = \Carbon\Carbon::parse($visit->visit_date)->format('Y-m-d');
+            $lbl = fn(?string $s) => $s ? VitalSigns::label($s) : '-';
 
             return [
-                'Date' => $date,
-                'Patient' => $visit->patient->name ?? 'N/A',
-                'Category' => $visit->patient->category ?? 'N/A',
-                'Temperature' => $visit->temperature ? $visit->temperature . '°C' : '-',
-                'SpO2' => $visit->spo2 ? $visit->spo2 . '%' : '-',
-                'Alert' => implode(', ', $alerts),
+                'Date'                    => Carbon::parse($v->visit_date)->format('Y-m-d'),
+                'Patient'                 => $v->patient->name ?? 'N/A',
+                'Category'                => ucfirst($v->patient->category ?? 'N/A'),
+                'Temperature'             => $v->temperature ? $v->temperature . '°C' : '-',
+                'Temperature Status'      => $lbl($st['temperature']),
+                'Pulse Rate'              => $v->pulse_rate ? $v->pulse_rate . ' bpm' : '-',
+                'Pulse Rate Status'       => $lbl($st['pulse_rate']),
+                'Respiratory Rate'        => $v->respiratory_rate ? $v->respiratory_rate . ' /min' : '-',
+                'Respiratory Rate Status' => $lbl($st['respiratory_rate']),
+                'Systolic BP'             => $v->bp_systolic ? $v->bp_systolic . ' mmHg' : '-',
+                'Systolic Status'         => $lbl($st['bp_systolic']),
+                'Diastolic BP'            => $v->bp_diastolic ? $v->bp_diastolic . ' mmHg' : '-',
+                'Diastolic Status'        => $lbl($st['bp_diastolic']),
+                'SpO2'                    => $v->spo2 ? $v->spo2 . '%' : '-',
+                'SpO2 Status'             => $lbl($st['spo2']),
+                'BMI'                     => $bmi ?: '-',
+                'BMI Status'              => $lbl($st['bmi']),
+                'Overall VS Assessment'   => $lbl($a['overall']),
+                'Diagnosis'               => $v->diagnosis ?: '-',
             ];
         })->toArray();
 
-        return $this->outputCsv($rows, ['Date', 'Patient', 'Category', 'Temperature', 'SpO2', 'Alert']);
+        return $this->outputCsv($rows, [
+            'Date','Patient','Category',
+            'Temperature','Temperature Status',
+            'Pulse Rate','Pulse Rate Status',
+            'Respiratory Rate','Respiratory Rate Status',
+            'Systolic BP','Systolic Status',
+            'Diastolic BP','Diastolic Status',
+            'SpO2','SpO2 Status',
+            'BMI','BMI Status',
+            'Overall VS Assessment','Diagnosis',
+        ]);
     }
 }

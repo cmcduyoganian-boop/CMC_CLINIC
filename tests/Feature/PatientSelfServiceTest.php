@@ -1,8 +1,11 @@
 <?php
 
+use App\Livewire\ClinicVisit\ClinicVisitCreateForm;
+use App\Livewire\ClinicVisit\ClinicVisitEditForm;
 use App\Models\ClinicVisit;
 use App\Models\Patient;
 use App\Models\User;
+use Livewire\Livewire;
 
 test('patient can view and update their own profile', function () {
     $user = User::factory()->create([
@@ -101,4 +104,32 @@ test('patient can view their own visit records', function () {
         ->assertOk()
         ->assertSee('Seasonal Flu')
         ->assertSee('My Records');
+});
+
+test('clinic visit address falls back to the patient address when empty', function () {
+    $patient = Patient::create([
+        'name' => 'Address Fallback Patient',
+        'email' => 'fallback@example.com',
+        'phone' => '09123456789',
+        'age' => 19,
+        'category' => 'student',
+        'program' => 'BSCS',
+        'year_section' => '2-A',
+        'address' => 'Carmen, Bohol',
+        'status' => 'active',
+    ]);
+
+    $visit = ClinicVisit::create([
+        'patient_id' => $patient->id,
+        'user_id' => User::factory()->create()->id,
+        'visit_date' => '2026-09-02',
+        'address' => null,
+    ]);
+
+    Livewire::test(ClinicVisitCreateForm::class)
+        ->call('selectPatient', $patient->id)
+        ->assertSet('address', 'Carmen, Bohol');
+
+    Livewire::test(ClinicVisitEditForm::class, ['visitId' => $visit->id])
+        ->assertSet('address', 'Carmen, Bohol');
 });

@@ -12,6 +12,8 @@ class ClinicVisitEditForm extends Component
 
     // ============ VISIT INFO ============
     public $visitDate;
+    public $address = '';
+    public $sex = '';
 
     // ============ PATIENT INFO ============
     public $patientName;
@@ -20,7 +22,6 @@ class ClinicVisitEditForm extends Component
     public $patientAge = '';
     public $patientPhone = '';
     public $patientEmail = '';
-    public $patientAddress = '';
     public $patientProgram = '';
 
     // ============ VITAL SIGNS ============
@@ -45,6 +46,8 @@ class ClinicVisitEditForm extends Component
         $this->visit = ClinicVisit::with('patient')->findOrFail($visitId);
 
         $this->visitDate = $this->visit->visit_date->format('Y-m-d');
+        $this->address = trim((string) ($this->visit->address ?: ($this->visit->patient?->address ?? '')));
+        $this->sex = $this->visit->sex ?? '';
         $this->temperature = $this->visit->temperature;
         $this->pulseRate = $this->visit->pulse_rate;
         $this->respiratoryRate = $this->visit->respiratory_rate;
@@ -65,7 +68,6 @@ class ClinicVisitEditForm extends Component
         $this->patientAge = $patient->age ?? '';
         $this->patientPhone = $patient->phone ?? '';
         $this->patientEmail = $patient->email ?? '';
-        $this->patientAddress = $patient->address ?? '';
         $this->patientProgram = $patient->program ?? '';
     }
 
@@ -101,6 +103,8 @@ class ClinicVisitEditForm extends Component
     {
         $validated = $this->validate([
             'visitDate' => 'required|date',
+            'address' => 'required|string|max:500',
+            'sex' => 'required|in:male,female',
             'temperature' => 'nullable|numeric',
             'pulseRate' => 'nullable|numeric',
             'respiratoryRate' => 'nullable|numeric',
@@ -119,12 +123,17 @@ class ClinicVisitEditForm extends Component
             'patientAge' => 'nullable|integer|min:0',
             'patientPhone' => 'nullable|string|max:20',
             'patientEmail' => 'nullable|email|max:255',
-            'patientAddress' => 'nullable|string|max:500',
             'patientProgram' => 'nullable|string|max:100',
         ]);
 
+        $validated['address'] = trim((string) ($validated['address'] ?: ($this->visit->patient?->address ?? '')));
+
+        $validated['address'] = trim((string) ($validated['address'] ?: ($this->visit->patient?->address ?? '')));
+
         $this->visit->update([
             'visit_date' => $validated['visitDate'],
+            'address' => $validated['address'],
+            'sex' => $validated['sex'],
             'temperature' => $validated['temperature'] ?: null,
             'pulse_rate' => $validated['pulseRate'] ?: null,
             'respiratory_rate' => $validated['respiratoryRate'] ?: null,
@@ -140,17 +149,28 @@ class ClinicVisitEditForm extends Component
             'notes' => $validated['notes'],
         ]);
 
+        \Log::info('Clinic visit updated', [
+            'visit_id' => $this->visit->id,
+            'address' => $validated['address'],
+            'all_data' => $validated
+        ]);
+
         if ($this->visit->patient) {
-            $this->visit->patient->update([
+            $patientData = [
                 'name' => $validated['patientName'],
                 'category' => $validated['patientCategory'],
                 'year_section' => $validated['patientYearSection'],
                 'age' => $validated['patientAge'],
                 'phone' => $validated['patientPhone'],
-                'email' => $validated['patientEmail'],
-                'address' => $validated['patientAddress'],
                 'program' => $validated['patientProgram'],
-            ]);
+                'address' => $validated['address'],
+            ];
+
+            if (!empty($validated['patientEmail'])) {
+                $patientData['email'] = $validated['patientEmail'];
+            }
+
+            $this->visit->patient->update($patientData);
         }
 
         session()->flash('success', 'Clinic visit and patient information updated successfully!');

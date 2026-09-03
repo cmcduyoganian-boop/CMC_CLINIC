@@ -510,21 +510,25 @@
     }
 
     .medicines-table th {
-        padding: 12px 16px;
+        padding: 13px 16px;
         text-align: left;
         font-size: 11px;
         font-weight: 700;
-        color: var(--text-muted);
+        color: #fff;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        background: transparent;
-        border-bottom: 2px solid var(--border-inner);
+        background: linear-gradient(135deg, #2980b9, #1a6ea8);
+        white-space: nowrap;
     }
+
+    .medicines-table th:last-child { border-right: none; }
 
     .medicines-table tbody tr {
         border-bottom: 1px solid var(--border-inner);
         transition: all 0.2s;
     }
+
+    .medicines-table tbody tr:last-child { border-bottom: none; }
 
     .medicines-table tbody tr:hover { background: var(--bg-input); }
 
@@ -544,7 +548,8 @@
 
     .medicines-table td {
         padding: 12px 16px;
-        color: var(--text-body);
+        color: var(--text-heading);
+        vertical-align: middle;
     }
 
     .medicine-name {

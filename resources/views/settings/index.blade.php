@@ -176,7 +176,7 @@
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
-                                    <small class="form-hint">Minimum 8 characters, must include uppercase, lowercase, number, and special character</small>
+                                    <small class="form-hint">6-8 characters, must include uppercase, lowercase, number, and special character</small>
                                     @error('password')
                                         <span class="form-error">{{ $message }}</span>
                                     @enderror

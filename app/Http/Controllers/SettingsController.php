@@ -141,12 +141,16 @@ class SettingsController extends Controller
     {
         $user = auth()->user();
 
-        // If OTP is set, this is password change request
-        if ($request->has('otp')) {
-            $request->validate([
-                'otp' => 'required|string|size:6',
-                'password' => ['required', 'confirmed', Password::defaults()],
-            ]);
+            // If OTP is set, this is password change request
+            if ($request->has('otp')) {
+                $request->validate([
+                    'otp' => 'required|string|size:6',
+                    'password' => ['required', 'confirmed', 'regex:/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/', 'min:6', 'max:8'],
+                ], [
+                    'password.regex' => 'Password must contain uppercase, lowercase, number, and special character.',
+                    'password.min' => 'Password must be at least 6 characters.',
+                    'password.max' => 'Password cannot exceed 8 characters.',
+                ]);
 
             // Verify OTP
             $otpRecord = PasswordResetOtp::isValid($user->email, $request->otp);

@@ -22,55 +22,53 @@
     @endif
 
     <form wire:submit="save" class="clinic-visit-form">
-        <!-- Visit Date + Patient Information -->
+        <!-- Patient Information -->
         <div class="form-section">
-            <h2 class="section-title">Visit &amp; Patient Information</h2>
+            <h2 class="section-title">Patient Information</h2>
 
-            <div class="form-row-2">
-                <div class="form-group">
-                    <label class="form-label">Date *</label>
-                    <input type="date" wire:model="visitDate" class="form-control" required>
+            <div class="form-group">
+                <label class="form-label">Full Name *</label>
+                <div class="patient-search-wrapper">
+                    <input
+                        type="text"
+                        wire:model.live.debounce.300ms="patientName"
+                        wire:focus="$set('showPatientDropdown', true)"
+                        class="form-control"
+                        placeholder="Type patient name..."
+                        required
+                        autocomplete="off">
+
+                    @if ($showPatientDropdown && $patientName)
+                        <div class="patient-dropdown show" wire:click.outside="hideDropdown">
+                            @forelse ($this->matchingPatients as $match)
+                                <div class="patient-option" wire:click="selectPatient({{ $match->id }})">
+                                    <div class="patient-option-name">{{ $match->name }}</div>
+                                    <div class="patient-option-detail">{{ $match->year_section ?: '-' }} &bull; {{ ucfirst($match->category) }}</div>
+                                </div>
+                            @empty
+                                <div class="patient-option">
+                                    <div class="patient-option-name">No patients found</div>
+                                    <div class="patient-option-detail">A new patient record will be created</div>
+                                </div>
+                            @endforelse
+                        </div>
+                    @endif
                 </div>
+                <small class="form-hint">Type to search existing patients or enter new name</small>
+            </div>
 
-                <div class="form-group">
-                    <label class="form-label">Visit Type *</label>
-                    <select wire:model="visitType" class="form-control" required>
-                        <option value="walk_in">Walk-in</option>
-                        <option value="appointment">Appointment</option>
-                        <option value="follow_up">Follow-up</option>
-                    </select>
-                </div>
+            <div class="form-group">
+                <label class="form-label">Address *</label>
+                <input type="text" wire:model="address" class="form-control" maxlength="500" placeholder="Enter address" required>
+            </div>
 
-                <div class="form-group">
-                    <label class="form-label">Full Name *</label>
-                    <div class="patient-search-wrapper">
-                        <input
-                            type="text"
-                            wire:model.live.debounce.300ms="patientName"
-                            wire:focus="$set('showPatientDropdown', true)"
-                            class="form-control"
-                            placeholder="Type patient name..."
-                            required
-                            autocomplete="off">
-
-                        @if ($showPatientDropdown && $patientName)
-                            <div class="patient-dropdown show" wire:click.outside="hideDropdown">
-                                @forelse ($this->matchingPatients as $match)
-                                    <div class="patient-option" wire:click="selectPatient({{ $match->id }})">
-                                        <div class="patient-option-name">{{ $match->name }}</div>
-                                        <div class="patient-option-detail">{{ $match->year_section ?: '-' }} &bull; {{ ucfirst($match->category) }}</div>
-                                    </div>
-                                @empty
-                                    <div class="patient-option">
-                                        <div class="patient-option-name">No patients found</div>
-                                        <div class="patient-option-detail">A new patient record will be created</div>
-                                    </div>
-                                @endforelse
-                            </div>
-                        @endif
-                    </div>
-                    <small class="form-hint">Type to search existing patients or enter new name</small>
-                </div>
+            <div class="form-group">
+                <label class="form-label">Sex *</label>
+                <select wire:model="sex" class="form-control" required>
+                    <option value="">-- Select Sex --</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
             </div>
 
             <div class="form-row-3">
@@ -107,11 +105,6 @@
                 <div class="form-group">
                     <label class="form-label">Phone Number</label>
                     <input type="text" wire:model="patientPhone" class="form-control" maxlength="30" placeholder="Enter phone number">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Address</label>
-                    <input type="text" wire:model="patientAddress" class="form-control" maxlength="500" placeholder="Enter address">
                 </div>
             </div>
         </div>

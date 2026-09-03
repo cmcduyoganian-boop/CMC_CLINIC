@@ -40,12 +40,26 @@
         <div class="form-section">
             <h2 class="section-title">Patient Information</h2>
 
-            <div class="form-row-2">
-                <div class="form-group">
-                    <label class="form-label">Full Name *</label>
-                    <input type="text" wire:model="patientName" class="form-control" required>
-                </div>
+            <div class="form-group">
+                <label class="form-label">Full Name *</label>
+                <input type="text" wire:model="patientName" class="form-control" required>
+            </div>
 
+            <div class="form-group">
+                <label class="form-label">Address *</label>
+                <input type="text" wire:model="address" class="form-control" maxlength="500" placeholder="Enter address" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Sex *</label>
+                <select wire:model="sex" class="form-control" required>
+                    <option value="">-- Select Sex --</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            </div>
+
+            <div class="form-row-2">
                 <div class="form-group">
                     <label class="form-label">Category *</label>
                     <select wire:model="patientCategory" class="form-control">
@@ -78,11 +92,6 @@
                     <label class="form-label">Email</label>
                     <input type="email" wire:model="patientEmail" class="form-control" placeholder="student@cmc.edu.ph">
                 </div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Address</label>
-                <input type="text" wire:model="patientAddress" class="form-control" placeholder="Carmen, Bohol">
             </div>
 
             <div class="form-group">

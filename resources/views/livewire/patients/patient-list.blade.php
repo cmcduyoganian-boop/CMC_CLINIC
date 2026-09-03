@@ -170,12 +170,12 @@
     .page-description {
         margin: 4px 0 0 0;
         font-size: 13px;
-        color: var(--text-body);
+        color: var(--text-muted);
     }
 
     .btn-new-patient {
-        background: linear-gradient(135deg, #38bdf8, #2563eb);
-        color: white;
+        background: linear-gradient(135deg, #2980b9, #1a6ea8);
+        color: #fff;
         border: none;
         border-radius: 8px;
         padding: 10px 18px;
@@ -194,6 +194,7 @@
         transform: translateY(-2px);
     }
 
+    /* ── Alert ── */
     .alert {
         padding: 12px 16px;
         border-radius: 8px;
@@ -205,10 +206,11 @@
 
     .alert-success {
         background: rgba(39, 174, 96, 0.1);
-        color: #27ae60;
-        border: 1px solid rgba(39, 174, 96, 0.2);
+        color: #1e8449;
+        border: 1px solid rgba(39, 174, 96, 0.25);
     }
 
+    /* ── Search / filter bar ── */
     .search-section {
         display: flex;
         justify-content: flex-end;
@@ -216,8 +218,8 @@
         background: var(--bg-card);
         border: 1px solid var(--border-card);
         padding: 16px;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         align-items: center;
     }
 
@@ -228,9 +230,9 @@
 
     .search-input {
         width: 100%;
-        border: 1px solid var(--border-input);
-        border-radius: 6px;
-        padding: 8px 12px 8px 36px;
+        border: 1px solid var(--border-card);
+        border-radius: 8px;
+        padding: 9px 14px 9px 36px;
         font-size: 13px;
         font-family: 'Figtree', sans-serif;
         background: var(--bg-input);
@@ -239,7 +241,7 @@
 
     .search-input:focus {
         outline: none;
-        border-color: #38bdf8;
+        border-color: #2980b9;
     }
 
     .search-icon {
@@ -252,9 +254,9 @@
     }
 
     .filter-select {
-        border: 1px solid var(--border-input);
-        border-radius: 6px;
-        padding: 8px 12px;
+        border: 1px solid var(--border-card);
+        border-radius: 8px;
+        padding: 9px 14px;
         font-size: 13px;
         font-family: 'Figtree', sans-serif;
         background: var(--bg-input);
@@ -264,14 +266,15 @@
 
     .filter-select:focus {
         outline: none;
-        border-color: #38bdf8;
+        border-color: #2980b9;
     }
 
+    /* ── Table container ── */
     .table-container {
         background: var(--bg-card);
         border: 1px solid var(--border-card);
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         overflow-x: auto;
         transition: opacity 0.15s;
     }
@@ -280,8 +283,9 @@
         opacity: 0.6;
     }
 
+    /* ── Empty state ── */
     .empty-state {
-        padding: 60px 24px;
+        padding: 48px 24px;
         text-align: center;
         color: var(--text-muted);
     }
@@ -299,8 +303,8 @@
     }
 
     .btn-empty {
-        background: linear-gradient(135deg, #38bdf8, #2563eb);
-        color: white;
+        background: linear-gradient(135deg, #2980b9, #1a6ea8);
+        color: #fff;
         padding: 8px 16px;
         border-radius: 6px;
         text-decoration: none;
@@ -315,27 +319,36 @@
         transform: translateY(-1px);
     }
 
+    /* ── Table ── */
     .patients-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 12px;
+        font-size: 13px;
     }
 
-    .patients-table th {
-        padding: 12px 16px;
+    .patients-table thead th {
+        padding: 13px 16px;
         text-align: left;
         font-size: 11px;
         font-weight: 700;
-        color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        background: transparent;
-        border-bottom: 2px solid var(--border-inner);
+        white-space: nowrap;
+        background: linear-gradient(135deg, #2980b9, #1a6ea8);
+        color: #fff;
+    }
+
+    .patients-table thead th:last-child {
+        border-right: none;
     }
 
     .patients-table tbody tr {
         border-bottom: 1px solid var(--border-inner);
-        transition: all 0.15s;
+        transition: background 0.15s;
+    }
+
+    .patients-table tbody tr:last-child {
+        border-bottom: none;
     }
 
     .patients-table tbody tr:hover {
@@ -344,10 +357,16 @@
 
     .patients-table td {
         padding: 12px 16px;
-        color: var(--text-body);
+        color: var(--text-heading);
         font-size: 13px;
+        vertical-align: middle;
     }
 
+    .patients-table td:last-child {
+        border-right: none;
+    }
+
+    /* ── Patient info cell ── */
     .patient-info {
         display: flex;
         align-items: center;
@@ -358,8 +377,8 @@
         width: 36px;
         height: 36px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #38bdf8, #2563eb);
-        color: white;
+        background: linear-gradient(135deg, #2980b9, #1a6ea8);
+        color: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -373,6 +392,7 @@
         color: var(--text-heading);
     }
 
+    /* ── Badges ── */
     .badge {
         display: inline-block;
         padding: 3px 10px;
@@ -382,42 +402,46 @@
     }
 
     .badge-student {
-        background: rgba(56, 189, 248, 0.1);
-        color: #38bdf8;
+        background: rgba(41, 128, 185, 0.12);
+        color: #1a6ea8;
     }
 
     .badge-faculty {
-        background: rgba(139, 92, 246, 0.1);
-        color: #8b5cf6;
+        background: rgba(139, 92, 246, 0.12);
+        color: #7c3aed;
     }
 
     .badge-staff {
-        background: rgba(39, 174, 96, 0.1);
-        color: #27ae60;
+        background: rgba(39, 174, 96, 0.12);
+        color: #1e8449;
     }
 
+    /* ── Phone / muted ── */
     .phone-masked {
         font-family: 'Courier New', monospace;
         color: var(--text-muted);
     }
 
+    /* ── Visit count pill ── */
     .visit-count {
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        background: rgba(56, 189, 248, 0.1);
+        background: rgba(41, 128, 185, 0.12);
         padding: 3px 10px;
         border-radius: 20px;
         font-size: 11px;
         font-weight: 600;
-        color: #38bdf8;
+        color: #2980b9;
     }
 
+    /* ── Text muted helper ── */
     .text-muted {
         color: var(--text-muted);
         font-style: italic;
     }
 
+    /* ── Action buttons ── */
     .action-buttons {
         display: flex;
         gap: 6px;
@@ -429,45 +453,61 @@
     .btn-delete {
         border: none;
         background: transparent;
-        color: var(--text-muted);
         cursor: pointer;
         padding: 6px 8px;
         border-radius: 6px;
-        transition: all 0.15s;
+        transition: background 0.15s, color 0.15s;
         font-size: 13px;
         text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
+    /* View — blue */
+    .btn-view {
+        color: #2980b9;
+    }
     .btn-view:hover {
-        background: rgba(56, 189, 248, 0.1);
-        color: #38bdf8;
+        background: rgba(41, 128, 185, 0.12);
+        color: #1a6ea8;
     }
 
-    .btn-add:hover {
-        background: rgba(39, 174, 96, 0.1);
+    /* Add / new visit — green */
+    .btn-add {
         color: #27ae60;
     }
-
-    .btn-edit:hover {
-        background: rgba(243, 156, 18, 0.1);
-        color: #f39c12;
+    .btn-add:hover {
+        background: rgba(39, 174, 96, 0.12);
+        color: #1e8449;
     }
 
+    /* Edit — orange */
+    .btn-edit {
+        color: #e67e22;
+    }
+    .btn-edit:hover {
+        background: rgba(230, 126, 34, 0.12);
+        color: #ca6f1e;
+    }
+
+    /* Delete — red */
     .btn-delete {
         color: #e74c3c;
     }
-
     .btn-delete:hover {
-        background: rgba(231, 76, 60, 0.1);
-        color: #e74c3c;
+        background: rgba(231, 76, 60, 0.12);
+        color: #c0392b;
     }
 
+    /* ── Pagination ── */
     .pagination-wrapper {
         padding: 16px 20px;
         border-top: 1px solid var(--border-inner);
         text-align: center;
     }
 
+    /* ── Stats cards ── */
     .stats-section {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -477,10 +517,10 @@
     .stat-item {
         background: var(--bg-card);
         border: 1px solid var(--border-card);
-        border-radius: 8px;
+        border-radius: 12px;
         padding: 16px 20px;
         text-align: center;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
 
     .stat-item h3 {
@@ -499,6 +539,7 @@
         color: var(--text-heading);
     }
 
+    /* ── Responsive ── */
     @media (max-width: 768px) {
         .page-header {
             flex-direction: column;

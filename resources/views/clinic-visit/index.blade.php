@@ -16,17 +16,41 @@
         <!-- Clinic Visits Table -->
         <div class="table-container">
             <table class="visits-table">
+                <colgroup>
+                    <col class="col-date">
+                    <col class="col-name">
+                    <col class="col-yr">
+                    <col class="col-age">
+                    <col class="col-vital"><!-- T° -->
+                    <col class="col-vital"><!-- PR -->
+                    <col class="col-vital"><!-- RR -->
+                    <col class="col-vital"><!-- BP -->
+                    <col class="col-vital"><!-- HT -->
+                    <col class="col-vital"><!-- WT -->
+                    <col class="col-vital"><!-- BMI -->
+                    <col class="col-vital"><!-- SpO2 -->
+                    <col class="col-status"><!-- VS Status -->
+                    <col class="col-comp">
+                    <col class="col-diag">
+                    <col class="col-mgmt">
+                    <col class="col-addr">
+                    <col class="col-sex">
+                    <col class="col-act">
+                </colgroup>
                 <thead>
                     <tr>
                         <th>DATE</th>
                         <th>FULL NAME</th>
-                        <th>YEAR & SECTION</th>
-                        <th>AGE</th>
+                        <th>YEAR &amp; SECTION</th>
+                        <th class="cell-center">AGE</th>
                         <th colspan="8">VITAL SIGNS</th>
+                        <th class="cell-center">VS STATUS</th>
                         <th>COMPLAINTS</th>
                         <th>DIAGNOSIS</th>
                         <th>MANAGEMENT</th>
-                        <th>ACTIONS</th>
+                        <th>ADDRESS</th>
+                        <th class="cell-center">SEX</th>
+                        <th class="cell-center">ACTIONS</th>
                     </tr>
                     <tr class="vital-signs-header">
                         <th colspan="4"></th>
@@ -38,16 +62,21 @@
                         <th>WT</th>
                         <th>BMI</th>
                         <th>SpO2</th>
-                        <th colspan="4"></th>
+                        <th></th><!-- VS Status sub-col -->
+                        <th colspan="6"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($visits as $visit)
+                        @php
+                            $vsAssessment = $visit->getVitalSignsAssessment();
+                            $vsOverall    = $vsAssessment['overall'];
+                        @endphp
                         <tr class="visit-row">
                             <td>{{ $visit->visit_date->format('m/d/Y') }}</td>
                             <td class="patient-name">{{ $visit->patient->name ?? 'N/A' }}</td>
                             <td class="year-section">{{ $visit->patient->year_section ?? 'N/A' }}</td>
-                            <td class="center">{{ $visit->patient->age ?? 'N/A' }}</td>
+                            <td class="vital-sign">{{ $visit->patient->age ?? 'N/A' }}</td>
                             <td class="vital-sign">{{ $visit->temperature ? $visit->temperature . '°C' : '-' }}</td>
                             <td class="vital-sign">{{ $visit->pulse_rate ?: '-' }}</td>
                             <td class="vital-sign">{{ $visit->respiratory_rate ?: '-' }}</td>
@@ -56,9 +85,21 @@
                             <td class="vital-sign">{{ $visit->weight ? $visit->weight . 'kg' : '-' }}</td>
                             <td class="vital-sign">{{ $visit->getBMI() ?: '-' }}</td>
                             <td class="vital-sign">{{ $visit->spo2 ? $visit->spo2 . '%' : '-' }}</td>
+                            <td class="cell-center">
+                                @if ($vsOverall)
+                                    <span class="idx-vs-badge idx-vs-{{ $vsOverall }}" title="{{ \App\Support\VitalSigns::label($vsOverall) }}">
+                                        {{ \App\Support\VitalSigns::icon($vsOverall) }}
+                                        <span class="idx-vs-label">{{ \App\Support\VitalSigns::label($vsOverall) }}</span>
+                                    </span>
+                                @else
+                                    <span class="idx-vs-badge idx-vs-na">—</span>
+                                @endif
+                            </td>
                             <td class="text-small">{{ $visit->complaints ?: '-' }}</td>
                             <td class="text-small">{{ $visit->diagnosis ?: '-' }}</td>
                             <td class="text-small">{{ $visit->management ?: '-' }}</td>
+                            <td class="text-small">{{ $visit->address ?: '-' }}</td>
+                            <td class="vital-sign">{{ ucfirst($visit->sex ?: '-') }}</td>
                             <td>
                                 <div class="action-buttons">
                                     <a href="{{ route('clinic-visit.show', $visit->id) }}" class="btn-view" title="View">
@@ -79,7 +120,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="16" style="text-align:center;padding:40px;color:var(--text-muted);">
+                            <td colspan="19" style="text-align:center;padding:40px;color:var(--text-muted);">
                                 No clinic visits recorded yet.
                             </td>
                         </tr>
@@ -102,6 +143,7 @@
     </div>
 
     <style>
+        /* ── Page layout ────────────────────────────────────── */
         .clinic-visit-list-page {
             display: flex;
             flex-direction: column;
@@ -114,13 +156,11 @@
             align-items: flex-start;
         }
 
-        .header-left {
-            flex: 1;
-        }
+        .header-left { flex: 1; }
 
         .page-title {
             margin: 0;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 700;
             color: var(--text-heading);
         }
@@ -131,61 +171,129 @@
             color: var(--text-muted);
         }
 
+        /* ── New Visit button ───────────────────────────────── */
         .btn-new-visit {
-            background: #27ae60;
+            background: linear-gradient(135deg, #27ae60, #1e8449);
             color: white;
             border: none;
             border-radius: 8px;
-            padding: 10px 16px;
+            padding: 10px 18px;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: all 0.2s;
             text-decoration: none;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(39,174,96,.25);
+            white-space: nowrap;
         }
 
         .btn-new-visit:hover {
-            background: #229954;
             transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(39,174,96,.35);
         }
 
+        /* ── Table container ────────────────────────────────── */
         .table-container {
             background: var(--bg-card);
-            border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
             overflow-x: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
 
+        /* ── Table base ─────────────────────────────────────── */
         .visits-table {
             width: 100%;
+            min-width: 1100px;       /* prevents cramping on mid-size screens */
             border-collapse: collapse;
             font-size: 12px;
+            table-layout: fixed;     /* column widths are honoured */
         }
 
-        .visits-table thead tr:first-child th {
-            padding: 14px 10px;
-            text-align: left;
-            font-size: 11px;
+        /* ── Column widths (fixed layout) ───────────────────── */
+        .visits-table col.col-date    { width: 82px;  }
+        .visits-table col.col-name    { width: 130px; }
+        .visits-table col.col-yr      { width: 68px;  }
+        .visits-table col.col-age     { width: 44px;  }
+        .visits-table col.col-vital   { width: 52px;  }  /* ×8 = 416px */
+        .visits-table col.col-status  { width: 100px; }
+        .visits-table col.col-comp    { width: 100px; }
+        .visits-table col.col-diag    { width: 90px; }
+        .visits-table col.col-mgmt    { width: 90px; }
+        .visits-table col.col-addr    { width: 100px; }
+        .visits-table col.col-sex     { width: 46px;  }
+        .visits-table col.col-act     { width: 84px;  }
+
+        /* ── VS Status badges (index table) ─────────────────── */
+        .idx-vs-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 3px 7px;
+            border-radius: 20px;
+            font-size: 10px;
             font-weight: 700;
-            color: white;
+            white-space: nowrap;
+            line-height: 1.3;
+        }
+        .idx-vs-label { font-size: 9px; }
+        .idx-vs-normal       { background: rgba(39,174,96,0.15); color: #27ae60; }
+        .idx-vs-above_normal { background: rgba(243,156,18,0.15); color: #b87e00; }
+        .idx-vs-below_normal { background: rgba(52,152,219,0.15); color: #2980b9; }
+        .idx-vs-abnormal     { background: rgba(231,76,60,0.18); color: #e74c3c; font-weight: 800; }
+        .idx-vs-na           { background: transparent; color: var(--text-muted); }
+
+        /* ── Primary header row (blue gradient) ─────────────── */
+        .visits-table thead tr:first-child th {
+            padding: 13px 8px;
+            text-align: left;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            border: 1px solid #2980b9;
+            white-space: nowrap;
+            color: #fff;
+            background: linear-gradient(135deg, #2980b9 0%, #1a6ea8 100%);
+            border-bottom: 2px solid rgba(255,255,255,0.15);
+            border-right: 1px solid rgba(255,255,255,0.12);
         }
 
+        .visits-table thead tr:first-child th:last-child {
+            border-right: none;
+        }
+
+        /* ── Vital-signs sub-header row ─────────────────────── */
+        /* Uses theme variables so it is readable in BOTH modes  */
         .vital-signs-header th {
-            background: #34495e !important;
-            padding: 10px 6px !important;
+            padding: 8px 6px !important;
             font-size: 10px !important;
+            font-weight: 700 !important;
+            text-align: center !important;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+
+            /* Theme-aware: visible in dark AND light mode */
+            background: var(--bg-input) !important;
+            color: var(--text-heading) !important;
+            border-bottom: 2px solid var(--border-inner) !important;
+            border-right: 1px solid var(--border-inner) !important;
         }
 
+        .vital-signs-header th:last-child {
+            border-right: none !important;
+        }
+
+        /* ── Body rows ──────────────────────────────────────── */
         .visits-table tbody tr {
             border-bottom: 1px solid var(--border-inner);
-            transition: all 0.2s;
+            transition: background 0.15s;
+        }
+
+        .visits-table tbody tr:last-child {
+            border-bottom: none;
         }
 
         .visits-table tbody tr:hover {
@@ -193,28 +301,32 @@
         }
 
         .visits-table td {
-            padding: 12px 10px;
+            padding: 11px 8px;
             color: var(--text-heading);
             border-right: 1px solid var(--border-inner);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: top;
+            font-size: 12px;
+            line-height: 1.4;
         }
 
-        .visits-table td:last-child {
-            border-right: none;
-        }
+        .visits-table td:last-child { border-right: none; }
 
+        /* ── Cell variants ──────────────────────────────────── */
         .patient-name {
             font-weight: 700;
             color: #3498db;
-            min-width: 120px;
+            word-break: break-word;
         }
 
         .year-section {
             font-weight: 600;
-            color: #9b59b6;
-            min-width: 100px;
+            color: var(--text-heading);
+            font-size: 12px;
         }
 
-        .center {
+        .cell-center {
             text-align: center;
         }
 
@@ -222,20 +334,25 @@
             text-align: center;
             font-weight: 600;
             color: var(--text-heading);
-            min-width: 45px;
+            font-size: 11px;
+            padding: 11px 4px !important;
         }
 
         .text-small {
             font-size: 11px;
-            color: var(--text-muted);
-            max-width: 80px;
+            color: var(--text-heading);   /* was text-muted → too faint in light */
+            word-break: break-word;
             white-space: normal;
+            line-height: 1.45;
         }
 
+        /* ── Action buttons ─────────────────────────────────── */
         .action-buttons {
             display: flex;
             gap: 4px;
             justify-content: center;
+            align-items: center;
+            flex-wrap: nowrap;
         }
 
         .btn-view,
@@ -243,38 +360,32 @@
         .btn-delete {
             border: none;
             background: transparent;
-            color: #3498db;
             cursor: pointer;
-            padding: 6px;
-            border-radius: 4px;
-            transition: all 0.2s;
-            font-size: 14px;
+            padding: 5px 6px;
+            border-radius: 6px;
+            transition: all 0.18s;
+            font-size: 13px;
             text-decoration: none;
+            line-height: 1;
         }
 
-        .btn-view:hover {
-            background: rgba(52, 152, 219, 0.1);
-            color: #2980b9;
-        }
+        .btn-view  { color: #3498db; }
+        .btn-edit  { color: #f39c12; }
+        .btn-delete{ color: #e74c3c; }
 
-        .btn-edit:hover {
-            background: rgba(241, 196, 15, 0.1);
-            color: #f39c12;
-        }
+        .btn-view:hover  { background: rgba(52,152,219,.12); }
+        .btn-edit:hover  { background: rgba(243,156,18,.12); }
+        .btn-delete:hover{ background: rgba(231,76,60,.12); }
 
-        .btn-delete:hover {
-            background: rgba(231, 76, 60, 0.1);
-            color: #e74c3c;
-        }
-
+        /* ── Pagination ─────────────────────────────────────── */
         .pagination-section {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: var(--bg-card);
+            border: 1px solid var(--border-card);
             border-radius: 10px;
-            padding: 16px 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 14px 20px;
         }
 
         .pagination-info {
@@ -284,113 +395,31 @@
             font-weight: 600;
         }
 
-        .pagination {
-            display: flex;
-            gap: 8px;
-        }
+        .pagination { display: flex; gap: 6px; }
 
         .pagination a,
         .pagination span {
             padding: 6px 10px;
-            border-radius: 4px;
+            border-radius: 6px;
             border: 1px solid var(--border-card);
             background: var(--bg-card);
             color: var(--text-muted);
             font-size: 12px;
             font-weight: 600;
             text-decoration: none;
-            transition: all 0.2s;
+            transition: all 0.18s;
         }
 
-        .pagination a:hover {
-            background: #3498db;
-            color: white;
-            border-color: #3498db;
-        }
+        .pagination a:hover       { background:#3498db; color:#fff; border-color:#3498db; }
+        .pagination .active       { background:#3498db; color:#fff; border-color:#3498db; }
+        .pagination .disabled     { opacity:.45; cursor:not-allowed; }
 
-        .pagination .active {
-            background: #3498db;
-            color: white;
-            border-color: #3498db;
-        }
-
-        .pagination .disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        @media (max-width: 1024px) {
-            .visits-table {
-                font-size: 11px;
-            }
-
-            .visits-table td,
-            .visits-table th {
-                padding: 10px 8px;
-            }
-
-            .text-small {
-                max-width: 60px;
-                font-size: 10px;
-            }
-        }
-
+        /* ── Responsive ─────────────────────────────────────── */
         @media (max-width: 768px) {
-            .page-header {
-                flex-direction: column;
-                gap: 16px;
-            }
-
-            .btn-new-visit {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .table-container {
-                overflow-x: scroll;
-            }
-
-            .visits-table {
-                font-size: 10px;
-                min-width: 1200px;
-            }
-
-            .pagination-section {
-                flex-direction: column;
-                gap: 12px;
-            }
-
-            .pagination {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .page-title {
-                font-size: 22px;
-            }
-
-            .visits-table {
-                font-size: 9px;
-                min-width: 1400px;
-            }
-
-            .visits-table th,
-            .visits-table td {
-                padding: 8px 4px;
-            }
-
-            .action-buttons {
-                gap: 2px;
-            }
-
-            .btn-view,
-            .btn-edit,
-            .btn-delete {
-                padding: 4px;
-                font-size: 12px;
-            }
+            .page-header { flex-direction: column; gap: 14px; }
+            .btn-new-visit { width: 100%; justify-content: center; }
+            .pagination-section { flex-direction: column; gap: 10px; }
+            .pagination { width: 100%; justify-content: center; }
         }
     </style>
 </x-app-with-sidebar>

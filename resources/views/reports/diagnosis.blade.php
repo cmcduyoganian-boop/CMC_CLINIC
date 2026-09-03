@@ -32,7 +32,9 @@
         <!-- Chart -->
         <div class="chart-card">
             <h2 class="chart-title">Top 10 Diagnoses</h2>
-            <canvas id="diagnosisChart"></canvas>
+            <div class="chart-canvas-wrap">
+                <canvas id="diagnosisChart"></canvas>
+            </div>
         </div>
 
         <!-- Diagnoses Table -->
@@ -84,13 +86,24 @@
                 datasets: [{
                     label: 'Cases',
                     data: {!! json_encode($topDiagnoses->pluck('count')) !!},
-                    backgroundColor: '#3498db'
+                    backgroundColor: '#38bdf8'
                 }]
             },
             options: {
                 indexAxis: 'y',
                 responsive: true,
-                scales: { x: { beginAtZero: true } },
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: '#e2e8f0' }
+                    },
+                    y: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: '#e2e8f0' }
+                    }
+                },
                 plugins: { legend: { display: false } }
             }
         });
@@ -113,13 +126,13 @@
             margin: 0;
             font-size: 28px;
             font-weight: 700;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .report-subtitle {
             margin: 4px 0 0 0;
             font-size: 13px;
-            color: #95a5a6;
+            color: var(--text-muted);
         }
 
         .header-actions {
@@ -160,12 +173,12 @@
         }
 
         .btn-back {
-            background: #ecf0f1;
-            color: #7f8c8d;
+            background: var(--bg-input);
+            color: var(--text-body);
         }
 
         .btn-back:hover {
-            background: #d4d9e0;
+            background: var(--border-inner);
         }
 
         .summary-cards {
@@ -175,10 +188,10 @@
         }
 
         .card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             text-align: center;
         }
 
@@ -186,7 +199,7 @@
             margin: 0;
             font-size: 12px;
             font-weight: 600;
-            color: #95a5a6;
+            color: var(--text-muted);
             text-transform: uppercase;
         }
 
@@ -198,34 +211,49 @@
         }
 
         .chart-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            position: relative;
+            height: 320px;
+        }
+
+        .chart-canvas-wrap {
+            position: relative;
+            height: 260px;
+        }
+
+        .chart-canvas-wrap canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
         }
 
         .chart-title {
             margin: 0 0 16px 0;
             font-size: 16px;
             font-weight: 700;
-            color: #2d3e50;
-            border-bottom: 2px solid #e8ecf1;
+            color: var(--text-heading);
+            border-bottom: 2px solid var(--border-inner);
             padding-bottom: 12px;
         }
 
         .table-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
 
         .table-title {
             margin: 0 0 16px 0;
             font-size: 16px;
             font-weight: 700;
-            color: #2d3e50;
-            border-bottom: 2px solid #e8ecf1;
+            color: var(--text-heading);
+            border-bottom: 2px solid var(--border-inner);
             padding-bottom: 12px;
         }
 
@@ -242,28 +270,28 @@
         .report-table th {
             padding: 12px;
             text-align: left;
-            background: #f9fafb;
+            background: var(--bg-input);
             font-weight: 700;
-            color: #2d3e50;
-            border-bottom: 2px solid #e8ecf1;
+            color: var(--text-heading);
+            border-bottom: 2px solid var(--border-inner);
             text-transform: uppercase;
             font-size: 11px;
         }
 
         .report-table td {
             padding: 12px;
-            border-bottom: 1px solid #e8ecf1;
-            color: #2d3e50;
+            border-bottom: 1px solid var(--border-inner);
+            color: var(--text-body);
         }
 
         .report-table tr:hover {
-            background: #f9fafb;
+            background: var(--bg-input);
         }
 
         .progress-bar {
             width: 100%;
             height: 20px;
-            background: #e8ecf1;
+            background: var(--bg-input);
             border-radius: 10px;
             overflow: hidden;
             margin-right: 12px;
@@ -271,20 +299,36 @@
 
         .progress {
             height: 100%;
-            background: linear-gradient(90deg, #3498db, #2980b9);
+            background: linear-gradient(90deg, #38bdf8, #2563eb);
             transition: width 0.3s ease;
         }
 
         .report-footer {
             text-align: center;
             padding: 20px;
-            border-top: 2px solid #e8ecf1;
-            color: #95a5a6;
+            border-top: 2px solid var(--border-inner);
+            color: var(--text-muted);
             font-size: 12px;
         }
 
         @media print {
             .header-actions { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .header-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .summary-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </x-app-with-sidebar>

@@ -45,12 +45,16 @@
         <div class="charts-grid">
             <div class="chart-card">
                 <h2 class="chart-title">Patients by Category</h2>
-                <canvas id="categoryChart"></canvas>
+                <div class="chart-canvas-wrap">
+                    <canvas id="categoryChart"></canvas>
+                </div>
             </div>
 
             <div class="chart-card">
                 <h2 class="chart-title">Patient Distribution</h2>
-                <canvas id="statusChart"></canvas>
+                <div class="chart-canvas-wrap">
+                    <canvas id="statusChart"></canvas>
+                </div>
             </div>
         </div>
 
@@ -115,13 +119,14 @@
                 labels: ['Students', 'Faculty', 'Staff'],
                 datasets: [{
                     data: [{{ $students }}, {{ $faculty }}, {{ $staff }}],
-                    backgroundColor: ['#3498db', '#9b59b6', '#27ae60'],
+                    backgroundColor: ['#38bdf8', '#8b5cf6', '#27ae60'],
                     borderColor: '#fff',
                     borderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: { position: 'bottom' }
                 }
@@ -137,12 +142,23 @@
                 datasets: [{
                     label: 'Patients',
                     data: [{{ $activePatients }}, {{ $inactivePatients }}],
-                    backgroundColor: ['#27ae60', '#e74c3c']
+                    backgroundColor: ['#27ae60', '#f87171']
                 }]
             },
             options: {
                 responsive: true,
-                scales: { y: { beginAtZero: true } },
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: '#e2e8f0' }
+                    },
+                    x: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: '#e2e8f0' }
+                    }
+                },
                 plugins: { legend: { display: false } }
             }
         });
@@ -165,13 +181,13 @@
             margin: 0;
             font-size: 28px;
             font-weight: 700;
-            color: #2d3e50;
+            color: var(--text-heading);
         }
 
         .report-subtitle {
             margin: 4px 0 0 0;
             font-size: 13px;
-            color: #95a5a6;
+            color: var(--text-muted);
         }
 
         .header-actions {
@@ -212,12 +228,12 @@
         }
 
         .btn-back {
-            background: #ecf0f1;
-            color: #7f8c8d;
+            background: var(--bg-input);
+            color: var(--text-body);
         }
 
         .btn-back:hover {
-            background: #d4d9e0;
+            background: var(--border-inner);
         }
 
         .summary-cards {
@@ -227,10 +243,10 @@
         }
 
         .card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             text-align: center;
         }
 
@@ -238,7 +254,7 @@
             margin: 0;
             font-size: 12px;
             font-weight: 600;
-            color: #95a5a6;
+            color: var(--text-muted);
             text-transform: uppercase;
         }
 
@@ -246,7 +262,7 @@
             margin: 12px 0 0 0;
             font-size: 32px;
             font-weight: 700;
-            color: #3498db;
+            color: #38bdf8;
         }
 
         .charts-grid {
@@ -256,34 +272,49 @@
         }
 
         .chart-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            position: relative;
+            height: 320px;
+        }
+
+        .chart-canvas-wrap {
+            position: relative;
+            height: 260px;
+        }
+
+        .chart-canvas-wrap canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
         }
 
         .chart-title {
             margin: 0 0 16px 0;
             font-size: 16px;
             font-weight: 700;
-            color: #2d3e50;
-            border-bottom: 2px solid #e8ecf1;
+            color: var(--text-heading);
+            border-bottom: 2px solid var(--border-inner);
             padding-bottom: 12px;
         }
 
         .table-card {
-            background: white;
+            background: var(--bg-card);
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
 
         .table-title {
             margin: 0 0 16px 0;
             font-size: 16px;
             font-weight: 700;
-            color: #2d3e50;
-            border-bottom: 2px solid #e8ecf1;
+            color: var(--text-heading);
+            border-bottom: 2px solid var(--border-inner);
             padding-bottom: 12px;
         }
 
@@ -300,22 +331,22 @@
         .report-table th {
             padding: 12px;
             text-align: left;
-            background: #f9fafb;
+            background: var(--bg-input);
             font-weight: 700;
-            color: #2d3e50;
-            border-bottom: 2px solid #e8ecf1;
+            color: var(--text-heading);
+            border-bottom: 2px solid var(--border-inner);
             text-transform: uppercase;
             font-size: 11px;
         }
 
         .report-table td {
             padding: 12px;
-            border-bottom: 1px solid #e8ecf1;
-            color: #2d3e50;
+            border-bottom: 1px solid var(--border-inner);
+            color: var(--text-body);
         }
 
         .report-table tr:hover {
-            background: #f9fafb;
+            background: var(--bg-input);
         }
 
         .badge {
@@ -327,25 +358,25 @@
         }
 
         .badge-student {
-            background: #dbeafe;
-            color: #1d4ed8;
+            background: rgba(56,189,248,0.15);
+            color: #38bdf8;
         }
 
         .badge-faculty {
-            background: #ede9fe;
-            color: #6d28d9;
+            background: rgba(139,92,246,0.15);
+            color: #8b5cf6;
         }
 
         .badge-staff {
-            background: #dcfce7;
-            color: #15803d;
+            background: rgba(39,174,96,0.15);
+            color: #27ae60;
         }
 
         .report-footer {
             text-align: center;
             padding: 20px;
-            border-top: 2px solid #e8ecf1;
-            color: #95a5a6;
+            border-top: 2px solid var(--border-inner);
+            color: var(--text-muted);
             font-size: 12px;
         }
 

@@ -146,14 +146,8 @@
                     <p class="chart-subtitle">Top locations · selected period</p>
                 </div>
             </div>
-            <div class="chart-container location-chart-container" wire:ignore>
-                @if (count($patientLocationData['labels']) > 0)
-                    <canvas id="patientLocationChart"
-                        data-labels='@json($patientLocationData['labels'])'
-                        data-data='@json($patientLocationData['data'])'></canvas>
-                @else
-                    <div class="empty-state"><i class="fas fa-map-marker-alt"></i><p>No patient location data found.</p></div>
-                @endif
+            <div class="chart-container location-chart-container" id="locationChartWrap">
+                <canvas id="patientLocationChart"></canvas>
             </div>
         </div>
     </div>
@@ -212,10 +206,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="chart-container" wire:ignore>
-                    <canvas id="visitsChart"
-                        data-labels='@json($last7DaysChart['labels'])'
-                        data-data='@json($last7DaysChart['data'])'></canvas>
+                <div class="chart-container">
+                    <canvas id="visitsChart"></canvas>
                 </div>
             </div>
 
@@ -223,13 +215,11 @@
                 <div class="chart-header">
                     <div>
                         <h3>Visits Trend</h3>
-                        <p class="chart-subtitle">Rolling momentum · filtered period</p>
+                        <p class="chart-subtitle">Last 7 days min · shows daily momentum</p>
                     </div>
                 </div>
-                <div class="chart-container" wire:ignore>
-                    <canvas id="visitsTrendChart"
-                        data-labels='@json($visitsTrendData['labels'])'
-                        data-data='@json($visitsTrendData['data'])'></canvas>
+                <div class="chart-container">
+                    <canvas id="visitsTrendChart"></canvas>
                 </div>
             </div>
         </div>
@@ -261,7 +251,9 @@
                     @endif
                 </div>
                 @if (count($recentActivities) > 0)
-                    <a href="#" class="view-all">View All Activities →</a>
+                    <button type="button" wire:click="openActivitiesModal" class="view-all">
+                        View All Activities →
+                    </button>
                 @endif
             </div>
         </div>
@@ -276,10 +268,7 @@
             </div>
             <div class="overview-body">
                 <div class="donut-wrapper">
-                    <canvas id="vitalsDonut"
-                        data-normal="{{ $vitalSignsOverview['normal'] }}"
-                        data-elevated="{{ $vitalSignsOverview['elevated'] }}"
-                        data-abnormal="{{ $vitalSignsOverview['abnormal'] }}"></canvas>
+                    <canvas id="vitalsDonut"></canvas>
                     <div class="donut-center">
                         <span class="donut-value">{{ $vitalSignsOverview['total'] }}</span>
                         <span class="donut-label">RECORDS</span>
@@ -321,11 +310,7 @@
             </div>
             <div class="overview-body">
                 <div class="donut-wrapper">
-                    <canvas id="appointmentsDonut"
-                        data-scheduled="{{ $appointmentStats['scheduled'] }}"
-                        data-completed="{{ $appointmentStats['completed'] }}"
-                        data-no-show="{{ $appointmentStats['noShow'] }}"
-                        data-cancelled="{{ $appointmentStats['cancelled'] }}"></canvas>
+                    <canvas id="appointmentsDonut"></canvas>
                     <div class="donut-center">
                         <span class="donut-value">{{ $appointmentStats['total'] }}</span>
                         <span class="donut-label">TOTAL</span>
@@ -374,10 +359,7 @@
             </div>
             <div class="overview-body">
                 <div class="donut-wrapper">
-                    <canvas id="medicineDonut"
-                        data-available="{{ $medicineInventory['available'] }}"
-                        data-low-stock="{{ $medicineInventory['lowStock'] }}"
-                        data-expiring="{{ $medicineInventory['expiringSoon'] }}"></canvas>
+                    <canvas id="medicineDonut"></canvas>
                     <div class="donut-center">
                         <span class="donut-value">{{ $medicineInventory['total'] }}</span>
                         <span class="donut-label">MEDICINES</span>
@@ -436,6 +418,70 @@
             @endif
         </div>
     </div>
+
+    <!-- ALL ACTIVITIES MODAL -->
+    @if ($showActivitiesModal)
+        <div class="activities-modal-backdrop" wire:click.self="closeActivitiesModal">
+            <div class="activities-modal">
+                <div class="activities-modal-header">
+                    <div class="activities-modal-title">
+                        <i class="fas fa-history"></i>
+                        <h3>All Recent Activities</h3>
+                        <span class="activities-modal-count">{{ count($allActivities) }} entries</span>
+                    </div>
+                    <button type="button" wire:click="closeActivitiesModal" class="modal-close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="activities-modal-body">
+                    @if (count($allActivities) > 0)
+                        @php
+                            $typeLabels = [
+                                'visit'       => 'Clinic Visit',
+                                'appointment' => 'Appointment',
+                                'inventory'   => 'Inventory',
+                                'user'        => 'User',
+                            ];
+                            $typeBadgeClass = [
+                                'visit'       => 'badge-visit',
+                                'appointment' => 'badge-appt',
+                                'inventory'   => 'badge-inv',
+                                'user'        => 'badge-user',
+                            ];
+                        @endphp
+                        @foreach ($allActivities as $activity)
+                            <a href="{{ $activity['link'] }}" class="activity-row">
+                                <div class="activity-row-icon {{ $activity['color'] }}">
+                                    <i class="fas {{ $activity['icon'] }}"></i>
+                                </div>
+                                <div class="activity-row-body">
+                                    <div class="activity-row-top">
+                                        <span class="activity-row-msg">{{ $activity['message'] }}</span>
+                                        <span class="activity-type-badge {{ $typeBadgeClass[$activity['type']] ?? '' }}">
+                                            {{ $typeLabels[$activity['type']] ?? $activity['type'] }}
+                                        </span>
+                                    </div>
+                                    @if (!empty($activity['detail']))
+                                        <div class="activity-row-detail">{{ $activity['detail'] }}</div>
+                                    @endif
+                                    <div class="activity-row-time">
+                                        <i class="fas fa-clock"></i>
+                                        {{ $activity['timestamp']->diffForHumans() }}
+                                        · {{ $activity['timestamp']->format('M d, Y h:i A') }}
+                                    </div>
+                                </div>
+                            </a>
+                        @endforeach
+                    @else
+                        <div class="modal-empty">
+                            <i class="fas fa-inbox"></i>
+                            <p>No activities found.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
 
     <!-- STYLES -->
     <style>
@@ -1170,103 +1216,299 @@
                 width: 100%;
             }
         }
+
+        /* ── View All Button ── */
+        .view-all {
+            display: block;
+            width: 100%;
+            text-align: center;
+            margin-top: 14px;
+            padding: 10px 0;
+            border-top: 1px solid var(--border-inner);
+            font-size: 12px;
+            color: #38bdf8;
+            font-weight: 600;
+            background: transparent;
+            border-left: none;
+            border-right: none;
+            border-bottom: none;
+            cursor: pointer;
+            transition: color 0.15s;
+            font-family: inherit;
+        }
+        .view-all:hover { color: #2980b9; text-decoration: underline; }
+
+        /* ── Activities Modal ── */
+        .activities-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .activities-modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 680px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .activities-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border-inner);
+            flex-shrink: 0;
+        }
+
+        .activities-modal-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .activities-modal-title i {
+            color: #38bdf8;
+            font-size: 16px;
+        }
+
+        .activities-modal-title h3 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+
+        .activities-modal-count {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: var(--bg-input);
+            border: 1px solid var(--border-inner);
+            border-radius: 20px;
+            padding: 2px 10px;
+        }
+
+        .modal-close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border-card);
+            background: var(--bg-input);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+        .modal-close-btn:hover { background: var(--border-inner); color: var(--text-heading); }
+
+        .activities-modal-body {
+            overflow-y: auto;
+            flex: 1;
+            padding: 8px 0;
+        }
+
+        .activity-row {
+            display: flex;
+            gap: 14px;
+            padding: 14px 22px;
+            border-bottom: 1px solid var(--border-inner);
+            text-decoration: none;
+            transition: background 0.15s;
+            align-items: flex-start;
+        }
+
+        .activity-row:last-child { border-bottom: none; }
+        .activity-row:hover { background: var(--bg-input); }
+
+        .activity-row-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .activity-row-icon.blue   { background: rgba(52,152,219,0.15); color: #3498db; }
+        .activity-row-icon.green  { background: rgba(39,174,96,0.15);  color: #27ae60; }
+        .activity-row-icon.orange { background: rgba(243,156,18,0.15); color: #f39c12; }
+        .activity-row-icon.purple { background: rgba(139,92,246,0.15); color: #8b5cf6; }
+        .activity-row-icon.red    { background: rgba(231,76,60,0.15);  color: #e74c3c; }
+
+        .activity-row-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .activity-row-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .activity-row-msg {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-heading);
+            line-height: 1.4;
+        }
+
+        .activity-type-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .badge-visit { background: rgba(52,152,219,0.12); color: #3498db; }
+        .badge-appt  { background: rgba(39,174,96,0.12);  color: #27ae60; }
+        .badge-inv   { background: rgba(243,156,18,0.12); color: #f39c12; }
+        .badge-user  { background: rgba(139,92,246,0.12); color: #8b5cf6; }
+
+        .activity-row-detail {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .activity-row-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .modal-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .modal-empty i { font-size: 40px; opacity: 0.3; display: block; margin-bottom: 12px; }
+        .modal-empty p { font-size: 13px; margin: 0; }
+
     </style>
 
     <script>
         let clinicNurseCharts = {};
+        let _lastChartData = null;
+
+        function getThemeColors() {
+            const isDark = document.body.getAttribute('data-theme') !== 'light';
+            return {
+                gridColor: isDark ? '#111f35' : '#e2e8f0',
+                tickColor: isDark ? '#374e6b' : '#94a3b8',
+                cardBg:    isDark ? '#0b1629' : '#ffffff',
+            };
+        }
+
+        function destroyAll() {
+            Object.values(clinicNurseCharts).forEach(c => c && c.destroy());
+            clinicNurseCharts = {};
+        }
 
         function syncDonutLegend(canvasId, values) {
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
-
             const card = canvas.closest('.overview-card');
             if (!card) return;
-
             const rows = Array.from(card.querySelectorAll('.legend-row'));
-            const total = values.reduce((sum, value) => sum + Number(value || 0), 0) || 1;
-
-            rows.forEach((row, index) => {
-                const value = Number(values[index] || 0);
-                const percent = total > 0 ? Math.round((value / total) * 100) : 0;
+            const total = values.reduce((s, v) => s + Number(v || 0), 0) || 1;
+            rows.forEach((row, i) => {
+                const pct = Math.round((Number(values[i] || 0) / total) * 100);
                 const bar = row.querySelector('.legend-bar');
                 const strong = row.querySelector('strong');
-
-                if (bar) bar.style.width = percent + '%';
-                if (strong) strong.textContent = percent + '%';
+                if (bar) bar.style.width = pct + '%';
+                if (strong) strong.textContent = pct + '%';
             });
         }
 
-        function renderClinicNurseCharts() {
-            const isDark = document.body.getAttribute('data-theme') !== 'light';
-            const gridColor = isDark ? '#111f35' : '#e2e8f0';
-            const tickColor = isDark ? '#374e6b' : '#94a3b8';
-            const cardBg = isDark ? '#0b1629' : '#ffffff';
+        function buildCharts(chartData) {
+            if (!chartData) return;
+            _lastChartData = chartData;
+            destroyAll();
 
-            Object.values(clinicNurseCharts).forEach(chart => chart && chart.destroy());
-            clinicNurseCharts = {};
+            const { gridColor, tickColor, cardBg } = getThemeColors();
 
+            // ── Bar: Visits ──────────────────────────────────────────
             const visitsCtx = document.getElementById('visitsChart');
             if (visitsCtx) {
-                const visitsLabels = JSON.parse(visitsCtx.dataset.labels || '[]');
-                const visitsData = JSON.parse(visitsCtx.dataset.data || '[]');
-
-                if (visitsLabels.length > 0 && visitsData.length > 0) {
+                const labels = chartData.visits?.labels || [];
+                const data   = chartData.visits?.data   || [];
+                if (labels.length > 0) {
                     clinicNurseCharts.visits = new Chart(visitsCtx, {
                         type: 'bar',
                         data: {
-                            labels: visitsLabels,
+                            labels,
                             datasets: [{
                                 label: 'Visits',
-                                data: visitsData,
+                                data,
                                 backgroundColor: '#38bdf8',
                                 borderRadius: 6,
                                 maxBarThickness: 36,
                             }],
                         },
                         options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
+                            responsive: true, maintainAspectRatio: false,
                             plugins: {
                                 legend: { display: false },
-                                tooltip: {
-                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                    padding: 12,
-                                    borderRadius: 8,
-                                    titleFont: { size: 12 },
-                                    bodyFont: { size: 12 },
-                                },
+                                tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 12, borderRadius: 8 },
                             },
                             scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    grid: { color: gridColor },
-                                    ticks: { font: { size: 11 }, color: tickColor },
-                                },
-                                x: {
-                                    grid: { display: false },
-                                    ticks: { font: { size: 11 }, color: tickColor },
-                                },
+                                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 }, precision: 0 } },
+                                x: { grid: { display: false }, ticks: { color: tickColor, font: { size: 11 } } },
                             },
                         },
                     });
+                } else {
+                    const ctx2 = visitsCtx.getContext('2d');
+                    ctx2.clearRect(0, 0, visitsCtx.width, visitsCtx.height);
+                    ctx2.fillStyle = tickColor;
+                    ctx2.font = '13px Figtree, sans-serif';
+                    ctx2.textAlign = 'center';
+                    ctx2.fillText('No visit data for this period.', visitsCtx.width / 2, visitsCtx.height / 2);
                 }
             }
 
+            // ── Line: Visits Trend ───────────────────────────────────
             const trendCtx = document.getElementById('visitsTrendChart');
             if (trendCtx) {
-                const trendLabels = JSON.parse(trendCtx.dataset.labels || '[]');
-                const trendData = JSON.parse(trendCtx.dataset.data || '[]');
-
-                if (trendLabels.length > 0 && trendData.length > 0) {
+                const labels = chartData.trend?.labels || [];
+                const data   = chartData.trend?.data   || [];
+                if (labels.length > 0) {
                     clinicNurseCharts.trend = new Chart(trendCtx, {
                         type: 'line',
                         data: {
-                            labels: trendLabels,
+                            labels,
                             datasets: [{
                                 label: 'Visits',
-                                data: trendData,
+                                data,
                                 borderColor: '#2ecc71',
-                                backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                                backgroundColor: 'rgba(46,204,113,0.1)',
                                 borderWidth: 2,
                                 fill: true,
                                 tension: 0.4,
@@ -1275,50 +1517,48 @@
                             }],
                         },
                         options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
+                            responsive: true, maintainAspectRatio: false,
                             plugins: { legend: { display: false } },
                             scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    grid: { color: gridColor },
-                                    ticks: { font: { size: 11 }, color: tickColor },
-                                },
-                                x: {
-                                    grid: { display: false },
-                                    ticks: { font: { size: 11 }, color: tickColor },
-                                },
+                                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 }, precision: 0 } },
+                                x: { grid: { display: false }, ticks: { color: tickColor, font: { size: 11 } } },
                             },
                         },
                     });
+                } else {
+                    const ctx2 = trendCtx.getContext('2d');
+                    ctx2.clearRect(0, 0, trendCtx.width, trendCtx.height);
+                    ctx2.fillStyle = tickColor;
+                    ctx2.font = '13px Figtree, sans-serif';
+                    ctx2.textAlign = 'center';
+                    ctx2.fillText('No trend data for this period.', trendCtx.width / 2, trendCtx.height / 2);
                 }
             }
 
+            // ── Horizontal Bar: Patient Location ────────────────────
             const locationCtx = document.getElementById('patientLocationChart');
             if (locationCtx) {
-                const locationLabels = JSON.parse(locationCtx.dataset.labels || '[]');
-                const locationData = JSON.parse(locationCtx.dataset.data || '[]');
-
-                if (locationLabels.length > 0 && locationData.length > 0) {
+                const labels = chartData.location?.labels || [];
+                const data   = chartData.location?.data   || [];
+                if (labels.length > 0) {
                     clinicNurseCharts.location = new Chart(locationCtx, {
                         type: 'bar',
                         data: {
-                            labels: locationLabels,
+                            labels,
                             datasets: [{
                                 label: 'Clinic visits',
-                                data: locationData,
+                                data,
                                 backgroundColor: '#f97316',
                                 borderRadius: 5,
                                 maxBarThickness: 34,
                             }],
                         },
                         options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
+                            responsive: true, maintainAspectRatio: false,
                             indexAxis: 'y',
                             plugins: {
                                 legend: { display: false },
-                                tooltip: { callbacks: { label: context => ` ${context.raw} visit(s)` } },
+                                tooltip: { callbacks: { label: ctx => ` ${ctx.raw} visit(s)` } },
                             },
                             scales: {
                                 x: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: tickColor, precision: 0 } },
@@ -1326,129 +1566,80 @@
                             },
                         },
                     });
+                } else {
+                    const wrap = document.getElementById('locationChartWrap');
+                    if (wrap) wrap.innerHTML = '<div class="empty-state"><i class="fas fa-map-marker-alt"></i><p>No patient location data found.</p></div>';
                 }
             }
 
-            const donutOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '72%',
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 10,
-                        borderRadius: 8,
-                    },
-                },
-            };
-
+            // ── Donut: Vital Signs ───────────────────────────────────
             const vitalsCtx = document.getElementById('vitalsDonut');
             if (vitalsCtx) {
-                const vitalValues = [
-                    parseInt(vitalsCtx.dataset.normal || '0'),
-                    parseInt(vitalsCtx.dataset.elevated || '0'),
-                    parseInt(vitalsCtx.dataset.abnormal || '0'),
-                ];
-
+                const v = chartData.vitals || {};
+                const vals = [Number(v.normal||0), Number(v.elevated||0), Number(v.abnormal||0)];
                 clinicNurseCharts.vitals = new Chart(vitalsCtx, {
                     type: 'doughnut',
                     data: {
                         labels: ['Normal', 'Elevated', 'Abnormal'],
-                        datasets: [{
-                            data: vitalValues,
-                            backgroundColor: ['#27ae60', '#f39c12', '#e74c3c'],
-                            borderWidth: 3,
-                            borderColor: cardBg,
-                        }],
+                        datasets: [{ data: vals, backgroundColor: ['#27ae60','#f39c12','#e74c3c'], borderWidth: 3, borderColor: cardBg }],
                     },
-                    options: donutOptions,
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '72%', plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 10, borderRadius: 8 } } },
                 });
-
-                syncDonutLegend('vitalsDonut', vitalValues);
+                syncDonutLegend('vitalsDonut', vals);
             }
 
+            // ── Donut: Appointments ──────────────────────────────────
             const apptCtx = document.getElementById('appointmentsDonut');
             if (apptCtx) {
-                const apptValues = [
-                    parseInt(apptCtx.dataset.scheduled || '0'),
-                    parseInt(apptCtx.dataset.completed || '0'),
-                    parseInt(apptCtx.dataset.noShow || '0'),
-                    parseInt(apptCtx.dataset.cancelled || '0'),
-                ];
-
+                const a = chartData.appointments || {};
+                const vals = [Number(a.scheduled||0), Number(a.completed||0), Number(a.noShow||0), Number(a.cancelled||0)];
                 clinicNurseCharts.appointments = new Chart(apptCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Scheduled', 'Completed', 'No-show', 'Cancelled'],
-                        datasets: [{
-                            data: apptValues,
-                            backgroundColor: ['#3498db', '#27ae60', '#f39c12', '#7f8c8d'],
-                            borderWidth: 3,
-                            borderColor: cardBg,
-                        }],
+                        labels: ['Scheduled','Completed','No-show','Cancelled'],
+                        datasets: [{ data: vals, backgroundColor: ['#3498db','#27ae60','#f39c12','#7f8c8d'], borderWidth: 3, borderColor: cardBg }],
                     },
-                    options: donutOptions,
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '72%', plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 10, borderRadius: 8 } } },
                 });
-
-                syncDonutLegend('appointmentsDonut', apptValues);
+                syncDonutLegend('appointmentsDonut', vals);
             }
 
+            // ── Donut: Medicine ──────────────────────────────────────
             const medCtx = document.getElementById('medicineDonut');
             if (medCtx) {
-                const medicineValues = [
-                    parseInt(medCtx.dataset.available || '0'),
-                    parseInt(medCtx.dataset.lowStock || '0'),
-                    parseInt(medCtx.dataset.expiring || '0'),
-                ];
-
+                const m = chartData.medicine || {};
+                const vals = [Number(m.available||0), Number(m.lowStock||0), Number(m.expiringSoon||0)];
                 clinicNurseCharts.medicine = new Chart(medCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Healthy', 'Low Stock', 'Expiring'],
-                        datasets: [{
-                            data: medicineValues,
-                            backgroundColor: ['#27ae60', '#e74c3c', '#f39c12'],
-                            borderWidth: 3,
-                            borderColor: cardBg,
-                        }],
+                        labels: ['Healthy','Low Stock','Expiring'],
+                        datasets: [{ data: vals, backgroundColor: ['#27ae60','#e74c3c','#f39c12'], borderWidth: 3, borderColor: cardBg }],
                     },
-                    options: donutOptions,
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '72%', plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 10, borderRadius: 8 } } },
                 });
-
-                syncDonutLegend('medicineDonut', medicineValues);
+                syncDonutLegend('medicineDonut', vals);
             }
         }
 
-        renderClinicNurseCharts();
-        window.addEventListener('clinic-theme-changed', renderClinicNurseCharts);
-        document.addEventListener('livewire:navigated', renderClinicNurseCharts);
-        window.addEventListener('resize', renderClinicNurseCharts);
-        if (typeof Livewire !== 'undefined') {
-            Livewire.hook('morph.updated', ({ component }) => {
-                if (component?.el?.querySelector('.dashboard-wrapper')) {
-                    setTimeout(renderClinicNurseCharts, 0);
-                }
+        // ── Listen for Livewire chart-data event ─────────────────────
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('dashboard-charts-update', ({ chartData }) => {
+                buildCharts(chartData);
             });
-            Livewire.hook('message.processed', () => {
-                setTimeout(renderClinicNurseCharts, 0);
-            });
-        }
+        });
 
-        function navigateToVisits() {
-            window.location.href = '{{ route("clinic-visit.index") }}';
-        }
+        // ── Rebuild on theme change ───────────────────────────────────
+        window.addEventListener('clinic-theme-changed', () => buildCharts(_lastChartData));
 
-        function navigateToMedicines() {
-            window.location.href = '{{ route("medicines.index") }}';
-        }
+        // ── Navigation: re-init ───────────────────────────────────────
+        document.addEventListener('livewire:navigated', () => setTimeout(() => buildCharts(_lastChartData), 50));
 
-        function navigateToAppointments() {
-            window.location.href = '{{ route("appointments.index") }}';
-        }
+        // ── Initial render (first page load) ─────────────────────────
+        document.addEventListener('DOMContentLoaded', () => setTimeout(() => buildCharts(_lastChartData), 100));
 
-        function navigateToUserManagement() {
-            window.location.href = '{{ route("users.index") }}';
-        }
+        function navigateToVisits() { window.location.href = '{{ route("clinic-visit.index") }}'; }
+        function navigateToMedicines() { window.location.href = '{{ route("medicines.index") }}'; }
+        function navigateToAppointments() { window.location.href = '{{ route("appointments.index") }}'; }
+        function navigateToUserManagement() { window.location.href = '{{ route("users.index") }}'; }
     </script>
 </div>

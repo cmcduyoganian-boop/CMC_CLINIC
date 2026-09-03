@@ -225,12 +225,24 @@ class ClinicStaffDashboard extends Component
         $abnormal = (clone $query)->where(function ($q) {
             $q->where('temperature', '<', 36)
               ->orWhere('temperature', '>', 38)
-              ->orWhere('spo2', '<', 95);
+              ->orWhere('spo2', '<', 95)
+              ->orWhere('bp_systolic', '>', 140)
+              ->orWhere('bp_systolic', '<', 90)
+              ->orWhere('bp_diastolic', '>', 90)
+              ->orWhere('bp_diastolic', '<', 60)
+              ->orWhere('pulse_rate', '>', 100)
+              ->orWhere('pulse_rate', '<', 60)
+              ->orWhere('respiratory_rate', '>', 20)
+              ->orWhere('respiratory_rate', '<', 12);
         })->count();
 
         $elevated = (clone $query)->where(function ($q) {
             $q->whereBetween('temperature', [37.1, 38])
-              ->orWhereBetween('spo2', [95, 98]);
+              ->orWhereBetween('spo2', [95, 98])
+              ->orWhereBetween('bp_systolic', [130, 140])
+              ->orWhereBetween('bp_diastolic', [80, 90])
+              ->orWhereBetween('pulse_rate', [90, 100])
+              ->orWhereBetween('respiratory_rate', [18, 20]);
         })->count();
 
         $normal = $total - $abnormal - $elevated;

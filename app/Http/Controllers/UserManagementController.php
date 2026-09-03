@@ -118,7 +118,11 @@ class UserManagementController extends Controller
             'role' => 'required|in:student,faculty,staff,clinic_nurse,clinic_staff',
             'year_section' => 'nullable|string|max:50',
             'auto_generate_password' => 'nullable',
-            'password' => 'nullable|string|min:6|max:8',
+            'password' => 'nullable|string|min:6|max:8|regex:/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/',
+        ], [
+            'password.regex' => 'Password must contain uppercase, lowercase, number, and special character.',
+            'password.min' => 'Password must be at least 6 characters.',
+            'password.max' => 'Password cannot exceed 8 characters.',
         ]);
 
         try {
