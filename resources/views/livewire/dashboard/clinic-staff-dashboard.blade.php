@@ -1,4 +1,29 @@
 <div class="dashboard-wrapper" wire:poll-30000ms>
+    <div class="dashboard-search" x-data="{ open: false }" @click.outside="open = false">
+        <div class="dashboard-search-input-wrap">
+            <i class="fas fa-search"></i>
+            <input type="search" wire:model.live.debounce.300ms="dashboardSearch"
+                @focus="open = true" placeholder="Search patient name, email, or section..."
+                aria-label="Search patients">
+        </div>
+        @if (strlen(trim($dashboardSearch)) >= 2)
+            <div class="dashboard-search-results" x-show="open" x-cloak>
+                @forelse ($dashboardSearchResults as $result)
+                    <a href="{{ $result['visitId'] ? route('clinic-visit.show', $result['visitId']) : route('clinic-visit.index') }}" class="dashboard-search-result">
+                        <span class="dashboard-search-avatar">{{ strtoupper(substr($result['name'], 0, 1)) }}</span>
+                        <span class="dashboard-search-result-info">
+                            <strong>{{ $result['name'] }}</strong>
+                            <small>{{ $result['category'] }}</small>
+                        </span>
+                        <span class="dashboard-search-view">View <i class="fas fa-arrow-right"></i></span>
+                    </a>
+                @empty
+                    <div class="dashboard-search-empty">No patient records found.</div>
+                @endforelse
+            </div>
+        @endif
+    </div>
+
     <!-- EYEBROW LABEL -->
     <div class="eyebrow-label">
         <span> CMC CLINIC &nbsp;·&nbsp; CLINIC STAFF DASHBOARD</span>
@@ -118,9 +143,27 @@
         <div class="location-kpi-card">
             <div class="location-kpi-icon"><i class="fas fa-location-dot"></i></div>
             <div>
-                <div class="location-kpi-label">TOP PATIENT LOCATION</div>
-                <div class="location-kpi-value">{{ $patientLocationData['topLocation'] }}</div>
-                <div class="location-kpi-count">{{ $patientLocationData['topCount'] }} clinic visit(s) in selected period</div>
+                <div class="location-kpi-label">PATIENT LOCATION RANKING</div>
+                <div class="location-kpi-heading">Most clinic records by address</div>
+                <div class="location-ranking">
+                    @foreach ($patientLocationData['rankedLocations'] as $index => $location)
+                        @php
+                            $locationPercent = $patientLocationData['topCount'] > 0
+                                ? round(($location['count'] / $patientLocationData['topCount']) * 100)
+                                : 0;
+                        @endphp
+                        <div class="location-ranking-row">
+                            <span class="location-ranking-number">{{ $index + 1 }}</span>
+                            <div class="location-ranking-content">
+                                <div class="location-ranking-topline">
+                                    <span class="location-ranking-label">{{ $location['label'] }}</span>
+                                    <strong>{{ $location['count'] }} record(s)</strong>
+                                </div>
+                                <progress class="location-ranking-track" max="100" value="{{ $locationPercent }}"></progress>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
             </div>
         </div>
         <div class="chart-card location-chart-card">
@@ -377,6 +420,76 @@
             width: fit-content;
         }
 
+        .dashboard-search {
+            position: relative;
+            max-width: 620px;
+            margin-bottom: 18px;
+            z-index: 20;
+        }
+
+        .dashboard-search-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 8px;
+            padding: 0 14px;
+        }
+
+        .dashboard-search-input-wrap i { color: var(--text-muted); }
+
+        .dashboard-search-input-wrap input {
+            width: 100%;
+            height: 42px;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--text-heading);
+            font-size: 13px;
+        }
+
+        .dashboard-search-results {
+            position: absolute;
+            top: 50px;
+            left: 0;
+            right: 0;
+            overflow: hidden;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 8px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+        }
+
+        .dashboard-search-result {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            color: var(--text-heading);
+            text-decoration: none;
+        }
+
+        .dashboard-search-result:hover { background: var(--bg-input); }
+
+        .dashboard-search-avatar {
+            display: grid;
+            place-items: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            font-weight: 700;
+        }
+
+        .dashboard-search-result-info { display: grid; flex: 1; gap: 2px; }
+        .dashboard-search-result-info strong { font-size: 13px; }
+        .dashboard-search-result-info small { color: var(--text-muted); font-size: 11px; }
+        .dashboard-search-view { color: #38bdf8; font-size: 11px; font-weight: 600; }
+        .dashboard-search-empty { padding: 14px; color: var(--text-muted); font-size: 13px; }
+        [x-cloak] { display: none !important; }
+
         /* GREETING */
         .greeting-section {
             display: flex;
@@ -585,8 +698,18 @@
         }
 
         .location-kpi-label { color: var(--text-muted); font-size: 10px; font-weight: 700; letter-spacing: .5px; }
-        .location-kpi-value { color: var(--text-heading); font-size: 18px; font-weight: 700; margin-top: 7px; overflow-wrap: anywhere; }
-        .location-kpi-count { color: var(--text-body); font-size: 11px; margin-top: 7px; }
+        .location-kpi-heading { color: var(--text-heading); font-size: 15px; font-weight: 700; margin-top: 6px; }
+        .location-ranking { display: grid; gap: 11px; margin-top: 18px; width: 100%; }
+        .location-ranking-row { display: flex; align-items: flex-start; gap: 8px; min-width: 0; font-size: 11px; }
+        .location-ranking-number { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: rgba(56, 189, 248, 0.14); color: #38bdf8; font-weight: 700; flex-shrink: 0; }
+        .location-ranking-content { flex: 1; min-width: 0; }
+        .location-ranking-topline { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .location-ranking-label { color: var(--text-body); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .location-ranking-row strong { color: var(--text-heading); white-space: nowrap; font-size: 10px; }
+        .location-ranking-track { display: block; width: 100%; height: 4px; margin-top: 5px; border: 0; border-radius: 4px; overflow: hidden; }
+        .location-ranking-track::-webkit-progress-bar { background: var(--border-inner); border-radius: 4px; }
+        .location-ranking-track::-webkit-progress-value { background: #f97316; border-radius: 4px; }
+        .location-ranking-track::-moz-progress-bar { background: #f97316; border-radius: 4px; }
         .location-chart-card { min-width: 0; }
         .location-chart-container { height: 220px; }
 
@@ -1110,7 +1233,10 @@
             });
         }
 
-        function renderClinicStaffCharts() {
+        let clinicStaffChartData = null;
+
+        function renderClinicStaffCharts(chartData = null) {
+            if (chartData) clinicStaffChartData = chartData;
             const isDark = document.body.getAttribute('data-theme') !== 'light';
             const gridColor = isDark ? '#111f35' : '#e2e8f0';
             const tickColor = isDark ? '#374e6b' : '#94a3b8';
@@ -1121,8 +1247,8 @@
 
             const visitsCtx = document.getElementById('visitsChart');
             if (visitsCtx) {
-                const visitsLabels = JSON.parse(visitsCtx.dataset.labels || '[]');
-                const visitsData = JSON.parse(visitsCtx.dataset.data || '[]');
+                const visitsLabels = clinicStaffChartData?.visits?.labels || JSON.parse(visitsCtx.dataset.labels || '[]');
+                const visitsData = clinicStaffChartData?.visits?.data || JSON.parse(visitsCtx.dataset.data || '[]');
 
                 if (visitsLabels.length > 0 && visitsData.length > 0) {
                     clinicStaffCharts.visits = new Chart(visitsCtx, {
@@ -1168,8 +1294,8 @@
 
             const trendCtx = document.getElementById('visitsTrendChart');
             if (trendCtx) {
-                const trendLabels = JSON.parse(trendCtx.dataset.labels || '[]');
-                const trendData = JSON.parse(trendCtx.dataset.data || '[]');
+                const trendLabels = clinicStaffChartData?.trend?.labels || JSON.parse(trendCtx.dataset.labels || '[]');
+                const trendData = clinicStaffChartData?.trend?.data || JSON.parse(trendCtx.dataset.data || '[]');
 
                 if (trendLabels.length > 0 && trendData.length > 0) {
                     clinicStaffCharts.trend = new Chart(trendCtx, {
@@ -1210,8 +1336,8 @@
 
             const locationCtx = document.getElementById('patientLocationChart');
             if (locationCtx) {
-                const locationLabels = JSON.parse(locationCtx.dataset.labels || '[]');
-                const locationData = JSON.parse(locationCtx.dataset.data || '[]');
+                const locationLabels = clinicStaffChartData?.location?.labels || JSON.parse(locationCtx.dataset.labels || '[]');
+                const locationData = clinicStaffChartData?.location?.data || JSON.parse(locationCtx.dataset.data || '[]');
 
                 if (locationLabels.length > 0 && locationData.length > 0) {
                     clinicStaffCharts.location = new Chart(locationCtx, {
@@ -1260,9 +1386,9 @@
             const vitalsCtx = document.getElementById('vitalsDonut');
             if (vitalsCtx) {
                 const vitalValues = [
-                    parseInt(vitalsCtx.dataset.normal || '0'),
-                    parseInt(vitalsCtx.dataset.elevated || '0'),
-                    parseInt(vitalsCtx.dataset.abnormal || '0'),
+                    Number(clinicStaffChartData?.vitals?.normal ?? vitalsCtx.dataset.normal ?? 0),
+                    Number(clinicStaffChartData?.vitals?.elevated ?? vitalsCtx.dataset.elevated ?? 0),
+                    Number(clinicStaffChartData?.vitals?.abnormal ?? vitalsCtx.dataset.abnormal ?? 0),
                 ];
 
                 clinicStaffCharts.vitals = new Chart(vitalsCtx, {
@@ -1285,9 +1411,9 @@
             const medCtx = document.getElementById('medicineDonut');
             if (medCtx) {
                 const medicineValues = [
-                    parseInt(medCtx.dataset.available || '0'),
-                    parseInt(medCtx.dataset.lowStock || '0'),
-                    parseInt(medCtx.dataset.expiring || '0'),
+                    Number(clinicStaffChartData?.medicine?.available ?? medCtx.dataset.available ?? 0),
+                    Number(clinicStaffChartData?.medicine?.lowStock ?? medCtx.dataset.lowStock ?? 0),
+                    Number(clinicStaffChartData?.medicine?.expiringSoon ?? medCtx.dataset.expiring ?? 0),
                 ];
 
                 clinicStaffCharts.medicine = new Chart(medCtx, {
@@ -1308,10 +1434,15 @@
             }
         }
 
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('dashboard-charts-update', ({ chartData }) => {
+                renderClinicStaffCharts(chartData);
+            });
+        });
         renderClinicStaffCharts();
-        window.addEventListener('clinic-theme-changed', renderClinicStaffCharts);
-        document.addEventListener('livewire:navigated', renderClinicStaffCharts);
-        window.addEventListener('resize', renderClinicStaffCharts);
+        window.addEventListener('clinic-theme-changed', () => renderClinicStaffCharts());
+        document.addEventListener('livewire:navigated', () => renderClinicStaffCharts());
+        window.addEventListener('resize', () => renderClinicStaffCharts());
         if (typeof Livewire !== 'undefined') {
             Livewire.hook('morph.updated', ({ component }) => {
                 if (component?.el?.querySelector('.dashboard-wrapper')) {

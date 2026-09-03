@@ -9,6 +9,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Requests\EmailVerificationRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // ============ PUBLIC LANDING PAGE ============
@@ -65,7 +66,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckApprovalStatus::class])->gr
 Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus::class])->group(function () {
     // Dynamic dashboard by role
     Route::get('/dashboard', function () {
-        $user = auth()->user();
+        $user = Auth::user();
 
         return match($user->role) {
             'student' => view('dashboard-patient'),
@@ -89,7 +90,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
         ->only(['index', 'create', 'store', 'show'])
         ->parameters(['clinic-visit' => 'id'])
         ->middleware('clinic.role');
-    Route::middleware('clinic.role:clinic_nurse')->group(function () {
+    Route::middleware('clinic.role:clinic_nurse,clinic_staff')->group(function () {
         Route::get('/clinic-visit/{id}/edit', [ClinicVisitController::class, 'edit'])->name('clinic-visit.edit');
         Route::put('/clinic-visit/{id}', [ClinicVisitController::class, 'update'])->name('clinic-visit.update');
         Route::patch('/clinic-visit/{id}', [ClinicVisitController::class, 'update']);

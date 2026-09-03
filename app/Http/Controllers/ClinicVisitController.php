@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ClinicVisit;
 use App\Models\Patient;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ClinicVisitController extends Controller
 {
@@ -59,7 +60,7 @@ class ClinicVisitController extends Controller
             // Create clinic visit
             ClinicVisit::create([
                 'patient_id' => $patient->id,
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'visit_date' => $validated['visit_date'],
                 'complaints' => $validated['complaints'],
                 'diagnosis' => $validated['diagnosis'],
@@ -84,27 +85,19 @@ class ClinicVisitController extends Controller
         }
     }
 
-    public function show($id)
+    public function show(int $id)
     {
-        $visit = ClinicVisit::with('patient')->findOrFail($id);
+        $visit = ClinicVisit::with('patient.clinicVisits')->findOrFail($id);
         return view('clinic-visit.show', compact('visit'));
     }
 
-    public function edit($id)
+    public function edit(int $id)
     {
-        if (auth()->user()?->role === 'clinic_staff') {
-            abort(403, 'Clinic staff may only record new visits.');
-        }
-
         return view('clinic-visit.edit', ['visitId' => $id]);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
-        if (auth()->user()?->role === 'clinic_staff') {
-            abort(403, 'Clinic staff may only record new visits.');
-        }
-
         $visit = ClinicVisit::findOrFail($id);
 
         $validated = $request->validate([
@@ -129,7 +122,7 @@ class ClinicVisitController extends Controller
             ->with('success', 'Clinic visit updated successfully!');
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
         $visit = ClinicVisit::findOrFail($id);
         $visit->delete();

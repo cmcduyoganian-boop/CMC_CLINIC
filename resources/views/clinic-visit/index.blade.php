@@ -19,6 +19,7 @@
                 <colgroup>
                     <col class="col-date">
                     <col class="col-name">
+                    <col class="col-email">
                     <col class="col-yr">
                     <col class="col-age">
                     <col class="col-vital"><!-- T° -->
@@ -41,6 +42,7 @@
                     <tr>
                         <th>DATE</th>
                         <th>FULL NAME</th>
+                        <th>EMAIL</th>
                         <th>YEAR &amp; SECTION</th>
                         <th class="cell-center">AGE</th>
                         <th colspan="8">VITAL SIGNS</th>
@@ -53,7 +55,7 @@
                         <th class="cell-center">ACTIONS</th>
                     </tr>
                     <tr class="vital-signs-header">
-                        <th colspan="4"></th>
+                        <th colspan="5"></th>
                         <th>T°</th>
                         <th>PR</th>
                         <th>RR</th>
@@ -75,6 +77,7 @@
                         <tr class="visit-row">
                             <td>{{ $visit->visit_date->format('m/d/Y') }}</td>
                             <td class="patient-name">{{ $visit->patient->name ?? 'N/A' }}</td>
+                            <td class="text-small">{{ $visit->patient->email ?? '-' }}</td>
                             <td class="year-section">{{ $visit->patient->year_section ?? 'N/A' }}</td>
                             <td class="vital-sign">{{ $visit->patient->age ?? 'N/A' }}</td>
                             <td class="vital-sign">{{ $visit->temperature ? $visit->temperature . '°C' : '-' }}</td>
@@ -88,7 +91,6 @@
                             <td class="cell-center">
                                 @if ($vsOverall)
                                     <span class="idx-vs-badge idx-vs-{{ $vsOverall }}" title="{{ \App\Support\VitalSigns::label($vsOverall) }}">
-                                        {{ \App\Support\VitalSigns::icon($vsOverall) }}
                                         <span class="idx-vs-label">{{ \App\Support\VitalSigns::label($vsOverall) }}</span>
                                     </span>
                                 @else
@@ -120,7 +122,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="19" style="text-align:center;padding:40px;color:var(--text-muted);">
+                            <td colspan="20" style="text-align:center;padding:40px;color:var(--text-muted);">
                                 No clinic visits recorded yet.
                             </td>
                         </tr>
@@ -207,25 +209,26 @@
         /* ── Table base ─────────────────────────────────────── */
         .visits-table {
             width: 100%;
-            min-width: 1100px;       /* prevents cramping on mid-size screens */
+            min-width: 1180px;       /* keeps all record fields readable on narrow screens */
             border-collapse: collapse;
             font-size: 12px;
             table-layout: fixed;     /* column widths are honoured */
         }
 
         /* ── Column widths (fixed layout) ───────────────────── */
-        .visits-table col.col-date    { width: 82px;  }
-        .visits-table col.col-name    { width: 130px; }
-        .visits-table col.col-yr      { width: 68px;  }
-        .visits-table col.col-age     { width: 44px;  }
-        .visits-table col.col-vital   { width: 52px;  }  /* ×8 = 416px */
-        .visits-table col.col-status  { width: 100px; }
-        .visits-table col.col-comp    { width: 100px; }
-        .visits-table col.col-diag    { width: 90px; }
-        .visits-table col.col-mgmt    { width: 90px; }
-        .visits-table col.col-addr    { width: 100px; }
-        .visits-table col.col-sex     { width: 46px;  }
-        .visits-table col.col-act     { width: 84px;  }
+        .visits-table col.col-date    { width: 74px;  }
+        .visits-table col.col-name    { width: 118px; }
+        .visits-table col.col-email   { width: 132px; }
+        .visits-table col.col-yr      { width: 78px;  }
+        .visits-table col.col-age     { width: 46px;  }
+        .visits-table col.col-vital   { width: 48px;  }  /* x8 = 384px */
+            .visits-table col.col-status  { width: 120px; }
+        .visits-table col.col-comp    { width: 94px; }
+        .visits-table col.col-diag    { width: 82px; }
+        .visits-table col.col-mgmt    { width: 82px; }
+        .visits-table col.col-addr    { width: 96px; }
+        .visits-table col.col-sex     { width: 42px;  }
+        .visits-table col.col-act     { width: 96px;  }
 
         /* ── VS Status badges (index table) ─────────────────── */
         .idx-vs-badge {
@@ -239,7 +242,7 @@
             white-space: nowrap;
             line-height: 1.3;
         }
-        .idx-vs-label { font-size: 9px; }
+        .idx-vs-label { font-size: 9px; white-space: nowrap; }
         .idx-vs-normal       { background: rgba(39,174,96,0.15); color: #27ae60; }
         .idx-vs-above_normal { background: rgba(243,156,18,0.15); color: #b87e00; }
         .idx-vs-below_normal { background: rgba(52,152,219,0.15); color: #2980b9; }
@@ -254,7 +257,8 @@
             font-weight: 700;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            white-space: nowrap;
+            white-space: normal;
+            line-height: 1.2;
             color: #fff;
             background: linear-gradient(135deg, #2980b9 0%, #1a6ea8 100%);
             border-bottom: 2px solid rgba(255,255,255,0.15);
@@ -301,13 +305,13 @@
         }
 
         .visits-table td {
-            padding: 11px 8px;
+            padding: 9px 6px;
             color: var(--text-heading);
             border-right: 1px solid var(--border-inner);
             overflow: hidden;
             text-overflow: ellipsis;
             vertical-align: top;
-            font-size: 12px;
+            font-size: 11px;
             line-height: 1.4;
         }
 
@@ -349,10 +353,11 @@
         /* ── Action buttons ─────────────────────────────────── */
         .action-buttons {
             display: flex;
-            gap: 4px;
+            gap: 6px;
             justify-content: center;
             align-items: center;
             flex-wrap: nowrap;
+            padding: 0 4px;
         }
 
         .btn-view,
@@ -361,7 +366,7 @@
             border: none;
             background: transparent;
             cursor: pointer;
-            padding: 5px 6px;
+            padding: 6px 7px;
             border-radius: 6px;
             transition: all 0.18s;
             font-size: 13px;

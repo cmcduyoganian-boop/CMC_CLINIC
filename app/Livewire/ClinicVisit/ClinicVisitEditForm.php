@@ -4,19 +4,20 @@ namespace App\Livewire\ClinicVisit;
 
 use App\Models\ClinicVisit;
 use Livewire\Component;
+use Illuminate\Support\Facades\Log;
 
 class ClinicVisitEditForm extends Component
 {
-    public $visitId;
-    public $visit;
+    public int $visitId;
+    public ClinicVisit $visit;
 
     // ============ VISIT INFO ============
-    public $visitDate;
+    public ?string $visitDate = null;
     public $address = '';
     public $sex = '';
 
     // ============ PATIENT INFO ============
-    public $patientName;
+    public string $patientName = '';
     public $patientCategory = 'student';
     public $patientYearSection = '';
     public $patientAge = '';
@@ -40,7 +41,7 @@ class ClinicVisitEditForm extends Component
     public $diagnosis = '';
     public $notes = '';
 
-    public function mount($visitId)
+    public function mount(int $visitId)
     {
         $this->visitId = $visitId;
         $this->visit = ClinicVisit::with('patient')->findOrFail($visitId);
@@ -128,8 +129,6 @@ class ClinicVisitEditForm extends Component
 
         $validated['address'] = trim((string) ($validated['address'] ?: ($this->visit->patient?->address ?? '')));
 
-        $validated['address'] = trim((string) ($validated['address'] ?: ($this->visit->patient?->address ?? '')));
-
         $this->visit->update([
             'visit_date' => $validated['visitDate'],
             'address' => $validated['address'],
@@ -149,7 +148,7 @@ class ClinicVisitEditForm extends Component
             'notes' => $validated['notes'],
         ]);
 
-        \Log::info('Clinic visit updated', [
+        Log::info('Clinic visit updated', [
             'visit_id' => $this->visit->id,
             'address' => $validated['address'],
             'all_data' => $validated

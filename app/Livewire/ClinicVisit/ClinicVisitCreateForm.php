@@ -5,21 +5,24 @@ namespace App\Livewire\ClinicVisit;
 use App\Models\ClinicVisit;
 use App\Models\Patient;
 use Livewire\Component;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ClinicVisitCreateForm extends Component
 {
     // ============ PATIENT INFO ============
-    public $patientId = null;
+    public ?int $patientId = null;
     public $patientName = '';
     public $patientCategory = '';
     public $patientProgram = '';
     public $patientYearSection = '';
     public $patientAge = '';
     public $patientPhone = '';
+    public $patientEmail = '';
     public $showPatientDropdown = false;
 
     // ============ VISIT INFO ============
-    public $visitDate;
+    public ?string $visitDate = null;
     public $visitType = 'walk_in';
     public $address = '';
     public $sex = '';
@@ -109,7 +112,7 @@ class ClinicVisitCreateForm extends Component
         }
     }
 
-    public function selectPatient($id)
+    public function selectPatient(int $id)
     {
         $patient = Patient::find($id);
 
@@ -126,6 +129,7 @@ class ClinicVisitCreateForm extends Component
             : $patient->year_section;
         $this->patientAge = $patient->age ?? '';
         $this->patientPhone = $patient->phone ?? '';
+        $this->patientEmail = $patient->email ?? '';
         $this->address = trim((string) ($patient->address ?? ''));
         $this->showPatientDropdown = false;
     }
@@ -144,6 +148,7 @@ class ClinicVisitCreateForm extends Component
             'patientYearSection' => 'nullable|string|max:255',
             'patientAge' => 'nullable|integer|min:0|max:150',
             'patientPhone' => 'nullable|string|max:30',
+            'patientEmail' => 'required|email|max:255',
             'visitDate' => 'required|date',
             'visitType' => 'required|in:walk_in,appointment,follow_up',
             'address' => 'required|string|max:500',
@@ -177,6 +182,7 @@ class ClinicVisitCreateForm extends Component
                 'year_section' => $validated['patientYearSection'],
                 'age' => $validated['patientAge'],
                 'phone' => $validated['patientPhone'],
+                'email' => $validated['patientEmail'] ?: null,
                 'address' => $validated['address'],
                 'status' => 'active',
             ]);
@@ -184,13 +190,14 @@ class ClinicVisitCreateForm extends Component
             $patient->update([
                 'age' => $validated['patientAge'],
                 'phone' => $validated['patientPhone'],
+                'email' => $validated['patientEmail'] ?: null,
                 'address' => $validated['address'],
             ]);
         }
 
         ClinicVisit::create([
             'patient_id' => $patient->id,
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
             'visit_date' => $validated['visitDate'],
             'visit_type' => $validated['visitType'],
             'address' => $validated['address'],
@@ -210,7 +217,7 @@ class ClinicVisitCreateForm extends Component
             'notes' => $validated['notes'],
         ]);
 
-        \Log::info('Clinic visit created', [
+        Log::info('Clinic visit created', [
             'visit_id' => $patient->id,
             'address' => $validated['address'],
             'all_data' => $validated

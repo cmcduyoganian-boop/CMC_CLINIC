@@ -11,10 +11,11 @@ use Carbon\Carbon;
 class ClinicStaffDashboard extends Component
 {
     // ============ FILTER PROPERTIES ============
-    public $dateRange = 'last_30';
+    public $dateRange = 'today';
     public $patientType = 'all';
-    public $customStartDate = null;
-    public $customEndDate = null;
+    public ?string $customStartDate = null;
+    public ?string $customEndDate = null;
+    public $dashboardSearch = '';
 
     // ============ AUTO-REFRESH ============
     public $autoRefreshInterval = 30000; // 30 seconds
@@ -193,6 +194,10 @@ class ClinicStaffDashboard extends Component
         return [
             'labels' => $locations->keys()->values()->toArray(),
             'data' => $locations->values()->map(fn ($count) => (int) $count)->toArray(),
+            'rankedLocations' => $locations->map(fn ($count, $address) => [
+                'label' => $address,
+                'count' => (int) $count,
+            ])->values()->toArray(),
             'topLocation' => $locations->keys()->first() ?? 'No location data',
             'topCount' => (int) ($locations->first() ?? 0),
         ];
@@ -345,9 +350,38 @@ class ClinicStaffDashboard extends Component
         return array_slice($activities, 0, 10);
     }
 
+    public function getDashboardSearchResults()
+    {
+        $term = trim($this->dashboardSearch);
+
+        if (strlen($term) < 2) {
+            return [];
+        }
+
+        return Patient::whereHas('clinicVisits')
+            ->where(function ($query) use ($term) {
+                $query->where('name', 'like', "%{$term}%")
+                    ->orWhere('email', 'like', "%{$term}%")
+                    ->orWhere('year_section', 'like', "%{$term}%");
+            })
+            ->orderBy('name')
+            ->limit(8)
+            ->get()
+            ->map(function ($patient) {
+                $latestVisit = $patient->clinicVisits()->latest('visit_date')->first();
+
+                return [
+                    'name' => $patient->name,
+                    'category' => ucfirst($patient->category ?? 'Patient'),
+                    'visitId' => $latestVisit?->id,
+                ];
+            })
+            ->all();
+    }
+
     public function render()
     {
-        return view('livewire.dashboard.clinic-staff-dashboard', [
+        $data = [
             'visitsToday' => $this->getVisitsToday(),
             'lowStockMedicines' => $this->getLowStockMedicines(),
             'totalPatients' => $this->getTotalPatients(),
@@ -357,12 +391,23 @@ class ClinicStaffDashboard extends Component
             'visitsTrendData' => $this->getVisitsTrendData(),
             'patientLocationData' => $this->getPatientLocationData(),
             'recentActivities' => $this->getRecentActivities(),
+            'dashboardSearchResults' => $this->getDashboardSearchResults(),
+        ];
+
+        $this->dispatch('dashboard-charts-update', chartData: [
+            'visits' => $data['last7DaysChart'],
+            'trend' => $data['visitsTrendData'],
+            'location' => $data['patientLocationData'],
+            'vitals' => $data['vitalSignsOverview'],
+            'medicine' => $data['medicineInventory'],
         ]);
+
+        return view('livewire.dashboard.clinic-staff-dashboard', $data);
     }
 
     public function resetFilters()
     {
-        $this->dateRange = 'this_month';
+        $this->dateRange = 'today';
         $this->patientType = 'all';
     }
 }

@@ -9,6 +9,9 @@
                 <p class="page-subtitle">{{ $visit->visit_date->format('F d, Y') }}</p>
             </div>
             <div class="header-actions">
+                <a href="{{ route('clinic-visit.create', ['patient' => $visit->patient_id]) }}" class="btn-add-record">
+                    <i class="fas fa-plus"></i> Add Record
+                </a>
                 <a href="{{ route('clinic-visit.edit', $visit->id) }}" class="btn-edit-main">
                     <i class="fas fa-edit"></i> Edit
                 </a>
@@ -47,6 +50,10 @@
                     <span class="info-value">{{ $visit->patient->phone ?? 'N/A' }}</span>
                 </div>
                 <div class="info-item">
+                    <label>Email</label>
+                    <span class="info-value">{{ $visit->patient->email ?? 'N/A' }}</span>
+                </div>
+                <div class="info-item">
                     <label>Address</label>
                     <span class="info-value">{{ $visit->patient->address ?? 'N/A' }}</span>
                 </div>
@@ -54,6 +61,36 @@
                     <label>Program</label>
                     <span class="info-value">{{ $visit->patient->program ?: 'N/A' }}</span>
                 </div>
+            </div>
+        </div>
+
+        <!-- Patient Visit History -->
+        <div class="info-card history-card">
+            <div class="history-header">
+                <div>
+                    <h2 class="card-title">Visit History</h2>
+                    <p class="history-subtitle">All clinic records for {{ $visit->patient->name }}</p>
+                </div>
+                <span class="history-count">{{ $visit->patient->clinicVisits->count() }} record(s)</span>
+            </div>
+            <div class="history-list">
+                @foreach ($visit->patient->clinicVisits as $historyVisit)
+                    <div class="history-item {{ $historyVisit->id === $visit->id ? 'current' : '' }}">
+                        <div class="history-date">
+                            <strong>{{ $historyVisit->visit_date->format('M d') }}</strong>
+                            <small>{{ $historyVisit->visit_date->format('Y') }}</small>
+                        </div>
+                        <div class="history-details">
+                            <strong>{{ ucfirst(str_replace('_', ' ', $historyVisit->visit_type ?? 'walk_in')) }}</strong>
+                            <span>{{ $historyVisit->diagnosis ?: ($historyVisit->complaints ?: 'No diagnosis or complaints recorded') }}</span>
+                        </div>
+                        @if ($historyVisit->id === $visit->id)
+                            <span class="history-current">Current</span>
+                        @else
+                            <a href="{{ route('clinic-visit.show', $historyVisit->id) }}" class="history-view">View <i class="fas fa-arrow-right"></i></a>
+                        @endif
+                    </div>
+                @endforeach
             </div>
         </div>
 
@@ -82,7 +119,6 @@
 
         <!-- Vital Signs Card -->
         @php
-            use App\Support\VitalSigns;
             $assessment = $visit->getVitalSignsAssessment();
             $statuses   = $assessment['statuses'];
             $overall    = $assessment['overall'];
@@ -161,7 +197,7 @@
                     </div>
                     <div class="assessment-text">
                         <strong>Overall Vital Signs Assessment:</strong>
-                        {{ VitalSigns::label($overall) }}
+                        {{ \App\Support\VitalSigns::label($overall) }}
                         @if ($overall === 'abnormal')
                             — One or more readings are outside safe limits. Please attend to this patient immediately.
                         @elseif ($overall !== 'normal')
@@ -194,8 +230,8 @@
                                     <td>
                                         @if ($row['status'])
                                             <span class="vs-badge vs-badge-{{ $row['status'] }}">
-                                                {{ VitalSigns::icon($row['status']) }}
-                                                {{ VitalSigns::label($row['status']) }}
+                                                {{ \App\Support\VitalSigns::icon($row['status']) }}
+                                                {{ \App\Support\VitalSigns::label($row['status']) }}
                                             </span>
                                         @else
                                             <span class="vs-badge vs-badge-na">—</span>
@@ -288,6 +324,7 @@
             gap: 12px;
         }
 
+        .btn-add-record,
         .btn-edit-main,
         .btn-back {
             border: none;
@@ -301,6 +338,80 @@
             gap: 8px;
             transition: all 0.2s;
             text-decoration: none;
+        }
+
+
+            .history-header {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 16px;
+            }
+
+            .history-header .card-title { margin-bottom: 4px; }
+
+            .history-subtitle {
+                margin: 0 0 18px;
+                color: var(--text-muted);
+                font-size: 12px;
+            }
+
+            .history-count {
+                color: #38bdf8;
+                font-size: 12px;
+                font-weight: 700;
+                white-space: nowrap;
+            }
+
+            .history-list {
+                display: grid;
+                gap: 8px;
+            }
+
+            .history-item {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 12px;
+                border: 1px solid var(--border-inner);
+                border-radius: 8px;
+            }
+
+            .history-item.current {
+                border-color: rgba(56, 189, 248, 0.45);
+                background: rgba(56, 189, 248, 0.06);
+            }
+
+            .history-date {
+                min-width: 58px;
+                display: grid;
+                gap: 2px;
+                color: var(--text-heading);
+            }
+
+            .history-date strong { font-size: 13px; }
+            .history-date small { color: var(--text-muted); font-size: 11px; }
+
+            .history-details {
+                display: grid;
+                flex: 1;
+                min-width: 0;
+                gap: 3px;
+            }
+
+            .history-details strong { color: var(--text-heading); font-size: 13px; }
+            .history-details span { color: var(--text-muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .history-current, .history-view { color: #38bdf8; font-size: 11px; font-weight: 700; white-space: nowrap; }
+            .history-view { text-decoration: none; }
+            .history-view:hover { color: #7dd3fc; }
+        .btn-add-record {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-add-record:hover {
+            background: #219653;
+            transform: translateY(-2px);
         }
 
         .btn-edit-main {
@@ -559,11 +670,14 @@
                 flex-direction: column;
                 gap: 16px;
             }
+            .history-item { align-items: flex-start; }
+            .history-current, .history-view { margin-left: auto; }
 
             .header-actions {
                 width: 100%;
             }
 
+            .btn-add-record,
             .btn-edit-main,
             .btn-back {
                 flex: 1;

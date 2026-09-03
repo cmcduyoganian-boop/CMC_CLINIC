@@ -18,8 +18,9 @@ class NurseDashboard extends Component
     public $dateRange = 'today';
     public $visitType = 'all';
     public $patientType = 'all';
-    public $customStartDate = null;
-    public $customEndDate = null;
+    public ?string $customStartDate = null;
+    public ?string $customEndDate = null;
+    public $dashboardSearch = '';
 
     // ============ MODAL ============
     public $showActivitiesModal = false;
@@ -341,6 +342,10 @@ class NurseDashboard extends Component
         return [
             'labels'      => $labels,
             'data'        => $data,
+            'rankedLocations' => $locations->map(fn ($location) => [
+                'label' => $location['label'],
+                'count' => (int) $location['count'],
+            ])->values()->toArray(),
             'topLocation' => $labels[0] ?? 'No location data',
             'topCount'    => $data[0] ?? 0,
         ];
@@ -535,6 +540,35 @@ class NurseDashboard extends Component
         return array_slice($activities, 0, 10);
     }
 
+    public function getDashboardSearchResults()
+    {
+        $term = trim($this->dashboardSearch);
+
+        if (strlen($term) < 2) {
+            return [];
+        }
+
+        return Patient::whereHas('clinicVisits')
+            ->where(function ($query) use ($term) {
+                $query->where('name', 'like', "%{$term}%")
+                    ->orWhere('email', 'like', "%{$term}%")
+                    ->orWhere('year_section', 'like', "%{$term}%");
+            })
+            ->orderBy('name')
+            ->limit(8)
+            ->get()
+            ->map(function ($patient) {
+                $latestVisit = $patient->clinicVisits()->latest('visit_date')->first();
+
+                return [
+                    'name' => $patient->name,
+                    'category' => ucfirst($patient->category ?? 'Patient'),
+                    'visitId' => $latestVisit?->id,
+                ];
+            })
+            ->all();
+    }
+
     // ============ MODAL: OPEN / CLOSE ============
     public function openActivitiesModal(): void
     {
@@ -667,6 +701,7 @@ class NurseDashboard extends Component
             'appointmentStats'    => $this->getAppointmentStats(),
             'recentActivities'    => $this->getRecentActivities(),
             'allActivities'       => $this->showActivitiesModal ? $this->getAllActivities() : [],
+            'dashboardSearchResults' => $this->getDashboardSearchResults(),
         ];
 
         // Dispatch chart data to JS after every render so graphs stay reactive

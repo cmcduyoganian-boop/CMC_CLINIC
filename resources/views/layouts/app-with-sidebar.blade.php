@@ -337,50 +337,6 @@
             min-width: 0;
         }
 
-        .topbar-search {
-            flex: 1;
-            max-width: 400px;
-            display: flex;
-            align-items: center;
-        }
-
-        .search-input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-            width: 100%;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 10px 14px 10px 36px;
-            border: 1px solid var(--border-input);
-            border-radius: 8px;
-            font-size: 13px;
-            background: var(--bg-input);
-            color: var(--text-heading);
-            transition: all 0.2s;
-            height: 38px;
-        }
-
-        .search-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #38bdf8;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 12px;
-            color: var(--text-muted);
-            font-size: 14px;
-            pointer-events: none;
-        }
-
         .topbar-right {
             display: flex;
             align-items: center;
@@ -500,41 +456,6 @@
                 padding: 92px 16px 16px 16px;
             }
 
-            .topbar-search {
-                max-width: 180px;
-            }
-
-            .search-input {
-                font-size: 12px;
-                padding: 8px 10px 8px 30px;
-                height: 32px;
-            }
-
-            .search-icon {
-                left: 10px;
-                font-size: 12px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .topbar-search {
-                max-width: 140px;
-            }
-
-            .search-input {
-                font-size: 11px;
-                padding: 6px 8px 6px 26px;
-                height: 28px;
-            }
-
-            .search-icon {
-                left: 8px;
-                font-size: 11px;
-            }
-
-            .search-input::placeholder {
-                font-size: 10px;
-            }
         }
 
         /* SCROLLBAR */
@@ -726,7 +647,7 @@
         }
     </style>
 </head>
-<body data-theme="dark">
+<body data-theme="light">
     <!-- SIDEBAR OVERLAY -->
     <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
@@ -823,12 +744,6 @@
                         <i class="fas fa-bars"></i>
                     </button>
 
-                    <div class="topbar-search">
-                        <div class="search-input-wrapper">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" id="globalSearchInput" class="search-input" placeholder="Search patients, records...">
-                        </div>
-                    </div>
                 </div>
 
                 <div class="topbar-right">
@@ -954,7 +869,7 @@
         (function () {
             const body = document.body;
             const btn = document.getElementById('themeToggle');
-            const saved = localStorage.getItem('clinicTheme') || 'dark';
+            const saved = localStorage.getItem('clinicTheme') || 'light';
             body.setAttribute('data-theme', saved);
             btn.innerHTML = saved === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
 
@@ -964,24 +879,6 @@
                 localStorage.setItem('clinicTheme', next);
                 btn.innerHTML = next === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
                 window.dispatchEvent(new CustomEvent('clinic-theme-changed', { detail: { theme: next } }));
-            });
-        })();
-
-        // GLOBAL TOPBAR SEARCH — dispatches to whichever Livewire component
-        // on the current page is listening for it (e.g. the Patients list).
-        (function () {
-            const globalSearchInput = document.getElementById('globalSearchInput');
-            if (!globalSearchInput) return;
-
-            let debounceTimer;
-            globalSearchInput.addEventListener('input', function (e) {
-                clearTimeout(debounceTimer);
-                const term = e.target.value;
-                debounceTimer = setTimeout(function () {
-                    if (typeof Livewire !== 'undefined') {
-                        Livewire.dispatch('global-search', { term: term });
-                    }
-                }, 300);
             });
         })();
 

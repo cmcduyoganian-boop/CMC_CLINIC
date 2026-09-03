@@ -103,6 +103,11 @@
                 </div>
 
                 <div class="form-group">
+                    <label class="form-label">Email *</label>
+                    <input type="email" wire:model="patientEmail" class="form-control" maxlength="255" placeholder="Enter email address">
+                </div>
+
+                <div class="form-group">
                     <label class="form-label">Phone Number</label>
                     <input type="text" wire:model="patientPhone" class="form-control" maxlength="30" placeholder="Enter phone number">
                 </div>
