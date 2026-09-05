@@ -7,7 +7,6 @@ use App\Models\MedicineInventoryLog;
 use App\Models\Medicine;
 use Livewire\Component;
 use Carbon\Carbon;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class ClinicReport extends Component
 {
@@ -276,15 +275,13 @@ class ClinicReport extends Component
     {
         $this->computeReport();
 
-        $pdf = Pdf::loadView('pdf.clinic-report', [
-            'reportType' => $this->reportType,
-            'startDate' => $this->startDate,
-            'endDate' => $this->endDate,
-            'reportRows' => $this->reportRows,
-            'grandTotals' => $this->grandTotals,
+        $url = route('reports.clinic-report.pdf', [
+            'type' => $this->reportType,
+            'start' => $this->startDate,
+            'end' => $this->endDate,
         ]);
 
-        return $pdf->download('clinic-report-' . $this->reportType . '-' . now()->format('Y-m-d') . '.pdf');
+        return redirect()->away($url);
     }
 
     public function render()

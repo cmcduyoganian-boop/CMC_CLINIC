@@ -135,6 +135,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
         Route::get('/reports/clinic-report', function () {
             return view('reports.clinic-report');
         })->name('reports.clinic-report');
+        Route::get('/reports/clinic-report/pdf', [ReportController::class, 'clinicReportPdf'])->name('reports.clinic-report.pdf');
         Route::get('/reports/patients', [ReportController::class, 'patients'])->name('reports.patients');
         Route::get('/reports/clinic-visits', [ReportController::class, 'clinicVisits'])->name('reports.clinic-visits');
         Route::get('/reports/diagnosis', [ReportController::class, 'diagnosis'])->name('reports.diagnosis');

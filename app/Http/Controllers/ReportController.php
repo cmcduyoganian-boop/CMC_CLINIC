@@ -378,4 +378,66 @@ class ReportController extends Controller
             'Overall VS Assessment','Diagnosis',
         ]);
     }
+
+    public function clinicReportPdf(Request $request)
+    {
+        $reportType = $request->query('type', 'weekly');
+        $startDate = $request->query('start', now()->startOfWeek()->format('Y-m-d'));
+        $endDate = $request->query('end', now()->endOfWeek()->format('Y-m-d'));
+
+        $component = new \App\Livewire\Reports\ClinicReport();
+        $component->reportType = $reportType;
+        $component->startDate = $startDate;
+        $component->endDate = $endDate;
+        $component->computeReport();
+
+        $sanitize = function (?string $value): string {
+            if ($value === null) return '';
+            $value = (string) $value;
+            if (!mb_check_encoding($value, 'UTF-8')) {
+                $value = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+            }
+            return $value;
+        };
+
+        $reportRows = collect($component->reportRows)->map(function ($row) use ($sanitize) {
+            return [
+                'date_label' => $sanitize($row['date_label']),
+                'male' => (int) $row['male'],
+                'female' => (int) $row['female'],
+                'bsis1' => (int) $row['bsis1'],
+                'bsis2' => (int) $row['bsis2'],
+                'bsis3' => (int) $row['bsis3'],
+                'bsis4' => (int) $row['bsis4'],
+                'faculty_admin' => (int) $row['faculty_admin'],
+                'carmenanon' => (int) $row['carmenanon'],
+                'non_carmenanon' => (int) $row['non_carmenanon'],
+                'complaints' => $sanitize($row['complaints'] ?? ''),
+                'medicines' => $sanitize($row['medicines'] ?? ''),
+                'services' => $sanitize($row['services'] ?? ''),
+            ];
+        })->toArray();
+
+        $grandTotals = [
+            'male' => (int) ($component->grandTotals['male'] ?? 0),
+            'female' => (int) ($component->grandTotals['female'] ?? 0),
+            'bsis1' => (int) ($component->grandTotals['bsis1'] ?? 0),
+            'bsis2' => (int) ($component->grandTotals['bsis2'] ?? 0),
+            'bsis3' => (int) ($component->grandTotals['bsis3'] ?? 0),
+            'bsis4' => (int) ($component->grandTotals['bsis4'] ?? 0),
+            'faculty_admin' => (int) ($component->grandTotals['faculty_admin'] ?? 0),
+            'carmenanon' => (int) ($component->grandTotals['carmenanon'] ?? 0),
+            'non_carmenanon' => (int) ($component->grandTotals['non_carmenanon'] ?? 0),
+        ];
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.clinic-report', [
+            'reportType' => $sanitize($reportType),
+            'startDate' => $sanitize($startDate),
+            'endDate' => $sanitize($endDate),
+            'reportRows' => $reportRows,
+            'grandTotals' => $grandTotals,
+        ]);
+
+        return $pdf->download('clinic-report-' . $reportType . '-' . now()->format('Y-m-d') . '.pdf');
+    }
 }
