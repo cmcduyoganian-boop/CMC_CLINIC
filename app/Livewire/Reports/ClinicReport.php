@@ -165,12 +165,17 @@ class ClinicReport extends Component
                 }
 
                 // BSIS Year Level
-                if ($patient && strtoupper((string) ($patient->program ?? '')) === 'BSIS') {
-                    $year = $this->extractYearLevel($patient->year_section);
-                    if ($year === 1) $row['bsis1']++;
-                    elseif ($year === 2) $row['bsis2']++;
-                    elseif ($year === 3) $row['bsis3']++;
-                    elseif ($year === 4) $row['bsis4']++;
+                if ($patient) {
+                    $program = strtoupper((string) ($patient->program ?? ''));
+                    $yearSection = strtoupper((string) ($patient->year_section ?? ''));
+
+                    if ($program === 'BSIS' || str_starts_with($yearSection, 'BSIS')) {
+                        $year = $this->extractYearLevel($patient->year_section);
+                        if ($year === 1) $row['bsis1']++;
+                        elseif ($year === 2) $row['bsis2']++;
+                        elseif ($year === 3) $row['bsis3']++;
+                        elseif ($year === 4) $row['bsis4']++;
+                    }
                 }
 
                 // Faculty/Admin
@@ -239,7 +244,7 @@ class ClinicReport extends Component
     protected function extractYearLevel(?string $yearSection): ?int
     {
         if (!$yearSection) return null;
-        if (preg_match('/-(\d)/', $yearSection, $matches)) {
+        if (preg_match('/\b(\d)/', $yearSection, $matches)) {
             return (int) $matches[1];
         }
         return null;
