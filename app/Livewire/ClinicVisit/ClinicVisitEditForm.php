@@ -40,6 +40,18 @@ class ClinicVisitEditForm extends Component
     public $management = '';
     public $diagnosis = '';
     public $notes = '';
+    public $services = [];
+
+    public $serviceOptions = [
+        'Vital Signs',
+        'Health Education',
+        'Referral',
+        'First Aid',
+        'Counseling',
+        'Medicine Dispensing',
+        'Wound Dressing',
+        'Other',
+    ];
 
     public function mount(int $visitId)
     {
@@ -61,6 +73,7 @@ class ClinicVisitEditForm extends Component
         $this->management = $this->visit->management;
         $this->diagnosis = $this->visit->diagnosis;
         $this->notes = $this->visit->notes;
+        $this->services = $this->visit->services ?: [];
 
         $patient = $this->visit->patient;
         $this->patientName = $patient->name ?? '';
@@ -118,6 +131,8 @@ class ClinicVisitEditForm extends Component
             'management' => 'nullable|string',
             'diagnosis' => 'nullable|string',
             'notes' => 'nullable|string',
+            'services' => 'nullable|array',
+            'services.*' => 'string|max:255',
             'patientName' => 'required|string|max:255',
             'patientCategory' => 'required|in:student,faculty,staff',
             'patientYearSection' => 'nullable|string|max:50',
@@ -146,6 +161,7 @@ class ClinicVisitEditForm extends Component
             'management' => $validated['management'],
             'diagnosis' => $validated['diagnosis'],
             'notes' => $validated['notes'],
+            'services' => $validated['services'] ?: null,
         ]);
 
         Log::info('Clinic visit updated', [

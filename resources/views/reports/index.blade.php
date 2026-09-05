@@ -193,6 +193,26 @@
                     </a>
                 </div>
             </div>
+
+            <!-- Clinic Tally Report -->
+            <div class="report-card">
+                <div class="report-header">
+                    <i class="fas fa-clipboard-list report-icon"></i>
+                    <h3>Clinic Tally Report</h3>
+                </div>
+                <p class="report-description">Weekly, monthly, and semestral tally of visits, demographics, complaints, medications, and services</p>
+                <div class="report-stats">
+                    <span class="stat-item">
+                        <strong>{{ \App\Models\ClinicVisit::count() }}</strong>
+                        <small>Total Visits</small>
+                    </span>
+                </div>
+                <div class="report-actions">
+                    <a href="{{ route('reports.clinic-report') }}" class="btn-view-report">
+                        View Report <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -42,6 +42,18 @@ class ClinicVisitCreateForm extends Component
     public $management = '';
     public $diagnosis = '';
     public $notes = '';
+    public $services = [];
+
+    public $serviceOptions = [
+        'Vital Signs',
+        'Health Education',
+        'Referral',
+        'First Aid',
+        'Counseling',
+        'Medicine Dispensing',
+        'Wound Dressing',
+        'Other',
+    ];
 
     public $programs = ['BSED', 'BEED', 'BSHM', 'BSBA', 'BSOA', 'BSIS', 'BSCS', 'BSAS', 'BSCRIM', 'Other'];
 
@@ -165,6 +177,8 @@ class ClinicVisitCreateForm extends Component
             'management' => 'nullable|string',
             'diagnosis' => 'nullable|string',
             'notes' => 'nullable|string',
+            'services' => 'nullable|array',
+            'services.*' => 'string|max:255',
         ]);
 
         // Find or create patient (same logic as the original controller)
@@ -215,6 +229,7 @@ class ClinicVisitCreateForm extends Component
             'management' => $validated['management'],
             'diagnosis' => $validated['diagnosis'],
             'notes' => $validated['notes'],
+            'services' => $validated['services'] ?: null,
         ]);
 
         Log::info('Clinic visit created', [

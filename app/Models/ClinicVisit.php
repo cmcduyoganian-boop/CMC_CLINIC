@@ -29,10 +29,12 @@ class ClinicVisit extends Model
         'bmi',
         'spo2',
         'notes',
+        'services',
     ];
 
     protected $casts = [
         'visit_date' => 'date',
+        'services' => 'array',
     ];
 
     public function patient()

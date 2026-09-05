@@ -196,6 +196,16 @@
                 <label class="form-label">Additional Notes</label>
                 <textarea wire:model="notes" class="form-control" rows="2" placeholder="Any other notes..."></textarea>
             </div>
+
+            <div class="form-group">
+                <label class="form-label">Services Rendered</label>
+                <select wire:model="services" class="form-control" multiple size="6">
+                    @foreach($serviceOptions as $option)
+                        <option value="{{ $option }}">{{ $option }}</option>
+                    @endforeach
+                </select>
+                <small class="form-hint">Hold Ctrl (Windows) or Cmd (Mac) to select multiple</small>
+            </div>
         </div>
 
         <!-- Action Buttons -->
