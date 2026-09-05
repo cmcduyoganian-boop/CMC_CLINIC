@@ -438,6 +438,8 @@ class ReportController extends Controller
             'grandTotals' => $grandTotals,
         ]);
 
+        $pdf->setPaper('legal', 'landscape');
+
         return $pdf->download('clinic-report-' . $reportType . '-' . now()->format('Y-m-d') . '.pdf');
     }
 }
