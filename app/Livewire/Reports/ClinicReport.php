@@ -193,7 +193,8 @@ class ClinicReport extends Component
 
                 // Complaints (S&S)
                 if ($visit->complaints) {
-                    $items = array_map('trim', explode(',', $visit->complaints));
+                    $complaints = $this->sanitizeString($visit->complaints);
+                    $items = array_map('trim', explode(',', $complaints));
                     foreach ($items as $item) {
                         if ($item === '') continue;
                         $key = strtolower($item);
@@ -204,6 +205,7 @@ class ClinicReport extends Component
                 // Services
                 if ($visit->services && is_array($visit->services)) {
                     foreach ($visit->services as $service) {
+                        $service = $this->sanitizeString($service);
                         $service = trim($service);
                         if ($service === '') continue;
                         $key = strtolower($service);
@@ -219,15 +221,15 @@ class ClinicReport extends Component
                 ->get();
 
             foreach ($medicineLogs as $log) {
-                $name = $log->medicine->name ?? 'Unknown';
+                $name = $this->sanitizeString($log->medicine->name ?? 'Unknown');
                 $key = strtolower($name);
                 $medicineCounts[$key] = ($medicineCounts[$key] ?? 0) + (int) $log->quantity;
             }
 
             // Format lists
-            $row['complaints'] = $this->formatCountList($complaintCounts);
-            $row['medicines'] = $this->formatCountList($medicineCounts);
-            $row['services'] = $this->formatCountList($serviceCounts);
+            $row['complaints'] = $this->sanitizeString($this->formatCountList($complaintCounts));
+            $row['medicines'] = $this->sanitizeString($this->formatCountList($medicineCounts));
+            $row['services'] = $this->sanitizeString($this->formatCountList($serviceCounts));
 
             // Row total (sum of numeric columns)
             $row['total'] = $row['male'] + $row['female'] + $row['bsis1'] + $row['bsis2'] + $row['bsis3'] + $row['bsis4'] + $row['faculty_admin'] + $row['carmenanon'] + $row['non_carmenanon'];
@@ -254,10 +256,20 @@ class ClinicReport extends Component
     {
         $parts = [];
         foreach ($counts as $key => $count) {
-            $label = ucwords($key);
+            $label = $this->sanitizeString(ucwords($key));
             $parts[] = $label . '-' . $count;
         }
         return implode(', ', $parts);
+    }
+
+    protected function sanitizeString(?string $value): string
+    {
+        if ($value === null) return '';
+        $value = (string) $value;
+        if (!mb_check_encoding($value, 'UTF-8')) {
+            $value = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+        }
+        return $value;
     }
 
     public function exportPdf()
