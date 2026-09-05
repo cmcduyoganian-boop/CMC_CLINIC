@@ -337,6 +337,13 @@
             min-width: 0;
         }
 
+        .topbar-page-title {
+            color: var(--text-heading);
+            font-size: 16px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
         .topbar-right {
             display: flex;
             align-items: center;
@@ -454,6 +461,19 @@
 
             .app-content {
                 padding: 92px 16px 16px 16px;
+            }
+
+            .app-topbar {
+                padding: 0 16px;
+                gap: 10px;
+            }
+
+            .topbar-left {
+                gap: 10px;
+            }
+
+            .topbar-right {
+                gap: 6px;
             }
 
         }
@@ -743,7 +763,14 @@
                     <button type="button" class="sidebar-toggle-btn" id="sidebarToggle" title="Toggle menu">
                         <i class="fas fa-bars"></i>
                     </button>
-
+                    @php
+                        $topbarTitle = request()->routeIs('dashboard')
+                            ? 'Dashboard'
+                            : (request()->routeIs('clinic-visit.*')
+                                ? 'Clinic Records'
+                                : (isset($header) && trim((string) $header) !== '' ? $header : 'CMC Clinic'));
+                    @endphp
+                    <span class="topbar-page-title">{{ $topbarTitle }}</span>
                 </div>
 
                 <div class="topbar-right">

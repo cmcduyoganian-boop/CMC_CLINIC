@@ -2,12 +2,11 @@
     <x-slot name="header">Clinic Visits</x-slot>
 
     <div class="clinic-visit-list-page">
-        <!-- Page Header -->
-        <div class="page-header">
-            <div class="header-left">
-                <h1 class="page-title">Clinic Visit Records</h1>
-                <p class="page-description">View and manage all clinic visit records</p>
-            </div>
+        <div class="table-toolbar">
+            <form class="records-search" method="GET" action="{{ route('clinic-visit.index') }}" role="search">
+                <i class="fas fa-search records-search-icon" aria-hidden="true"></i>
+                <input type="search" name="q" value="{{ request('q') }}" placeholder="Search clinic records..." aria-label="Search clinic records" oninput="clearTimeout(this.searchTimer); this.searchTimer = setTimeout(() => this.form.requestSubmit(), 350)">
+            </form>
             <a href="{{ route('clinic-visit.create') }}" class="btn-new-visit">
                 <i class="fas fa-plus"></i> New Visit
             </a>
@@ -158,18 +157,50 @@
             align-items: flex-start;
         }
 
-        .header-left { flex: 1; }
-
-        .page-title {
-            margin: 0;
-            font-size: 26px;
-            font-weight: 700;
-            color: var(--text-heading);
+        .table-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
         }
 
-        .page-description {
-            margin: 4px 0 0 0;
+        .records-search {
+            display: flex;
+            align-items: center;
+            width: min(520px, 100%);
+            height: 42px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .records-search:focus-within {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+        }
+
+        .records-search-icon {
+            padding-left: 13px;
+            color: var(--text-muted);
             font-size: 13px;
+        }
+
+        .records-search input {
+            flex: 1;
+            min-width: 0;
+            height: 100%;
+            padding: 0 10px;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--text-heading);
+            font: inherit;
+            font-size: 12px;
+        }
+
+        .records-search input::placeholder {
             color: var(--text-muted);
         }
 
@@ -421,8 +452,9 @@
 
         /* ── Responsive ─────────────────────────────────────── */
         @media (max-width: 768px) {
-            .page-header { flex-direction: column; gap: 14px; }
-            .btn-new-visit { width: 100%; justify-content: center; }
+            .table-toolbar { flex-direction: column; align-items: stretch; }
+            .records-search, .btn-new-visit { width: 100%; }
+            .btn-new-visit { justify-content: center; }
             .pagination-section { flex-direction: column; gap: 10px; }
             .pagination { width: 100%; justify-content: center; }
         }

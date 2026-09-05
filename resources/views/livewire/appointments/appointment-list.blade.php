@@ -1,10 +1,6 @@
 <div class="appointments-page">
     <!-- Page Header -->
     <div class="page-header">
-        <div class="header-left">
-            <h1 class="page-title">Appointments</h1>
-            <p class="page-description">Schedule and manage clinic appointments</p>
-        </div>
         <a href="{{ route('appointments.create') }}" class="btn-new-appointment">
             <i class="fas fa-plus"></i> Schedule Appointment
         </a>

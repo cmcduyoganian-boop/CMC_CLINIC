@@ -9,11 +9,27 @@ use Illuminate\Support\Facades\Auth;
 
 class ClinicVisitController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $visits = ClinicVisit::with('patient')
+            ->when($request->filled('q'), function ($query) use ($request) {
+                $search = $request->string('q')->trim()->toString();
+
+                $query->where(function ($visitQuery) use ($search) {
+                    $visitQuery->whereDate('visit_date', $search)
+                        ->orWhere('complaints', 'like', "%{$search}%")
+                        ->orWhere('diagnosis', 'like', "%{$search}%")
+                        ->orWhere('management', 'like', "%{$search}%")
+                        ->orWhereHas('patient', function ($patientQuery) use ($search) {
+                            $patientQuery->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%")
+                                ->orWhere('year_section', 'like', "%{$search}%");
+                        });
+                });
+            })
             ->orderBy('visit_date', 'desc')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
         
         return view('clinic-visit.index', compact('visits'));
     }

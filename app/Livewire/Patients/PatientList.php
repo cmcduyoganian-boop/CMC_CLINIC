@@ -54,7 +54,13 @@ class PatientList extends Component
             }]);
 
         if ($this->search) {
-            $query->where('name', 'like', '%' . $this->search . '%');
+            $search = '%' . $this->search . '%';
+            $query->where(function ($patientQuery) use ($search) {
+                $patientQuery->where('name', 'like', $search)
+                    ->orWhere('email', 'like', $search)
+                    ->orWhere('year_section', 'like', $search)
+                    ->orWhere('phone', 'like', $search);
+            });
         }
 
         if ($this->category) {

@@ -2,14 +2,6 @@
     <x-slot name="header">Clinic Staff Management</x-slot>
 
     <div class="clinic-staff-page">
-        <!-- Page Header -->
-        <div class="page-header">
-            <div>
-                <h1 class="page-title">Clinic Staff Management</h1>
-                <p class="page-description">View and monitor clinic staff accounts, activity, and patient records</p>
-            </div>
-        </div>
-
         <!-- Stats Cards -->
         <div class="stats-grid">
             <div class="stat-card">

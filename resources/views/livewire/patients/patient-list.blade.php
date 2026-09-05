@@ -1,10 +1,6 @@
 <div class="patients-page">
     <!-- Page Header -->
     <div class="page-header">
-        <div class="header-left">
-            <h1 class="page-title">Patient Records</h1>
-            <p class="page-description">Manage and view all patient records and medical history</p>
-        </div>
         <a href="{{ route('patients.create') }}" class="btn-new-patient">
             <i class="fas fa-plus"></i> Add New Patient
         </a>
@@ -19,6 +15,10 @@
 
     <!-- Search & Filter -->
     <div class="search-section">
+        <div class="search-group">
+            <input type="search" class="search-input" placeholder="Search patient name, email, or section..." wire:model.live.debounce.300ms="search" aria-label="Search patients">
+            <i class="fas fa-search search-icon"></i>
+        </div>
         <select class="filter-select" wire:model.live="category">
             <option value="">All Categories</option>
             <option value="student">Student</option>

@@ -6,6 +6,7 @@ use App\Models\Patient;
 use App\Models\ClinicVisit;
 use App\Models\Appointment;
 use Livewire\Component;
+use Illuminate\Support\Str;
 
 class PatientDashboard extends Component
 {
@@ -23,8 +24,23 @@ class PatientDashboard extends Component
 
     public function loadPatientData()
     {
-        // Get patient record by email
-        $this->patient = Patient::where('email', auth()->user()->email)->first();
+        $this->patient = null;
+        $this->visits = [];
+        $this->appointments = [];
+        $this->lastVisit = null;
+        $this->totalVisits = 0;
+        $this->upcomingAppointments = 0;
+
+        $user = auth()->user();
+        $accountName = Str::lower(Str::squish($user->name));
+        $accountEmail = Str::lower(trim($user->email));
+
+        // A patient account can access records only when both identity fields match.
+        $this->patient = Patient::whereRaw('LOWER(email) = ?', [$accountEmail])
+            ->get()
+            ->first(function (Patient $patient) use ($accountName) {
+                return Str::lower(Str::squish($patient->name)) === $accountName;
+            });
 
         if ($this->patient) {
             // Get clinic visits

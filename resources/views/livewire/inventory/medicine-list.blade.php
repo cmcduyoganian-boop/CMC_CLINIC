@@ -1,10 +1,6 @@
 <div class="inventory-page">
     <!-- Page Header -->
     <div class="page-header">
-        <div class="header-left">
-            <h1 class="page-title">Medicine Inventory</h1>
-            <p class="page-description">Track and manage clinic medicines</p>
-        </div>
         @if ($this->canManage)
             <a href="{{ route('medicines.create') }}" class="btn-add-medicine">
                 <i class="fas fa-plus"></i> Add Medicine

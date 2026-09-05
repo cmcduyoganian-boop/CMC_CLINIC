@@ -2,12 +2,9 @@
     <x-slot name="header">Reports & Analytics</x-slot>
 
     <div class="reports-page">
-        <!-- Page Header -->
-        <div class="page-header">
-            <div>
-                <h1 class="page-title">Reports & Analytics</h1>
-                <p class="page-description">View comprehensive clinic statistics and insights</p>
-            </div>
+        <div class="reports-search search-section">
+            <i class="fas fa-search search-icon" aria-hidden="true"></i>
+            <input type="search" class="search-input" placeholder="Search reports and analytics..." aria-label="Search reports and analytics">
         </div>
 
         <!-- Quick Stats -->
@@ -199,11 +196,49 @@
         </div>
     </div>
 
+    <script>
+        document.querySelector('.reports-search input')?.addEventListener('input', function () {
+            const term = this.value.trim().toLowerCase();
+            document.querySelectorAll('.reports-page .stat-card, .reports-page .report-card').forEach((card) => {
+                card.hidden = term !== '' && !card.textContent.toLowerCase().includes(term);
+            });
+        });
+    </script>
+
     <style>
         .reports-page {
             display: flex;
             flex-direction: column;
             gap: 24px;
+        }
+
+        .reports-search {
+            display: flex;
+            align-items: center;
+            width: min(420px, 100%);
+            min-height: 42px;
+            padding: 0 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .reports-search .search-icon {
+            position: static;
+            transform: none;
+            flex-shrink: 0;
+            color: var(--text-muted);
+        }
+
+        .reports-search .search-input {
+            width: 100%;
+            min-width: 0;
+            border: 0;
+            outline: 0;
+            padding: 9px 0 9px 10px;
+            background: transparent;
+            color: var(--text-heading);
         }
 
         .page-header {
@@ -406,6 +441,7 @@
         }
 
         @media (max-width: 768px) {
+            .reports-search { width: 100%; }
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }

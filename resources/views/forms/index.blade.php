@@ -2,11 +2,9 @@
     <x-slot name="header">Forms</x-slot>
 
     <div class="forms-page">
-        <div class="page-header">
-            <div class="header-left">
-                <h1 class="page-title">Forms</h1>
-                <p class="page-description">Printable clinic forms</p>
-            </div>
+        <div class="forms-search search-section">
+            <i class="fas fa-search search-icon" aria-hidden="true"></i>
+            <input type="search" class="search-input" placeholder="Search forms..." aria-label="Search forms">
         </div>
 
         <div class="forms-grid">
@@ -34,9 +32,48 @@
         </div>
     </div>
 
+    <script>
+        document.querySelector('.forms-search input')?.addEventListener('input', function () {
+            const term = this.value.trim().toLowerCase();
+            document.querySelectorAll('.forms-page .form-card').forEach((card) => {
+                card.hidden = term !== '' && !card.textContent.toLowerCase().includes(term);
+            });
+        });
+    </script>
+
     <style>
         .forms-page {
             padding: 4px;
+        }
+
+        .forms-search {
+            display: flex;
+            align-items: center;
+            width: min(420px, 100%);
+            min-height: 42px;
+            margin-bottom: 24px;
+            padding: 0 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .forms-search .search-icon {
+            position: static;
+            transform: none;
+            flex-shrink: 0;
+            color: var(--text-muted);
+        }
+
+        .forms-search .search-input {
+            width: 100%;
+            min-width: 0;
+            border: 0;
+            outline: 0;
+            padding: 9px 0 9px 10px;
+            background: transparent;
+            color: var(--text-heading);
         }
 
         .page-header {
@@ -119,6 +156,7 @@
         }
 
         @media (max-width: 768px) {
+            .forms-search { width: 100%; }
             .forms-grid {
                 grid-template-columns: 1fr;
             }

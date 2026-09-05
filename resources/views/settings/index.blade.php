@@ -2,12 +2,6 @@
     <x-slot name="header">Settings</x-slot>
 
     <div class="settings-page">
-        <!-- Page Header -->
-        <div class="page-header">
-        <h1 class="page-title">Profile Settings</h1>
-        <p class="page-subtitle">Manage your profile and account preferences</p>
-        </div>
-
         <!-- Alert Messages -->
         @if (session('success'))
             <div class="alert alert-success" id="successAlert">

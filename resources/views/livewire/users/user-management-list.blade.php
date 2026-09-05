@@ -1,10 +1,6 @@
 <div class="users-container">
     <!-- HEADER -->
     <div class="page-header">
-        <div>
-            <h1>User Management</h1>
-            <p>Manage clinic system users and approvals</p>
-        </div>
         <a href="{{ route('users.create') }}" class="btn btn-primary">
             <i class="fas fa-user-plus"></i> Create User
         </a>
