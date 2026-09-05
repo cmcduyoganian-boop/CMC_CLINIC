@@ -1,442 +1,377 @@
 <x-app-with-sidebar>
     <x-slot name="header">Client Consent Form</x-slot>
 
-    <div class="form-container">
-        <!-- Printable Section -->
-        <div class="printable-form" id="printableForm">
-            <!-- Header with Logo -->
-            <div class="form-header">
-                <div class="logo-section">
-                    <img src="{{ asset('images/cmc-logo.png') }}" alt="CMC Logo" class="logo">
-                </div>
-                <div class="header-text">
-                    <h2>Carmen Municipal College</h2>
-                    <p>Carmen, Bohol</p>
-                    <h3 class="form-title">CLIENT CONSENT FORM</h3>
-                </div>
+    <div class="consent-document-page">
+        @if (session('success'))
+            <div class="form-success">{{ session('success') }}</div>
+        @endif
+
+        @if (isset($errors) && $errors->any())
+            <div class="form-errors">{{ $errors->first() }}</div>
+        @endif
+
+        <form action="{{ route('forms.consent.store') }}" method="POST" class="consent-document">
+            @csrf
+
+            <table class="header-table">
+                <tr>
+                    <td class="logo-cell" rowspan="2">
+                        <img src="{{ asset('images/cmc-logo.png') }}" alt="CMC logo" class="seal">
+                    </td>
+                    <td class="school-name">Carmen Municipal College</td>
+                </tr>
+                <tr>
+                    <td class="location">Carmen, Bohol</td>
+                </tr>
+                <tr>
+                    <th class="document-title" colspan="2">CLIENT CONSENT FORM</th>
+                </tr>
+            </table>
+
+            <table class="form-table">
+                <tr><th class="section-title" colspan="2">I. PERSONAL INFORMATION</th></tr>
+                <tr>
+                    <td class="label-cell">Full Name</td>
+                    <td class="input-cell"><input type="text" name="full_name" value="{{ old('full_name') }}" required></td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Date of Birth</td>
+                    <td class="input-cell"><input type="date" name="date_of_birth" value="{{ old('date_of_birth') }}"></td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Address</td>
+                    <td class="input-cell"><input type="text" name="address" value="{{ old('address') }}"></td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Phone Number</td>
+                    <td class="input-cell"><input type="text" name="phone_number" value="{{ old('phone_number') }}"></td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Emergency Contact Name</td>
+                    <td class="input-cell"><input type="text" name="emergency_contact_name" value="{{ old('emergency_contact_name') }}"></td>
+                </tr>
+                <tr>
+                    <td class="label-cell">Emergency Contact Number</td>
+                    <td class="input-cell"><input type="text" name="emergency_contact_number" value="{{ old('emergency_contact_number') }}"></td>
+                </tr>
+
+                <tr><th class="section-title" colspan="2">II. CONSENT FOR TREATMENT</th></tr>
+                <tr>
+                    <td class="paragraph-row" colspan="2">
+                        I, <span class="fill-line"><input type="text" name="client_signature" value="{{ old('client_signature') }}" class="inline-signature-input"></span>, hereby consent to receive medical treatment and services at the Carmen Municipal College School Clinic.
+                    </td>
+                </tr>
+
+                <tr><th class="section-title" colspan="2">III. CONFIDENTIALITY</th></tr>
+                <tr>
+                    <td class="paragraph-row" colspan="2">I understand that my medical information will be kept confidential.</td>
+                </tr>
+
+                <tr><th class="section-title" colspan="2">IV. PARENT/GUARDIAN CONSENT (if applicable)</th></tr>
+                <tr>
+                    <td class="paragraph-row" colspan="2">If the client is under 18 years of age, the parent or legal guardian must provide consent for treatment.</td>
+                </tr>
+
+                <tr><th class="section-title" colspan="2">V. EMERGENCY SITUATIONS</th></tr>
+                <tr>
+                    <td class="paragraph-row" colspan="2">In the event of a medical emergency where I am unable to communicate, I authorize the clinic staff to provide necessary medical treatment as deemed appropriate by healthcare professionals.</td>
+                </tr>
+
+                <tr><th class="section-title" colspan="2">VI. AGREEMENT</th></tr>
+                <tr>
+                    <td class="paragraph-row" colspan="2">I have read and understand the information provided in this consent form. I agree to receive medical treatment and services at the Carmen Municipal College.</td>
+                </tr>
+            </table>
+
+            <table class="signatures">
+                <tr>
+                    <td>
+                        <div class="signature-line"><input type="text" name="client_signature_date" value="{{ old('client_signature_date') }}" class="signature-input"></div>
+                        <div class="signature-caption">CLIENT'S SIGNATURE OVER PRINTED NAME / DATE</div>
+                    </td>
+                    <td>
+                        <div class="signature-line"><input type="text" name="guardian_signature" value="{{ old('guardian_signature') }}" class="signature-input"></div>
+                        <div class="signature-caption">PARENT/GUARDIAN SIGNATURE (if applicable) / DATE</div>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="form-actions">
+                <a href="{{ route('forms.index') }}">Cancel</a>
+                <button type="button" onclick="window.print()">Print Form</button>
+                <button type="submit">Save Form</button>
             </div>
-
-            <form action="{{ route('forms.consent.store') }}" method="POST" id="consentForm">
-                @csrf
-
-                <!-- Section I: Personal Information -->
-                <div class="form-section">
-                    <h4 class="section-header">I. PERSONAL INFORMATION</h4>
-                    
-                    <div class="form-row">
-                        <div class="form-field full-width">
-                            <label>Full Name</label>
-                            <input type="text" name="full_name" class="form-input" value="{{ old('full_name') }}">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-field">
-                            <label>Date of Birth</label>
-                            <input type="date" name="date_of_birth" class="form-input" value="{{ old('date_of_birth') }}">
-                        </div>
-                        <div class="form-field">
-                            <label>Address</label>
-                            <input type="text" name="address" class="form-input" value="{{ old('address') }}">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-field">
-                            <label>Phone Number</label>
-                            <input type="text" name="phone_number" class="form-input" value="{{ old('phone_number') }}">
-                        </div>
-                        <div class="form-field">
-                            <label>Emergency Contact Name</label>
-                            <input type="text" name="emergency_contact_name" class="form-input" value="{{ old('emergency_contact_name') }}">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-field full-width">
-                            <label>Emergency Contact Number</label>
-                            <input type="text" name="emergency_contact_number" class="form-input" value="{{ old('emergency_contact_number') }}">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section II: Consent for Treatment -->
-                <div class="form-section">
-                    <h4 class="section-header">II. CONSENT FOR TREATMENT</h4>
-                    <div class="form-content">
-                        <textarea name="consent_text" class="form-textarea" placeholder="I _________________, hereby consent to receive medical treatment and services at the Carmen Municipal College School Clinic.">{{ old('consent_text') }}</textarea>
-                    </div>
-                </div>
-
-                <!-- Section III: Confidentiality -->
-                <div class="form-section">
-                    <h4 class="section-header">III. CONFIDENTIALITY</h4>
-                    <div class="form-content">
-                        <textarea name="confidentiality_text" class="form-textarea" placeholder="I understand that my medical information will be kept confidential.">{{ old('confidentiality_text') }}</textarea>
-                    </div>
-                </div>
-
-                <!-- Section IV: Parent/Guardian Consent -->
-                <div class="form-section">
-                    <h4 class="section-header">IV. PARENT/GUARDIAN CONSENT (if applicable)</h4>
-                    <div class="form-content">
-                        <textarea name="guardian_text" class="form-textarea" placeholder="If the client is under 18 years of age, the parent or legal guardian must provide consent for treatment.">{{ old('guardian_text') }}</textarea>
-                    </div>
-                </div>
-
-                <!-- Section V: Emergency Situations -->
-                <div class="form-section">
-                    <h4 class="section-header">V. EMERGENCY SITUATIONS</h4>
-                    <div class="form-content">
-                        <textarea name="emergency_text" class="form-textarea" placeholder="In the event of a medical emergency where I am unable to communicate, I authorize the clinic staff to provide necessary medical treatment as deemed appropriate by healthcare professionals.">{{ old('emergency_text') }}</textarea>
-                    </div>
-                </div>
-
-                <!-- Section VI: Agreement -->
-                <div class="form-section">
-                    <h4 class="section-header">VI. AGREEMENT</h4>
-                    <div class="form-content">
-                        <textarea name="agreement_text" class="form-textarea" placeholder="I have read and understand the information provided in this consent form. I agree to receive medical treatment and services at the Carmen Municipal College.">{{ old('agreement_text') }}</textarea>
-                    </div>
-                </div>
-
-                <!-- Signatures -->
-                <div class="signatures-section">
-                    <div class="signature-block">
-                        <p>CLIENT'S SIGNATURE OVER PRINTED NAME / DATE</p>
-                        <div class="signature-line"></div>
-                    </div>
-
-                    <div class="signature-block">
-                        <p>PARENT/GUARDIAN SIGNATURE (if applicable) / DATE</p>
-                        <div class="signature-line"></div>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="form-actions">
-                    <a href="{{ route('forms.index') }}" class="btn btn-cancel">
-                        <i class="fas fa-times"></i> Cancel
-                    </a>
-                    <button type="button" class="btn btn-print" onclick="printForm()">
-                        <i class="fas fa-print"></i> Print Form
-                    </button>
-                    <button type="submit" class="btn btn-save" id="submitBtn">
-                        <i class="fas fa-save"></i> Save Form
-                    </button>
-                </div>
-            </form>
-        </div>
+        </form>
     </div>
 
     <style>
-        .form-container {
-            max-width: 900px;
+        @page {
+            size: Letter portrait;
+            margin: 0.35in;
+        }
+
+        .consent-document-page {
+            width: min(820px, 100%);
             margin: 0 auto;
-            padding: 20px;
         }
 
-        .printable-form {
-            background: white;
-            padding: 40px;
-            border: 1px solid #ddd;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .form-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 15px;
-        }
-
-        .logo-section {
-            margin-right: 20px;
-        }
-
-        .logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-        }
-
-        .header-text h2 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-            color: #2d3e50;
-        }
-
-        .header-text p {
-            margin: 2px 0;
+        .consent-document {
+            width: 100%;
+            background: #fff;
+            border: 1px solid #111;
+            padding: 18px;
+            color: #111;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
             font-size: 13px;
-            color: #95a5a6;
         }
 
-        .form-title {
-            margin: 10px 0 0 0;
+        .header-table,
+        .form-table,
+        .signatures {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .header-table th,
+        .header-table td,
+        .form-table th,
+        .form-table td,
+        .signatures td {
+            border: 1px solid #111;
+            vertical-align: middle;
+        }
+
+        .header-table .logo-cell {
+            width: 120px;
+            height: 56px;
+            text-align: center;
+            vertical-align: middle;
+            padding: 8px;
+        }
+
+        .seal {
+            width: 52px;
+            height: 52px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .school-name {
+            text-align: center;
             font-size: 16px;
             font-weight: 700;
-            color: #2d3e50;
-            letter-spacing: 1px;
-        }
-
-        .form-section {
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            padding: 12px;
-        }
-
-        .section-header {
-            margin: 0 0 12px 0;
-            font-size: 12px;
-            font-weight: 700;
-            color: #2d3e50;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 8px;
-        }
-
-        .form-content {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 12px;
-        }
-
-        .form-row.single {
-            grid-template-columns: 1fr;
-        }
-
-        .form-field {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-field.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .form-field label {
-            font-size: 11px;
-            font-weight: 700;
-            color: #2d3e50;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-        }
-
-        .form-input,
-        .form-textarea {
-            border: 1px solid #999;
             padding: 8px;
-            font-size: 12px;
-            font-family: Arial, sans-serif;
-            background: white;
-            min-height: 24px;
         }
 
-        .form-textarea {
-            min-height: 60px;
-            resize: none;
+        .location {
+            text-align: center;
+            font-size: 13px;
+            padding: 6px;
         }
 
-        .signatures-section {
-            margin-top: 30px;
-        }
-
-        .signature-block {
-            margin-bottom: 20px;
-        }
-
-        .signature-block p {
-            margin: 0 0 10px 0;
-            font-size: 11px;
+        .document-title {
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 20px;
             font-weight: 700;
-            color: #2d3e50;
-            text-transform: uppercase;
+            background: #fff;
+        }
+
+        .section-title {
+            padding: 7px 9px;
+            background: #f2f2f2;
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .label-cell {
+            width: 35%;
+            font-weight: 600;
+            padding: 8px 9px;
+        }
+
+        .input-cell {
+            padding: 8px 9px;
+        }
+
+        .input-cell input,
+        .inline-signature-input,
+        .signature-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font: inherit;
+            padding: 2px 0;
+            outline: none;
+            box-sizing: border-box;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        .input-cell,
+        .signature-line {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .paragraph-row {
+            min-height: 52px;
+            line-height: 1.45;
+            padding: 8px 9px;
+        }
+
+        .fill-line {
+            display: inline-block;
+            min-width: 180px;
+            margin: 0 6px;
+            vertical-align: bottom;
+        }
+
+        .signatures {
+            margin-top: 18px;
+            border: 0;
+        }
+
+        .signatures td {
+            height: 128px;
+            padding: 0 22px 8px;
+            border: 0;
+            vertical-align: bottom;
+            text-align: center;
         }
 
         .signature-line {
-            border-bottom: 1px solid #000;
-            height: 40px;
+            height: 64px;
+            border-bottom: 1px solid #111;
+            padding: 0;
+        }
+
+        .signature-caption {
+            padding-top: 8px;
+            font-size: 12px;
+            font-weight: 700;
         }
 
         .form-actions {
             display: flex;
-            gap: 12px;
             justify-content: flex-end;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px solid #ddd;
-        }
-
-        .btn {
-            border: none;
-            border-radius: 6px;
-            padding: 10px 20px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
             gap: 8px;
+            margin-top: 16px;
+        }
+
+        .form-actions a,
+        .form-actions button {
+            padding: 8px 14px;
+            border: 1px solid #111;
+            background: #fff;
+            cursor: pointer;
+            font: inherit;
             text-decoration: none;
-            transition: all 0.2s;
+            color: #111;
         }
 
-        .btn-cancel {
-            background: #ecf0f1;
-            color: #7f8c8d;
+        .form-success {
+            padding: 12px;
+            margin-bottom: 16px;
+            background: #e8f7ee;
+            color: #157347;
+            border-radius: 6px;
         }
 
-        .btn-cancel:hover {
-            background: #d4d9e0;
+        .form-errors {
+            color: #b91c1c;
+            margin-bottom: 12px;
+            font-weight: 600;
         }
 
-        .btn-print {
-            background: #3498db;
-            color: white;
-        }
+        @media (max-width: 640px) {
+            .consent-document-page {
+                width: 100%;
+            }
 
-        .btn-print:hover {
-            background: #2980b9;
-        }
+            .consent-document {
+                padding: 10px;
+                border: 0;
+            }
 
-        .btn-save {
-            background: #27ae60;
-            color: white;
-        }
+            .header-table .logo-cell {
+                width: 90px;
+            }
 
-        .btn-save:hover {
-            background: #229954;
+            .school-name {
+                font-size: 14px;
+            }
+
+            .document-title {
+                font-size: 17px;
+            }
+
+            .form-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            .form-actions a,
+            .form-actions button {
+                flex: 1;
+                text-align: center;
+            }
         }
 
         @media print {
             @page {
-                size: A4 portrait;
-                margin: 10mm;
+                size: auto;
+                margin: 0.5in;
             }
 
-            html, body {
-                margin: 0 !important;
-                padding: 0 !important;
-                background: #fff !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
+            body, html {
+                width: 100%;
+                margin: 0;
+                padding: 0;
             }
 
-            body * {
-                visibility: hidden;
-            }
-
-            .form-container,
-            .form-container * {
-                visibility: visible;
-            }
-
-            .app-topbar,
             .clinic-sidebar,
             .sidebar-overlay,
-            .sidebar-toggle-btn,
-            .theme-toggle-btn,
-            .topbar-icon-btn,
-            .user-profile,
-            .app-content > :not(.form-container) {
-                display: none !important;
-                visibility: hidden !important;
-            }
-
-            .app-main,
-            .app-content {
-                display: block !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-
-            .form-container {
-                width: 100% !important;
-                max-width: none !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                position: static !important;
-            }
-
-            .form-actions {
+            .app-topbar,
+            .profile-popup {
                 display: none !important;
             }
 
-            .printable-form {
-                border: none !important;
-                box-shadow: none !important;
-                padding: 0 !important;
-                margin: 0 !important;
+            .consent-document-page {
                 width: 100% !important;
                 max-width: 100% !important;
-                transform: none !important;
             }
 
-            .form-header {
-                margin-bottom: 20px !important;
+            .consent-document {
+                width: 100% !important;
+                border: 1px solid #000;
+                margin: 0;
+                padding: 18px;
+                background: #fff;
+                box-shadow: none;
             }
 
-            .form-input,
-            .form-textarea {
-                border: 1px solid #999 !important;
-                background: white !important;
-                font-size: 10px !important;
-                padding: 5px 6px !important;
-            }
-
-            .form-section {
-                page-break-inside: avoid;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .form-header {
-                flex-direction: column;
-            }
-
-            .logo-section {
-                margin-right: 0;
-                margin-bottom: 15px;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .form-actions {
-                flex-direction: column;
-            }
-
-            .btn {
+            .header-table,
+            .form-table,
+            .signatures {
                 width: 100%;
-                justify-content: center;
+                table-layout: fixed;
+                border-collapse: collapse;
+            }
+
+            .form-actions,
+            .form-success,
+            .form-errors {
+                display: none !important;
+            }
+
+            * {
+                box-sizing: border-box;
             }
         }
     </style>
-
-    <script>
-        function printForm() {
-            window.print();
-        }
-
-        document.getElementById('consentForm').addEventListener('submit', function(e) {
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-        });
-    </script>
 </x-app-with-sidebar>

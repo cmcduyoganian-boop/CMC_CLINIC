@@ -8,6 +8,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\FormController;
 use App\Http\Requests\EmailVerificationRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -172,14 +173,14 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
     // ✅ FORMS ROUTES
     Route::middleware('clinic.role:clinic_nurse')->group(function () {
         Route::get('/forms', fn() => view('forms.index'))->name('forms.index');
-        Route::get('/forms/consent', fn() => view('forms.consent'))->name('forms.consent');
-        Route::post('/forms/consent', function () {
-            return back()->with('success', 'Consent form submitted successfully!');
-        })->name('forms.consent.store');
-        Route::get('/forms/student-info', fn() => view('forms.student-info'))->name('forms.student-info');
-        Route::post('/forms/student-info', function () {
-            return back()->with('success', 'Student information form submitted successfully!');
-        })->name('forms.student-info.store');
+        Route::get('/forms/clinic-visit', [FormController::class, 'clinicVisit'])->name('forms.clinic-visit');
+        Route::post('/forms/clinic-visit', [FormController::class, 'storeClinicVisit'])->name('forms.clinic-visit.store');
+        Route::get('/forms/research-consent', [FormController::class, 'researchConsent'])->name('forms.research-consent');
+        Route::post('/forms/research-consent', [FormController::class, 'storeResearchConsent'])->name('forms.research-consent.store');
+        Route::get('/forms/consent', [FormController::class, 'consent'])->name('forms.consent');
+        Route::post('/forms/consent', [FormController::class, 'storeConsent'])->name('forms.consent.store');
+        Route::get('/forms/student-info', [FormController::class, 'studentInfo'])->name('forms.student-info');
+        Route::post('/forms/student-info', [FormController::class, 'storeStudentInfo'])->name('forms.student-info.store');
     });
 
     // ✅ PROFILE ROUTES

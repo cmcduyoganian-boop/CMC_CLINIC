@@ -1,688 +1,520 @@
+@php($d = $savedData ?? [])
+@php($studentCode = old('student_code', $d['student_code'] ?? ''))
 <x-app-with-sidebar>
-    <x-slot name="header">Student Information Form</x-slot>
+    <x-slot name="header">Student Medical History Form</x-slot>
+    <div class="no-print">
+        <h1>Student Medical History Form</h1>
+        <button onclick="window.print()">Print Form</button>
+    </div>
 
     <div class="form-container">
-        <!-- Printable Section -->
-        <div class="printable-form" id="printableForm">
-            <!-- Header with Logo -->
-            <div class="form-header">
-                <div class="logo-section">
-                    <img src="{{ asset('images/cmc-logo.png') }}" alt="CMC Logo" class="logo">
-                </div>
-                <div class="header-text">
-                    <h2>Carmen Municipal College</h2>
-                    <p>Carmen, Bohol</p>
-                    <h3 class="form-title">STUDENT INFORMATION FORM</h3>
-                </div>
+        <form method="POST" action="{{ route('forms.student-info.store') }}">
+            @csrf
+            <table class="clinic-header">
+                <tr>
+                    <td class="school-info">
+                        <div class="school-brand">
+                            <img src="{{ asset('images/cmc-logo.png') }}" alt="CMC Logo" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2245%22 height=%2245%22><rect width=%2245%22 height=%2245%22 fill=%22%233498db%22/><text x=%2222.5%22 y=%2228%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22>CMC</text></svg>'">
+                            <div class="school-name">
+                                <strong>Carmen Municipal College</strong>
+                                <span>Carmen, Bohol</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="student-code">
+                        <strong>Student Code</strong>
+                        <div class="code-boxes">
+                            @for($i = 0; $i < 6; $i++)
+                                <input type="text" maxlength="1" name="student_code[]" value="{{ $studentCode[$i] ?? '' }}">
+                            @endfor
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="instructions">Instructions: Please print legibly and mark appropriate boxes with "✓"</div>
+
+            <table class="medical-table">
+                <tr><th colspan="4" class="section-title">I. STUDENT'S INFORMATION</th></tr>
+                <tr>
+                    <td width="18%">Last Name</td>
+                    <td width="32%"><input type="text" name="last_name" value="{{ old('last_name', $d['last_name'] ?? '') }}" required></td>
+                    <td width="12%">Suffix</td>
+                    <td width="38%"><input type="text" name="suffix" value="{{ old('suffix', $d['suffix'] ?? '') }}"></td>
+                </tr>
+                <tr>
+                    <td>First Name</td>
+                    <td><input type="text" name="first_name" value="{{ old('first_name', $d['first_name'] ?? '') }}" required></td>
+                    <td colspan="2" style="font-size:10px;color:#666;">Please write Maiden Name if Married</td>
+                </tr>
+                <tr>
+                    <td>Middle Name</td>
+                    <td><input type="text" name="middle_name" value="{{ old('middle_name', $d['middle_name'] ?? '') }}"></td>
+                    <td>Maiden Name</td>
+                    <td><input type="text" name="maiden_name" value="{{ old('maiden_name', $d['maiden_name'] ?? '') }}"></td>
+                </tr>
+                <tr>
+                    <td>Sex</td>
+                    <td>
+                        <select name="sex">
+                            <option value=""> </option>
+                            <option {{ old('sex', $d['sex'] ?? '') === 'Male' ? 'selected' : '' }}>Male</option>
+                            <option {{ old('sex', $d['sex'] ?? '') === 'Female' ? 'selected' : '' }}>Female</option>
+                        </select>
+                    </td>
+                    <td>Mother's Complete Name</td>
+                    <td><input type="text" name="mother_name" value="{{ old('mother_name', $d['mother_name'] ?? '') }}"></td>
+                </tr>
+                <tr>
+                    <td>Birthday (mm/dd/yy)</td>
+                    <td><input type="text" name="birthday" value="{{ old('birthday', $d['birthday'] ?? '') }}" placeholder="mm/dd/yy"></td>
+                    <td>Father's Complete Name</td>
+                    <td><input type="text" name="father_name" value="{{ old('father_name', $d['father_name'] ?? '') }}"></td>
+                </tr>
+                <tr>
+                    <td>Birthplace</td>
+                    <td><input type="text" name="birthplace" value="{{ old('birthplace', $d['birthplace'] ?? '') }}"></td>
+                    <td rowspan="2" style="font-weight:bold;text-align:center;">Civil Status</td>
+                    <td rowspan="2" class="check-column">
+                        <label><input type="radio" name="civil_status" value="Single" {{ old('civil_status', $d['civil_status'] ?? '') === 'Single' ? 'checked' : '' }}> Single</label>
+                        <label><input type="radio" name="civil_status" value="Married" {{ old('civil_status', $d['civil_status'] ?? '') === 'Married' ? 'checked' : '' }}> Married</label>
+                        <label><input type="radio" name="civil_status" value="Annulled" {{ old('civil_status', $d['civil_status'] ?? '') === 'Annulled' ? 'checked' : '' }}> Annulled</label>
+                        <label><input type="radio" name="civil_status" value="Widowed" {{ old('civil_status', $d['civil_status'] ?? '') === 'Widowed' ? 'checked' : '' }}> Widowed</label>
+                        <label><input type="radio" name="civil_status" value="Separated" {{ old('civil_status', $d['civil_status'] ?? '') === 'Separated' ? 'checked' : '' }}> Separated</label>
+                        <label><input type="radio" name="civil_status" value="Co-habitation" {{ old('civil_status', $d['civil_status'] ?? '') === 'Co-habitation' ? 'checked' : '' }}> Co-habitation</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Blood Type</td>
+                    <td><input type="text" name="blood_type" value="{{ old('blood_type', $d['blood_type'] ?? '') }}" maxlength="10"></td>
+                </tr>
+                <tr>
+                    <td colspan="2">Residential Address</td>
+                    <td colspan="2"><textarea name="residential_address" rows="2">{{ old('residential_address', $d['residential_address'] ?? '') }}</textarea></td>
+                </tr>
+                <tr>
+                    <td>Height</td>
+                    <td><input type="text" name="height" value="{{ old('height', $d['height'] ?? '') }}"></td>
+                    <td>Weight</td>
+                    <td><input type="text" name="weight" value="{{ old('weight', $d['weight'] ?? '') }}"></td>
+                </tr>
+                <tr>
+                    <td>Course</td>
+                    <td><input type="text" name="course" value="{{ old('course', $d['course'] ?? '') }}"></td>
+                    <td>Year & Section</td>
+                    <td><input type="text" name="year_section" value="{{ old('year_section', $d['year_section'] ?? '') }}"></td>
+                </tr>
+                <tr>
+                    <td colspan="2">Contact Number</td>
+                    <td colspan="2"><input type="text" name="contact_number" value="{{ old('contact_number', $d['contact_number'] ?? '') }}"></td>
+                </tr>
+                <tr>
+                    <td colspan="2">Spouse's Name</td>
+                    <td colspan="2"><input type="text" name="spouse_name" value="{{ old('spouse_name', $d['spouse_name'] ?? '') }}"></td>
+                </tr>
+            </table>
+
+            <table class="medical-table" style="margin-top:15px;">
+                <tr><th colspan="4" class="section-title">II. PAST MEDICAL & SURGICAL HISTORY</th></tr>
+                <tr><th colspan="2">PAST MEDICAL HISTORY</th><th colspan="2">PAST MEDICAL HISTORY (cont'd)</th></tr>
+                <tr>
+                    <td class="check-column" width="40%">
+                        <label><input type="checkbox" name="allergy" value="yes" {{ !empty($d['allergy']) ? 'checked' : '' }}> Allergy - please specify: <input type="text" name="allergy_specify" value="{{ old('allergy_specify', $d['allergy_specify'] ?? '') }}" class="line-input"></label>
+                        <label><input type="checkbox" name="asthma" value="yes" {{ !empty($d['asthma']) ? 'checked' : '' }}> Asthma</label>
+                        <label><input type="checkbox" name="cancer" value="yes" {{ !empty($d['cancer']) ? 'checked' : '' }}> Cancer</label>
+                        <label><input type="checkbox" name="cerebrovascular_disease" value="yes" {{ !empty($d['cerebrovascular_disease']) ? 'checked' : '' }}> Cerebrovascular Disease</label>
+                        <label><input type="checkbox" name="diabetes" value="yes" {{ !empty($d['diabetes']) ? 'checked' : '' }}> Diabetes Mellitus - maintenance <input type="text" name="maintenance" value="{{ old('maintenance', $d['maintenance'] ?? '') }}" class="line-input" placeholder="Maintenance:"></label>
+                        <label><input type="checkbox" name="epilepsy" value="yes" {{ !empty($d['epilepsy']) ? 'checked' : '' }}> Epilepsy/Seizure Disorder</label>
+                        <label><input type="checkbox" name="emphysema" value="yes" {{ !empty($d['emphysema']) ? 'checked' : '' }}> Emphysema</label>
+                        <label><input type="checkbox" name="hepatitis" value="yes" {{ !empty($d['hepatitis']) ? 'checked' : '' }}> Hepatitis - please specify type: <input type="text" name="hepatitis_type" value="{{ old('hepatitis_type', $d['hepatitis_type'] ?? '') }}" class="line-input"></label>
+                        <label><input type="checkbox" name="hypertension" value="yes" {{ !empty($d['hypertension']) ? 'checked' : '' }}> Hypertension</label>
+                    </td>
+                    <td width="10%"></td>
+                    <td class="check-column" width="40%">
+                        <label><input type="checkbox" name="hyperlipidemia" value="yes" {{ !empty($d['hyperlipidemia']) ? 'checked' : '' }}> Hyperlipidemia</label>
+                        <label><input type="checkbox" name="peptic_ulcer" value="yes" {{ !empty($d['peptic_ulcer']) ? 'checked' : '' }}> Peptic Ulcer</label>
+                        <label><input type="checkbox" name="pneumonia" value="yes" {{ !empty($d['pneumonia']) ? 'checked' : '' }}> Pneumonia</label>
+                        <label><input type="checkbox" name="thyroid_disease" value="yes" {{ !empty($d['thyroid_disease']) ? 'checked' : '' }}> Thyroid Disease</label>
+                        <label><input type="checkbox" name="pulmonary_tb" value="yes" {{ !empty($d['pulmonary_tb']) ? 'checked' : '' }}> Pulmonary Tuberculosis</label>
+                        <label><input type="checkbox" name="urinary_tract_infection" value="yes" {{ !empty($d['urinary_tract_infection']) ? 'checked' : '' }}> Urinary Tract Infection</label>
+                        <label><input type="checkbox" name="mental_illness" value="yes" {{ !empty($d['mental_illness']) ? 'checked' : '' }}> Mental Illness</label>
+                        <label><input type="checkbox" name="others_medical" value="yes" {{ !empty($d['others_medical']) ? 'checked' : '' }}> Others: <input type="text" name="others_medical_specify" value="{{ old('others_medical_specify', $d['others_medical_specify'] ?? '') }}" class="line-input"></label>
+                        <label><input type="checkbox" name="none_medical" value="yes" {{ !empty($d['none_medical']) ? 'checked' : '' }}> None</label>
+                    </td>
+                    <td width="10%"></td>
+                </tr>
+                <tr><td colspan="4" style="font-weight:bold;padding:8px;">PAST SURGICAL HISTORY</td></tr>
+                <tr>
+                    <th width="50%">OPERATION</th>
+                    <th colspan="3">DATE (mm/dd/yy)</th>
+                </tr>
+                <tr>
+                    <td><input type="text" name="operation_1" value="{{ old('operation_1', $d['operation_1'] ?? '') }}"></td>
+                    <td colspan="3"><input type="text" name="date_operation_1" value="{{ old('date_operation_1', $d['date_operation_1'] ?? '') }}" placeholder="mm/dd/yy"></td>
+                </tr>
+                <tr>
+                    <td><input type="text" name="operation_2" value="{{ old('operation_2', $d['operation_2'] ?? '') }}"></td>
+                    <td colspan="3"><input type="text" name="date_operation_2" value="{{ old('date_operation_2', $d['date_operation_2'] ?? '') }}" placeholder="mm/dd/yy"></td>
+                </tr>
+                <tr>
+                    <td><input type="text" name="operation_3" value="{{ old('operation_3', $d['operation_3'] ?? '') }}"></td>
+                    <td colspan="3"><input type="text" name="date_operation_3" value="{{ old('date_operation_3', $d['date_operation_3'] ?? '') }}" placeholder="mm/dd/yy"></td>
+                </tr>
+            </table>
+
+            <table class="medical-table" style="margin-top:15px;">
+                <tr><th colspan="4" class="section-title">FAMILY HISTORY</th></tr>
+                <tr><th colspan="2"></th><th colspan="2"></th></tr>
+                <tr>
+                    <td class="check-column" width="40%">
+                        <label><input type="checkbox" name="fam_allergy" value="yes" {{ !empty($d['fam_allergy']) ? 'checked' : '' }}> Allergy - please specify: <input type="text" name="fam_allergy_specify" value="{{ old('fam_allergy_specify', $d['fam_allergy_specify'] ?? '') }}" class="line-input"></label>
+                        <label><input type="checkbox" name="fam_asthma" value="yes" {{ !empty($d['fam_asthma']) ? 'checked' : '' }}> Asthma</label>
+                        <label><input type="checkbox" name="fam_cancer" value="yes" {{ !empty($d['fam_cancer']) ? 'checked' : '' }}> Cancer</label>
+                        <label><input type="checkbox" name="fam_cerebrovascular_disease" value="yes" {{ !empty($d['fam_cerebrovascular_disease']) ? 'checked' : '' }}> Cerebrovascular Disease</label>
+                        <label><input type="checkbox" name="fam_diabetes" value="yes" {{ !empty($d['fam_diabetes']) ? 'checked' : '' }}> Diabetes Mellitus - maintenance <input type="text" name="fam_maintenance" value="{{ old('fam_maintenance', $d['fam_maintenance'] ?? '') }}" class="line-input" placeholder="Maintenance:"></label>
+                        <label><input type="checkbox" name="fam_epilepsy" value="yes" {{ !empty($d['fam_epilepsy']) ? 'checked' : '' }}> Epilepsy/Seizure Disorder</label>
+                        <label><input type="checkbox" name="fam_emphysema" value="yes" {{ !empty($d['fam_emphysema']) ? 'checked' : '' }}> Emphysema</label>
+                        <label><input type="checkbox" name="fam_hepatitis" value="yes" {{ !empty($d['fam_hepatitis']) ? 'checked' : '' }}> Hepatitis - please specify type: <input type="text" name="fam_hepatitis_type" value="{{ old('fam_hepatitis_type', $d['fam_hepatitis_type'] ?? '') }}" class="line-input"></label>
+                        <label><input type="checkbox" name="fam_hypertension" value="yes" {{ !empty($d['fam_hypertension']) ? 'checked' : '' }}> Hypertension</label>
+                    </td>
+                    <td width="10%"></td>
+                    <td class="check-column" width="40%">
+                        <label><input type="checkbox" name="fam_hyperlipidemia" value="yes" {{ !empty($d['fam_hyperlipidemia']) ? 'checked' : '' }}> Hyperlipidemia</label>
+                        <label><input type="checkbox" name="fam_peptic_ulcer" value="yes" {{ !empty($d['fam_peptic_ulcer']) ? 'checked' : '' }}> Peptic Ulcer</label>
+                        <label><input type="checkbox" name="fam_pneumonia" value="yes" {{ !empty($d['fam_pneumonia']) ? 'checked' : '' }}> Pneumonia</label>
+                        <label><input type="checkbox" name="fam_thyroid_disease" value="yes" {{ !empty($d['fam_thyroid_disease']) ? 'checked' : '' }}> Thyroid Disease</label>
+                        <label><input type="checkbox" name="fam_pulmonary_tb" value="yes" {{ !empty($d['fam_pulmonary_tb']) ? 'checked' : '' }}> Pulmonary Tuberculosis</label>
+                        <label><input type="checkbox" name="fam_urinary_tract_infection" value="yes" {{ !empty($d['fam_urinary_tract_infection']) ? 'checked' : '' }}> Urinary Tract Infection</label>
+                        <label><input type="checkbox" name="fam_mental_illness" value="yes" {{ !empty($d['fam_mental_illness']) ? 'checked' : '' }}> Mental Illness</label>
+                        <label><input type="checkbox" name="fam_others" value="yes" {{ !empty($d['fam_others']) ? 'checked' : '' }}> Others: <input type="text" name="fam_others_specify" value="{{ old('fam_others_specify', $d['fam_others_specify'] ?? '') }}" class="line-input"></label>
+                        <label><input type="checkbox" name="fam_none" value="yes" {{ !empty($d['fam_none']) ? 'checked' : '' }}> None</label>
+                    </td>
+                    <td width="10%"></td>
+                </tr>
+            </table>
+
+            <table class="signature-table">
+                <tr>
+                    <th width="50%">SIGNATURE OVER PRINTED NAME/DATE</th>
+                    <th width="50%">NAME OF HEALTHCARE PROVIDER</th>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="signature-line"></div>
+                        <div class="signature-caption">SIGNATURE OVER PRINTED NAME/DATE</div>
+                    </td>
+                    <td>
+                        <div class="signature-line"></div>
+                        <div class="signature-caption">NAME OF HEALTHCARE PROVIDER</div>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="form-actions">
+                <button type="button" onclick="location.href='{{ route('forms.index') }}'">Clear</button>
+                <button type="submit">Save Medical Form</button>
             </div>
-
-            <form action="{{ route('forms.student-info.store') }}" method="POST" id="studentForm">
-                @csrf
-
-                <!-- Section I: Student Information -->
-                <div class="form-section">
-                    <h4 class="section-header">I. STUDENT'S INFORMATION</h4>
-                    
-                    <div class="form-row">
-                        <div class="form-field">
-                            <label>Last Name</label>
-                            <input type="text" name="last_name" class="form-input" value="{{ old('last_name') }}">
-                            <small>Suffix</small>
-                            <input type="text" name="suffix" class="form-input" value="{{ old('suffix') }}">
-                        </div>
-                        <div class="form-field">
-                            <label>First Name</label>
-                            <input type="text" name="first_name" class="form-input" value="{{ old('first_name') }}">
-                            <small>Please write Maiden Name if Married</small>
-                            <input type="text" name="maiden_name" class="form-input" value="{{ old('maiden_name') }}">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-field">
-                            <label>Middle Name</label>
-                            <input type="text" name="middle_name" class="form-input" value="{{ old('middle_name') }}">
-                            <small>Mother's Complete Name</small>
-                            <input type="text" name="mother_name" class="form-input" value="{{ old('mother_name') }}">
-                        </div>
-                        <div class="form-field">
-                            <label>Sex</label>
-                            <select name="sex" class="form-input">
-                                <option value="">Select...</option>
-                                <option value="Male" {{ old('sex') == 'Male' ? 'selected' : '' }}>Male</option>
-                                <option value="Female" {{ old('sex') == 'Female' ? 'selected' : '' }}>Female</option>
-                            </select>
-                            <small>Father's Complete Name</small>
-                            <input type="text" name="father_name" class="form-input" value="{{ old('father_name') }}">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-field">
-                            <label>Birthday (mm/dd/yy)</label>
-                            <input type="text" name="birthday" class="form-input" placeholder="MM/DD/YY" value="{{ old('birthday') }}">
-                            <small>Blood Type</small>
-                            <input type="text" name="blood_type" class="form-input" value="{{ old('blood_type') }}">
-                        </div>
-                        <div class="form-field">
-                            <label>Birthplace</label>
-                            <input type="text" name="birthplace" class="form-input" value="{{ old('birthplace') }}">
-                            <small></small>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-field">
-                            <label>Civil Status</label>
-                            <select name="civil_status" class="form-input">
-                                <option value="">Select...</option>
-                                <option value="Single" {{ old('civil_status') == 'Single' ? 'selected' : '' }}>Single</option>
-                                <option value="Married" {{ old('civil_status') == 'Married' ? 'selected' : '' }}>Married</option>
-                                <option value="Annulled" {{ old('civil_status') == 'Annulled' ? 'selected' : '' }}>Annulled</option>
-                                <option value="Widowed" {{ old('civil_status') == 'Widowed' ? 'selected' : '' }}>Widowed</option>
-                                <option value="Separated" {{ old('civil_status') == 'Separated' ? 'selected' : '' }}>Separated</option>
-                                <option value="Co-habitation" {{ old('civil_status') == 'Co-habitation' ? 'selected' : '' }}>Co-habitation</option>
-                            </select>
-                            <small>Residential Address</small>
-                            <input type="text" name="residential_address" class="form-input" value="{{ old('residential_address') }}">
-                        </div>
-                        <div class="form-field">
-                            <small>Height</small>
-                            <input type="text" name="height" class="form-input" value="{{ old('height') }}">
-                            <small>Weight</small>
-                            <input type="text" name="weight" class="form-input" value="{{ old('weight') }}">
-                            <small>Course</small>
-                            <input type="text" name="course" class="form-input" value="{{ old('course') }}">
-                            <small>Year & Section</small>
-                            <input type="text" name="year_section" class="form-input" value="{{ old('year_section') }}">
-                        </div>
-                    </div>
-
-                    <div class="form-row single">
-                        <div class="form-field">
-                            <label>Contact Number</label>
-                            <input type="text" name="contact_number" class="form-input" value="{{ old('contact_number') }}">
-                        </div>
-                        <div class="form-field">
-                            <label>Spouse's Name</label>
-                            <input type="text" name="spouse_name" class="form-input" value="{{ old('spouse_name') }}">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section II: Past Medical & Surgical History -->
-                <div class="form-section">
-                    <h4 class="section-header">II. PAST MEDICAL & SURGICAL HISTORY</h4>
-                    
-                    <div class="medical-history-grid">
-                        <div class="history-column">
-                            <h5>PAST MEDICAL HISTORY</h5>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="allergy" value="yes"> 
-                                <label>Allergy - please specify:</label>
-                                <input type="text" name="allergy_specify" class="form-input small" value="{{ old('allergy_specify') }}">
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="asthma" value="yes"> Asthma
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="cancer" value="yes"> Cancer
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="cerebrovascular_disease" value="yes"> Cerebrovascular Disease
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="diabetes" value="yes"> Diabetes Mellitus - maintenance
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="epilepsy" value="yes"> Epilepsy/Seizure Disorder
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="emphysema" value="yes"> Emphysema
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="hepatitis" value="yes"> 
-                                <label>Hepatitis - please specify the type:</label>
-                                <input type="text" name="hepatitis_type" class="form-input small" value="{{ old('hepatitis_type') }}">
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="hypertension" value="yes"> Hypertension
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="maintenance" value="yes"> Maintenance:
-                            </div>
-                        </div>
-
-                        <div class="history-column">
-                            <h5>MEDICAL HISTORY (cont'd)</h5>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="hyperlipidemia" value="yes"> Hyperlipidemia
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="peptic_ulcer" value="yes"> Peptic Ulcer
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="pneumonia" value="yes"> Pneumonia
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="thyroid_disease" value="yes"> Thyroid Disease
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="pulmonary_tb" value="yes"> Pulmonary Tuberculosis
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="urinary_tract_infection" value="yes"> Urinary Tract Infection
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="mental_illness" value="yes"> Mental Illness
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="others_medical" value="yes"> 
-                                <label>Others</label>
-                                <input type="text" name="others_medical_specify" class="form-input small" value="{{ old('others_medical_specify') }}">
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="none_medical" value="yes"> None
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-section-sub">
-                        <h5>PAST SURGICAL HISTORY</h5>
-                        <div class="surgery-table">
-                            <div class="surgery-row">
-                                <input type="text" name="operation_1" class="form-input" placeholder="Operation">
-                                <input type="text" name="date_operation_1" class="form-input" placeholder="DATE (mm/dd/yy)">
-                            </div>
-                            <div class="surgery-row">
-                                <input type="text" name="operation_2" class="form-input" placeholder="Operation">
-                                <input type="text" name="date_operation_2" class="form-input" placeholder="DATE (mm/dd/yy)">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section III: Family History -->
-                <div class="form-section">
-                    <h4 class="section-header">FAMILY HISTORY</h4>
-                    
-                    <div class="medical-history-grid">
-                        <div class="history-column">
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_allergy" value="yes"> 
-                                <label>Allergy - please specify:</label>
-                                <input type="text" name="fam_allergy_specify" class="form-input small" value="{{ old('fam_allergy_specify') }}">
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_asthma" value="yes"> Asthma
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_cancer" value="yes"> Cancer
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_cerebrovascular" value="yes"> Cerebrovascular Disease
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_diabetes" value="yes"> Diabetes Mellitus - maintenance
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_epilepsy" value="yes"> Epilepsy/Seizure Disorder
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_emphysema" value="yes"> Emphysema
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_hepatitis" value="yes"> 
-                                <label>Hepatitis - please specify the type:</label>
-                                <input type="text" name="fam_hepatitis_type" class="form-input small" value="{{ old('fam_hepatitis_type') }}">
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_hypertension" value="yes"> Hypertension
-                            </div>
-                        </div>
-
-                        <div class="history-column">
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_hyperlipidemia" value="yes"> Hyperlipidemia
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_peptic_ulcer" value="yes"> Peptic Ulcer
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_pneumonia" value="yes"> Pneumonia
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_thyroid_disease" value="yes"> Thyroid Disease
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_pulmonary_tb" value="yes"> Pulmonary Tuberculosis
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_urinary_tract" value="yes"> Urinary Tract Infection
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_mental_illness" value="yes"> Mental Illness
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_others" value="yes"> 
-                                <label>Others</label>
-                                <input type="text" name="fam_others_specify" class="form-input small" value="{{ old('fam_others_specify') }}">
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" name="fam_none" value="yes"> None
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Signatures -->
-                <div class="signatures-section">
-                    <div class="signature-row">
-                        <div class="signature-block">
-                            <p>SIGNATURE OVER PRINTED NAME/DATE</p>
-                            <div class="signature-line"></div>
-                        </div>
-                        <div class="signature-block">
-                            <p>NAME OF HEALTHCARE PROVIDER</p>
-                            <div class="signature-line"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="form-actions">
-                    <a href="{{ route('forms.index') }}" class="btn btn-cancel">
-                        <i class="fas fa-times"></i> Cancel
-                    </a>
-                    <button type="button" class="btn btn-print" onclick="printForm()">
-                        <i class="fas fa-print"></i> Print Form
-                    </button>
-                    <button type="submit" class="btn btn-save" id="submitBtn">
-                        <i class="fas fa-save"></i> Save Form
-                    </button>
-                </div>
-            </form>
-        </div>
+        </form>
     </div>
 
     <style>
+        .no-print {
+            background: #fff;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .no-print h1 {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .no-print button {
+            padding: 10px 20px;
+            background: #1683b9;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .no-print button:hover {
+            background: #126896;
+        }
+
         .form-container {
-            max-width: 1000px;
+            background: #fff;
+            padding: 30px;
+            border: 1px solid #d1d5db;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            max-width: 8.5in;
             margin: 0 auto;
-            padding: 20px;
         }
 
-        .printable-form {
-            background: white;
-            padding: 40px;
-            border: 1px solid #ddd;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            font-family: Arial, sans-serif;
+        .clinic-header {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
         }
 
-        .form-header {
+        .clinic-header td {
+            border: 1px solid #4b5563;
+            padding: 6px 8px;
+            vertical-align: middle;
+        }
+
+        .school-info {
+            width: 65%;
+            padding: 6px 10px;
+        }
+
+        .school-brand {
             display: flex;
             align-items: center;
-            justify-content: center;
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 15px;
-        }
-
-        .logo-section {
-            margin-right: 20px;
-        }
-
-        .logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-        }
-
-        .header-text h2 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-            color: #2d3e50;
-        }
-
-        .header-text p {
-            margin: 2px 0;
-            font-size: 13px;
-            color: #95a5a6;
-        }
-
-        .form-title {
-            margin: 10px 0 0 0;
-            font-size: 14px;
-            font-weight: 700;
-            color: #2d3e50;
-            letter-spacing: 1px;
-        }
-
-        .form-section {
-            margin-bottom: 20px;
-            border: 1px solid #999;
-            padding: 12px;
-        }
-
-        .section-header {
-            margin: 0 0 12px 0;
-            font-size: 11px;
-            font-weight: 700;
-            color: #2d3e50;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 12px;
-        }
-
-        .form-row.single {
-            grid-template-columns: 1fr;
-        }
-
-        .form-field {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-field label {
-            font-size: 10px;
-            font-weight: 700;
-            color: #2d3e50;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-        }
-
-        .form-field small {
-            font-size: 9px;
-            color: #666;
-            margin-top: 6px;
-            margin-bottom: 2px;
-        }
-
-        .form-input {
-            border: 1px solid #999;
-            padding: 6px;
-            font-size: 11px;
-            font-family: Arial, sans-serif;
-            background: white;
-            margin-bottom: 6px;
-        }
-
-        .form-input.small {
-            margin: 0;
-        }
-
-        .medical-history-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 12px 0;
-        }
-
-        .history-column h5 {
-            margin: 0 0 12px 0;
-            font-size: 10px;
-            font-weight: 700;
-            color: #2d3e50;
-            text-transform: uppercase;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 6px;
-        }
-
-        .checkbox-item {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 8px;
-            font-size: 10px;
-        }
-
-        .checkbox-item input[type="checkbox"] {
-            margin-right: 6px;
-            width: 14px;
-            height: 14px;
-        }
-
-        .checkbox-item label {
-            margin-left: 20px;
-        }
-
-        .form-section-sub {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #ddd;
-        }
-
-        .form-section-sub h5 {
-            margin: 0 0 12px 0;
-            font-size: 10px;
-            font-weight: 700;
-            color: #2d3e50;
-            text-transform: uppercase;
-        }
-
-        .surgery-table {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .surgery-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
 
-        .signatures-section {
-            margin-top: 30px;
+        .school-brand img {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
         }
 
-        .signature-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .signature-block {
+        .school-name {
             display: flex;
             flex-direction: column;
+            line-height: 1.2;
         }
 
-        .signature-block p {
-            margin: 0 0 10px 0;
+        .school-name strong {
+            font-size: 13px;
+        }
+
+        .school-name span {
             font-size: 10px;
-            font-weight: 700;
-            color: #2d3e50;
-            text-transform: uppercase;
+            color: #555;
+        }
+
+        .student-code {
+            width: 35%;
+            text-align: center;
+            padding: 6px;
+        }
+
+        .student-code strong {
+            display: block;
+            font-size: 10px;
+            margin-bottom: 4px;
+        }
+
+        .code-boxes {
+            display: flex;
+            justify-content: center;
+            gap: 3px;
+        }
+
+        .code-boxes input {
+            width: 22px !important;
+            height: 22px !important;
+            min-width: 22px !important;
+            padding: 0 !important;
+            border: 1px solid #4b5563 !important;
+            text-align: center;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .instructions {
+            text-align: center;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 4px;
+            border: 1px solid #4b5563;
+            background: #f9fafb;
+        }
+
+        .medical-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .medical-table td,
+        .medical-table th {
+            border: 1px solid #4b5563;
+            padding: 4px 6px;
+            vertical-align: middle;
+        }
+
+        .section-title {
+            background: #f2f2f2;
+            font-weight: bold;
+            text-align: left;
+            padding: 6px 8px;
+            font-size: 13px;
+        }
+
+        .medical-table input,
+        .medical-table select,
+        .medical-table textarea {
+            width: 100%;
+            min-width: 0;
+            border: none;
+            border-bottom: none;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+            padding: 2px 3px;
+            font: inherit;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        .medical-table textarea {
+            resize: vertical;
+            min-height: 40px;
+        }
+
+        .medical-table td:has(input),
+        .medical-table td:has(select),
+        .medical-table td:has(textarea) {
+            border-bottom: none !important;
+        }
+
+        .check-column {
+            width: 40%;
+        }
+
+        .check-column label {
+            display: block;
+            line-height: 1.4;
+            font-size: 11px;
+        }
+
+        .check-column input[type="checkbox"] {
+            width: 12px !important;
+            height: 12px !important;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .line-input {
+            display: inline-block;
+            width: 60%;
+            margin-left: 4px;
+            border-bottom: 1px solid #4b5563 !important;
+            padding: 1px 2px !important;
+        }
+
+        .signature-table {
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .signature-table th {
+            text-align: center;
+            font-weight: bold;
+            padding: 8px;
+            border: 1px solid #4b5563;
+            background: #f9fafb;
+        }
+
+        .signature-table td {
+            height: 50px;
+            border: 1px solid #4b5563;
+            vertical-align: bottom;
+            padding: 0 8px 8px;
         }
 
         .signature-line {
-            border-bottom: 1px solid #000;
-            height: 30px;
+            border-bottom: 1px solid #4b5563;
+            height: 40px;
+            margin-bottom: 4px;
+        }
+
+        .signature-caption {
+            font-size: 9px;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 4px;
         }
 
         .form-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px solid #ddd;
+            margin-top: 20px;
+            text-align: right;
+            gap: 10px;
         }
 
-        .btn {
+        .form-actions button {
+            padding: 10px 24px;
+            background: #1683b9;
+            color: #fff;
             border: none;
             border-radius: 6px;
-            padding: 10px 20px;
-            font-size: 13px;
-            font-weight: 600;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 600;
         }
 
-        .btn-cancel {
-            background: #ecf0f1;
-            color: #7f8c8d;
-        }
-
-        .btn-cancel:hover {
-            background: #d4d9e0;
-        }
-
-        .btn-print {
-            background: #3498db;
-            color: white;
-        }
-
-        .btn-print:hover {
-            background: #2980b9;
-        }
-
-        .btn-save {
-            background: #27ae60;
-            color: white;
-        }
-
-        .btn-save:hover {
-            background: #229954;
+        .form-actions button:hover {
+            background: #126896;
         }
 
         @media print {
             @page {
-                size: A4 portrait;
-                margin: 10mm;
+                size: auto;
+                margin: 0.5in;
             }
 
-            html, body {
-                margin: 0 !important;
-                padding: 0 !important;
+            body, html {
+                width: 100%;
+                margin: 0;
+                padding: 0;
                 background: #fff !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
             }
 
-            body * {
-                visibility: hidden;
-            }
-
-            .form-container,
-            .form-container * {
-                visibility: visible;
-            }
-
-            .app-topbar,
-            .clinic-sidebar,
-            .sidebar-overlay,
-            .sidebar-toggle-btn,
-            .theme-toggle-btn,
-            .topbar-icon-btn,
-            .user-profile,
-            .app-content > :not(.form-container) {
+            .no-print {
                 display: none !important;
-                visibility: hidden !important;
-            }
-
-            .app-main,
-            .app-content {
-                display: block !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                padding: 0 !important;
-                margin: 0 !important;
             }
 
             .form-container {
                 width: 100% !important;
-                max-width: none !important;
-                margin: 0 !important;
+                max-width: 100% !important;
                 padding: 0 !important;
-                position: static !important;
+                border: none !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+            }
+
+            .clinic-header,
+            .medical-table,
+            .signature-table {
+                width: 100% !important;
+                table-layout: fixed;
+                border-collapse: collapse;
             }
 
             .form-actions {
                 display: none !important;
             }
 
-            .printable-form {
-                border: none !important;
-                box-shadow: none !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                transform: none !important;
-            }
-
-            .form-header {
-                margin-bottom: 20px !important;
-            }
-
-            .form-input {
-                border: 1px solid #999 !important;
-                background: white !important;
-                font-size: 10px !important;
-                padding: 4px 5px !important;
-            }
-
-            .form-section,
-            .form-section-sub {
-                page-break-inside: avoid;
+            * {
+                box-sizing: border-box;
             }
         }
 
         @media (max-width: 768px) {
-            .form-header {
-                flex-direction: column;
-            }
-
-            .logo-section {
-                margin-right: 0;
-                margin-bottom: 15px;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .medical-history-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .signature-row {
-                grid-template-columns: 1fr;
-            }
-
-            .form-actions {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
+            .form-container {
+                padding: 10px;
             }
         }
     </style>
-
-    <script>
-        function printForm() {
-            window.print();
-        }
-
-        document.getElementById('studentForm').addEventListener('submit', function(e) {
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-        });
-    </script>
 </x-app-with-sidebar>

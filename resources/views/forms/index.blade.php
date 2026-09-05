@@ -8,6 +8,18 @@
         </div>
 
         <div class="forms-grid">
+            <a href="{{ route('forms.clinic-visit') }}" class="form-card">
+                <div class="form-card-icon"><i class="fas fa-notes-medical"></i></div>
+                <div class="form-card-body"><h3>Clinic Visit Log</h3><p>Record date, vital signs, complaints, management, and diagnosis.</p></div>
+                <i class="fas fa-chevron-right form-card-arrow"></i>
+            </a>
+
+            <a href="{{ route('forms.research-consent') }}" class="form-card">
+                <div class="form-card-icon"><i class="fas fa-file-signature"></i></div>
+                <div class="form-card-body"><h3>Research Data Consent</h3><p>Consent form for accessing clinic and personnel data for research.</p></div>
+                <i class="fas fa-chevron-right form-card-arrow"></i>
+            </a>
+
             <a href="{{ route('forms.consent') }}" class="form-card">
                 <div class="form-card-icon">
                     <i class="fas fa-file-signature"></i>

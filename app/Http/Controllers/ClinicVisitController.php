@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ClinicVisit;
 use App\Models\Patient;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -11,7 +12,12 @@ class ClinicVisitController extends Controller
 {
     public function index(Request $request)
     {
+        [$rangeStart, $rangeEnd] = $this->resolveDateRange($request);
+
         $visits = ClinicVisit::with('patient')
+            ->when($rangeStart && $rangeEnd, function ($query) use ($rangeStart, $rangeEnd) {
+                $query->whereBetween('visit_date', [$rangeStart, $rangeEnd]);
+            })
             ->when($request->filled('q'), function ($query) use ($request) {
                 $search = $request->string('q')->trim()->toString();
 
@@ -32,6 +38,38 @@ class ClinicVisitController extends Controller
             ->withQueryString();
         
         return view('clinic-visit.index', compact('visits'));
+    }
+
+    private function resolveDateRange(Request $request): array
+    {
+        $range = $request->string('date_range')->toString();
+        $today = now();
+
+        return match ($range) {
+            'today' => [$today->copy()->startOfDay(), $today->copy()->endOfDay()],
+            'yesterday' => [$today->copy()->subDay()->startOfDay(), $today->copy()->subDay()->endOfDay()],
+            'last_7' => [$today->copy()->subDays(7)->startOfDay(), $today->copy()->endOfDay()],
+            'last_30' => [$today->copy()->subDays(30)->startOfDay(), $today->copy()->endOfDay()],
+            'this_month' => [$today->copy()->startOfMonth(), $today->copy()->endOfMonth()],
+            'custom' => $this->resolveCustomDateRange($request),
+            default => [null, null],
+        };
+    }
+
+    private function resolveCustomDateRange(Request $request): array
+    {
+        try {
+            if (!$request->filled(['start_date', 'end_date'])) {
+                return [null, null];
+            }
+
+            return [
+                Carbon::createFromFormat('Y-m-d', (string) $request->string('start_date'))->startOfDay(),
+                Carbon::createFromFormat('Y-m-d', (string) $request->string('end_date'))->endOfDay(),
+            ];
+        } catch (\Throwable) {
+            return [null, null];
+        }
     }
 
         public function create()

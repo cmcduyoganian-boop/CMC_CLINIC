@@ -1455,7 +1455,23 @@
         }
 
         function navigateToVisits() {
-            window.location.href = '{{ route("clinic-visit.index") }}';
+            const dateRangeSelect = Array.from(document.querySelectorAll('.filters-card select'))
+                .find((select) => Array.from(select.options).some((option) => option.value === 'today'));
+            const dateRange = dateRangeSelect?.value || 'today';
+            const params = new URLSearchParams({ date_range: dateRange });
+
+            if (dateRange === 'custom') {
+                const getWireInputValue = (name) => Array.from(document.querySelectorAll('input'))
+                    .find((input) => input.getAttribute('wire:model') === name || input.getAttribute('wire:model.live') === name)?.value;
+                const startDate = getWireInputValue('customStartDate');
+                const endDate = getWireInputValue('customEndDate');
+                if (startDate && endDate) {
+                    params.set('start_date', startDate);
+                    params.set('end_date', endDate);
+                }
+            }
+
+            window.location.href = '{{ route("clinic-visit.index") }}?' + params.toString();
         }
 
         function navigateToMedicines() {
