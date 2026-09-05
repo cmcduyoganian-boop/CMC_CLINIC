@@ -201,6 +201,30 @@ class ClinicReport extends Component
                     }
                 }
 
+                // Student Health Record Conditions
+                if ($patient) {
+                    $healthRecord = \App\Models\StudentHealthRecord::where('user_id', $patient->user_id)
+                        ->orWhere('student_code', $patient->student_code)
+                        ->latest()
+                        ->first();
+
+                    if ($healthRecord) {
+                        $pmh = $healthRecord->past_medical_history ?? [];
+                        $fh = $healthRecord->family_history ?? [];
+
+                        $conditions = array_filter(array_merge(
+                            array_filter($pmh, fn($v, $k) => $v === true && $k !== 'none_medical', ARRAY_FILTER_USE_BOTH),
+                            array_filter($fh, fn($v, $k) => $v === true && $k !== 'none', ARRAY_FILTER_USE_BOTH)
+                        ), fn($v) => $v === true, ARRAY_FILTER_USE_BOTH);
+
+                        foreach (array_keys($conditions) as $condition) {
+                            $label = str_replace('_', ' ', $condition);
+                            $key = strtolower($label);
+                            $complaintCounts[$key] = ($complaintCounts[$key] ?? 0) + 1;
+                        }
+                    }
+                }
+
                 // Services
                 if ($visit->services && is_array($visit->services)) {
                     foreach ($visit->services as $service) {

@@ -1,6 +1,4 @@
-<x-app-with-sidebar>
-    <x-slot name="header">Student Health Record</x-slot>
-
+<div>
     <div class="student-health-record-page">
         <div class="form-header">
             <h1 class="form-title">Student Health Record</h1>
@@ -552,4 +550,4 @@
             }
         }
     </style>
-</x-app-with-sidebar>
+</div>
