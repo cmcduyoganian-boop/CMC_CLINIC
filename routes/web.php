@@ -183,8 +183,9 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
         Route::post('/forms/research-consent', [FormController::class, 'storeResearchConsent'])->name('forms.research-consent.store');
         Route::get('/forms/consent', [FormController::class, 'consent'])->name('forms.consent');
         Route::post('/forms/consent', [FormController::class, 'storeConsent'])->name('forms.consent.store');
-        Route::get('/forms/student-info', [FormController::class, 'studentInfo'])->name('forms.student-info');
-        Route::post('/forms/student-info', [FormController::class, 'storeStudentInfo'])->name('forms.student-info.store');
+        Route::get('/forms/student-info', function () {
+            return view('forms.student-info');
+        })->name('forms.student-info');
     });
 
     // ✅ PROFILE ROUTES
