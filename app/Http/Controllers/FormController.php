@@ -28,7 +28,7 @@ class FormController extends Controller
         ]);
 
         FormSubmission::create([
-            'user_id' => auth()->id(),
+            'user_id' => \Illuminate\Support\Facades\Auth::id(),
             'form_type' => 'client_research_consent',
             'data' => $data,
         ]);
@@ -43,7 +43,7 @@ class FormController extends Controller
 
     public function studentInfo()
     {
-        $submission = FormSubmission::where('user_id', auth()->id())
+        $submission = FormSubmission::where('user_id', \Illuminate\Support\Facades\Auth::id())
             ->where('form_type', 'student_medical_history')
             ->latest('submitted_at')
             ->first();
@@ -75,7 +75,7 @@ class FormController extends Controller
         $data = array_merge($request->except(['_token']), $data);
 
         FormSubmission::updateOrCreate(
-            ['user_id' => auth()->id(), 'form_type' => 'student_medical_history'],
+            ['user_id' => \Illuminate\Support\Facades\Auth::id(), 'form_type' => 'student_medical_history'],
             ['data' => $data, 'submitted_at' => now()]
         );
 
@@ -102,7 +102,7 @@ class FormController extends Controller
         ]);
 
         FormSubmission::create([
-            'user_id' => auth()->id(),
+            'user_id' => \Illuminate\Support\Facades\Auth::id(),
             'form_type' => 'clinic_visit_log',
             'data' => $data,
         ]);
@@ -130,7 +130,7 @@ class FormController extends Controller
         ]);
 
         FormSubmission::create([
-            'user_id' => auth()->id(),
+            'user_id' => \Illuminate\Support\Facades\Auth::id(),
             'form_type' => 'research_data_consent',
             'data' => $data,
         ]);
