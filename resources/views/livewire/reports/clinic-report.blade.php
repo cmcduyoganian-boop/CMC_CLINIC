@@ -1,9 +1,5 @@
 <div class="clinic-report-page">
     <div class="report-header">
-        <div>
-            <h1 class="report-title">Clinic Report</h1>
-            <p class="report-subtitle">Generate weekly, monthly, or semestral tally reports</p>
-        </div>
         <div class="header-actions">
             <a href="{{ route('reports.index') }}" class="btn btn-back">
                 <i class="fas fa-arrow-left"></i> Back
@@ -117,22 +113,9 @@
 
     .report-header {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
         gap: 16px;
-    }
-
-    .report-title {
-        margin: 0;
-        font-size: 28px;
-        font-weight: 700;
-        color: var(--text-heading);
-    }
-
-    .report-subtitle {
-        margin: 4px 0 0 0;
-        font-size: 13px;
-        color: var(--text-muted);
     }
 
     .header-actions {
