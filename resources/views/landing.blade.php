@@ -207,8 +207,18 @@
             <li><a href="#contact">Contact</a></li>
         </ul>
         <div class="nav-actions">
-            <a href="{{ route('login') }}" class="btn-ghost"><i class="fas fa-sign-in-alt"></i> Login</a>
-            <a href="{{ route('login') }}" class="btn-nav-cta">Clinic Portal <i class="fas fa-arrow-right"></i></a>
+            @auth
+                <a href="{{ route('dashboard') }}" class="btn-ghost"><i class="fas fa-th-large"></i> Dashboard</a>
+                <form method="POST" action="{{ route('logout') }}" style="display:inline;">
+                    @csrf
+                    <button type="submit" class="btn-nav-cta" style="border:none;cursor:pointer;font-family:inherit;">
+                        Logout <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </form>
+            @else
+                <a href="{{ route('login') }}" class="btn-ghost"><i class="fas fa-sign-in-alt"></i> Login</a>
+                <a href="{{ route('login') }}" class="btn-nav-cta">Clinic Portal <i class="fas fa-arrow-right"></i></a>
+            @endauth
         </div>
         <button class="hamburger" onclick="toggleMobile()"><i class="fas fa-bars" id="ham-icon"></i></button>
     </div>
@@ -219,7 +229,17 @@
     <a href="#services" onclick="closeMobile()">Services</a>
     <a href="#wellness" onclick="closeMobile()">Wellness</a>
     <a href="#contact" onclick="closeMobile()">Contact</a>
-    <a href="{{ route('login') }}" style="color:#38bdf8;font-weight:700;border-bottom:none;"><i class="fas fa-sign-in-alt"></i> Access Clinic Portal</a>
+    @auth
+        <a href="{{ route('dashboard') }}" style="color:#38bdf8;font-weight:700;border-bottom:none;"><i class="fas fa-th-large"></i> Dashboard</a>
+        <form method="POST" action="{{ route('logout') }}" style="display:inline;">
+            @csrf
+            <button type="submit" style="color:#38bdf8;font-weight:700;border-bottom:none;background:none;border:none;cursor:pointer;font-size:inherit;font-family:inherit;width:100%;text-align:left;padding:10px 0;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </form>
+    @else
+        <a href="{{ route('login') }}" style="color:#38bdf8;font-weight:700;border-bottom:none;"><i class="fas fa-sign-in-alt"></i> Access Clinic Portal</a>
+    @endauth
 </div>
 <section class="hero" id="home">
     <div class="hero-inner hero-centered">
@@ -329,7 +349,11 @@
         <h2>Your Health Matters at CMC</h2>
         <p>Access the CMC School Clinic portal and stay connected with the healthcare services available to the entire CMC community.</p>
         <div class="cta-btns">
-            <a href="{{ route('login') }}" class="btn-cta-main"><i class="fas fa-sign-in-alt"></i> Access Clinic Portal</a>
+            @auth
+                <a href="{{ route('dashboard') }}" class="btn-cta-main"><i class="fas fa-th-large"></i> Go to Dashboard</a>
+            @else
+                <a href="{{ route('login') }}" class="btn-cta-main"><i class="fas fa-sign-in-alt"></i> Access Clinic Portal</a>
+            @endauth
             <a href="#about" class="btn-cta-ghost"><i class="fas fa-info-circle"></i> Learn More</a>
         </div>
     </div>
@@ -347,7 +371,19 @@
         </div>
         <div>
             <h5>Quick Access</h5>
-            <ul><li><a href="{{ route('login') }}">Login</a></li><li><a href="{{ route('register') }}">Register</a></li><li><a href="{{ route('register.clinic-staff') }}">Staff Registration</a></li></ul>
+            <ul>
+                @auth
+                    <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a></li>
+                @else
+                    <li><a href="{{ route('login') }}">Login</a></li>
+                    <li><a href="{{ route('register') }}">Register</a></li>
+                    <li><a href="{{ route('register.clinic-staff') }}">Staff Registration</a></li>
+                @endauth
+            </ul>
+            @auth
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">@csrf</form>
+            @endauth
         </div>
         <div class="footer-contact">
             <h5>Contact</h5>
