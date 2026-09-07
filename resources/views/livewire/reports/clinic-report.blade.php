@@ -4,6 +4,17 @@
             <h1 class="report-title">Clinic Report</h1>
             <p class="report-subtitle">Generate weekly, monthly, or semestral tally reports</p>
         </div>
+        <div class="header-actions">
+            <a href="{{ route('reports.index') }}" class="btn btn-back">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <button wire:click="computeReport" class="btn btn-apply">
+                <i class="fas fa-filter"></i> Apply
+            </button>
+            <button wire:click="exportPdf" class="btn btn-export">
+                <i class="fas fa-file-pdf"></i> Export to PDF
+            </button>
+        </div>
     </div>
 
     <div class="report-controls">
@@ -24,20 +35,6 @@
         <div class="control-group">
             <label class="control-label">End Date</label>
             <input type="date" wire:model="endDate" class="form-control">
-        </div>
-
-        <div class="control-group">
-            <label class="control-label">&nbsp;</label>
-            <button wire:click="computeReport" class="btn btn-apply">
-                <i class="fas fa-filter"></i> Apply
-            </button>
-        </div>
-
-        <div class="control-group">
-            <label class="control-label">&nbsp;</label>
-            <button wire:click="exportPdf" class="btn btn-export">
-                <i class="fas fa-file-pdf"></i> Export to PDF
-            </button>
         </div>
     </div>
 
@@ -121,7 +118,8 @@
     .report-header {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
+        align-items: center;
+        gap: 16px;
     }
 
     .report-title {
@@ -135,6 +133,13 @@
         margin: 4px 0 0 0;
         font-size: 13px;
         color: var(--text-muted);
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
     }
 
     .report-controls {
@@ -213,6 +218,15 @@
         background: #229954;
     }
 
+    .btn-back {
+        background: var(--bg-input);
+        color: var(--text-body);
+    }
+
+    .btn-back:hover {
+        background: var(--border-input);
+    }
+
     .table-card {
         background: var(--bg-card);
         border-radius: 10px;
@@ -288,6 +302,16 @@
     }
 
     @media (max-width: 768px) {
+        .report-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .header-actions {
+            width: 100%;
+            justify-content: flex-end;
+        }
+
         .report-controls {
             flex-direction: column;
             align-items: stretch;
