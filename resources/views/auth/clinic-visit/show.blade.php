@@ -61,21 +61,34 @@
         <div class="info-card vitals-card">
             <h2 class="card-title">Vital Signs</h2>
             <div class="vitals-grid">
+                @php $vs = $visit->getVitalSignsAssessment(); @endphp
                 <div class="vital-item">
                     <span class="vital-label">Temperature</span>
                     <span class="vital-value">{{ $visit->temperature ? $visit->temperature . '°C' : '-' }}</span>
+                    <span class="vital-status {{ \App\Support\VitalSigns::cssClass($vs['statuses']['temperature']) }}">
+                        {{ \App\Support\VitalSigns::label($vs['statuses']['temperature']) }}
+                    </span>
                 </div>
                 <div class="vital-item">
                     <span class="vital-label">Pulse Rate</span>
                     <span class="vital-value">{{ $visit->pulse_rate ? $visit->pulse_rate . ' bpm' : '-' }}</span>
+                    <span class="vital-status {{ \App\Support\VitalSigns::cssClass($vs['statuses']['pulse_rate']) }}">
+                        {{ \App\Support\VitalSigns::label($vs['statuses']['pulse_rate']) }}
+                    </span>
                 </div>
                 <div class="vital-item">
                     <span class="vital-label">Respiratory Rate</span>
                     <span class="vital-value">{{ $visit->respiratory_rate ? $visit->respiratory_rate . ' breaths/min' : '-' }}</span>
+                    <span class="vital-status {{ \App\Support\VitalSigns::cssClass($vs['statuses']['respiratory_rate']) }}">
+                        {{ \App\Support\VitalSigns::label($vs['statuses']['respiratory_rate']) }}
+                    </span>
                 </div>
                 <div class="vital-item">
                     <span class="vital-label">Blood Pressure</span>
                     <span class="vital-value">{{ $visit->bp_systolic && $visit->bp_diastolic ? $visit->bp_systolic . '/' . $visit->bp_diastolic . ' mmHg' : '-' }}</span>
+                    <span class="vital-status {{ \App\Support\VitalSigns::cssClass($vs['statuses']['bp_systolic']) }}">
+                        {{ \App\Support\VitalSigns::label($vs['statuses']['bp_systolic']) }}
+                    </span>
                 </div>
                 <div class="vital-item">
                     <span class="vital-label">Height</span>
@@ -88,12 +101,24 @@
                 <div class="vital-item">
                     <span class="vital-label">BMI</span>
                     <span class="vital-value">{{ $visit->getBMI() ? $visit->getBMI() : '-' }}</span>
+                    <span class="vital-status {{ \App\Support\VitalSigns::cssClass($vs['statuses']['bmi']) }}">
+                        {{ \App\Support\VitalSigns::label($vs['statuses']['bmi']) }}
+                    </span>
                 </div>
                 <div class="vital-item">
                     <span class="vital-label">SpO2</span>
                     <span class="vital-value">{{ $visit->spo2 ? $visit->spo2 . '%' : '-' }}</span>
+                    <span class="vital-status {{ \App\Support\VitalSigns::cssClass($vs['statuses']['spo2']) }}">
+                        {{ \App\Support\VitalSigns::label($vs['statuses']['spo2']) }}
+                    </span>
                 </div>
             </div>
+
+            @if($vs['overall'])
+                <div class="overall-assessment {{ \App\Support\VitalSigns::cssClass($vs['overall']) }}">
+                    <strong>Overall Assessment:</strong> {{ \App\Support\VitalSigns::label($vs['overall']) }}
+                </div>
+            @endif
         </div>
 
         <!-- Clinical Info Card -->
@@ -304,6 +329,35 @@
             font-weight: 700;
             color: #3498db;
         }
+
+        .vital-status {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .vs-normal { background: #d1fae5; color: #065f46; }
+        .vs-below { background: #fef3c7; color: #92400e; }
+        .vs-above { background: #ffedd5; color: #9a3412; }
+        .vs-abnormal { background: #fee2e2; color: #991b1b; }
+
+        .overall-assessment {
+            margin-top: 16px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            border-left: 4px solid #3498db;
+        }
+
+        .overall-assessment.vs-normal { background: #d1fae5; color: #065f46; border-left-color: #10b981; }
+        .overall-assessment.vs-below { background: #fef3c7; color: #92400e; border-left-color: #f59e0b; }
+        .overall-assessment.vs-above { background: #ffedd5; color: #9a3412; border-left-color: #f97316; }
+        .overall-assessment.vs-abnormal { background: #fee2e2; color: #991b1b; border-left-color: #ef4444; }
 
         .clinical-section {
             margin-bottom: 20px;
