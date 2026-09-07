@@ -13,10 +13,16 @@ class Appointment extends Model
         'reason',
         'notes',
         'status',
+        'sms_reminder',
+        'sms_message',
+        'sms_status',
+        'sms_sent_at',
     ];
 
     protected $casts = [
         'appointment_date' => 'date',
+        'sms_reminder' => 'boolean',
+        'sms_sent_at' => 'datetime',
     ];
 
     public function patient()

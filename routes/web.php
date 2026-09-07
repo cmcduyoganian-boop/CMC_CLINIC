@@ -128,6 +128,9 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
     // ✅ APPOINTMENT ROUTES
     Route::resource('appointments', AppointmentController::class)->except(['show'])->middleware('clinic.role:clinic_nurse');
     Route::get('/appointments/{id}', [AppointmentController::class, 'show'])->name('appointments.show');
+    Route::get('/appointments/scheduler', function () {
+        return view('appointments.scheduler');
+    })->name('appointments.scheduler');
 
     // ✅ REPORT ROUTES
     Route::middleware('clinic.role:clinic_nurse')->group(function () {
