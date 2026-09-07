@@ -69,6 +69,7 @@
                             <th>DIAGNOSIS</th>
                             <th>TEMPERATURE</th>
                             <th>BP</th>
+                            <th>VS STATUS</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -77,6 +78,34 @@
                                 $filters = ['all'];
                                 if ($visit->visit_date->isToday()) $filters[] = 'today';
                                 if ($visit->visit_date->month === now()->month && $visit->visit_date->year === now()->year) $filters[] = 'month';
+
+                                $vsAssessment = $visit->getVitalSignsAssessment();
+                                $vsOverall = $vsAssessment['overall'];
+
+                                $abnormalSigns = [];
+                                if ($vsAssessment['statuses']) {
+                                    foreach ($vsAssessment['statuses'] as $key => $status) {
+                                        if ($status && $status !== \App\Support\VitalSigns::NORMAL) {
+                                            $abbr = match ($key) {
+                                                'temperature' => 'T',
+                                                'pulse_rate' => 'PR',
+                                                'respiratory_rate' => 'RR',
+                                                'bp_systolic' => 'BP',
+                                                'spo2' => 'SpO2',
+                                                'bmi' => 'BMI',
+                                                default => $key,
+                                            };
+                                            $label = \App\Support\VitalSigns::label($status);
+                                            $shortLabel = match ($label) {
+                                                'BELOW NORMAL' => 'Below Normal',
+                                                'ABOVE NORMAL' => 'Above Normal',
+                                                'ABNORMAL / CRITICAL' => 'Abnormal',
+                                                default => $label,
+                                            };
+                                            $abnormalSigns[] = $shortLabel . ' - ' . $abbr;
+                                        }
+                                    }
+                                }
                             @endphp
                             <tr class="data-row" data-filters="{{ implode(',', $filters) }}">
                                 <td>{{ $visit->visit_date->format('M d, Y') }}</td>
@@ -89,6 +118,17 @@
                                 <td>{{ $visit->diagnosis ?? '-' }}</td>
                                 <td>{{ $visit->temperature ? $visit->temperature . '°C' : '-' }}</td>
                                 <td>{{ $visit->bp_systolic && $visit->bp_diastolic ? $visit->bp_systolic . '/' . $visit->bp_diastolic : '-' }}</td>
+                                <td>
+                                    @if ($vsOverall && $vsOverall !== \App\Support\VitalSigns::NORMAL)
+                                        <span class="vs-status-badge vs-{{ $vsOverall }}" title="{{ implode(', ', $abnormalSigns) }}">
+                                            {{ implode(', ', $abnormalSigns) }}
+                                        </span>
+                                    @elseif ($vsOverall === \App\Support\VitalSigns::NORMAL)
+                                        <span class="vs-status-badge vs-normal">NORMAL</span>
+                                    @else
+                                        <span class="vs-status-badge vs-na">—</span>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -414,9 +454,26 @@
         }
 
         .badge-staff {
-            background: rgba(39,174,96,0.15);
+            background: rgba(39,174,96,.15);
             color: #27ae60;
         }
+
+        .vs-status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            white-space: normal;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        .vs-status-badge.vs-normal { background: rgba(39,174,96,.15); color: #16803c; }
+        .vs-status-badge.vs-above_normal { background: rgba(217,119,6,.15); color: #b45309; }
+        .vs-status-badge.vs-below_normal { background: rgba(37,99,235,.15); color: #1d4ed8; }
+        .vs-status-badge.vs-abnormal { background: rgba(220,38,38,.15); color: #b91c1c; }
+        .vs-status-badge.vs-na { background: var(--bg-input); color: var(--text-muted); }
 
         .report-footer {
             text-align: center;

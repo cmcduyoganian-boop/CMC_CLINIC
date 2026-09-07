@@ -78,6 +78,31 @@
 								$assessment = $reading->getVitalSignsAssessment();
 								$overall = $assessment['overall'];
 								$statusLabel = $overall ? \App\Support\VitalSigns::label($overall) : 'NO DATA';
+
+								$abnormalSigns = [];
+								if ($assessment['statuses']) {
+									foreach ($assessment['statuses'] as $key => $status) {
+										if ($status && $status !== \App\Support\VitalSigns::NORMAL) {
+											$abbr = match ($key) {
+												'temperature' => 'T',
+												'pulse_rate' => 'PR',
+												'respiratory_rate' => 'RR',
+												'bpm_systolic' => 'BP',
+												'spo2' => 'SpO2',
+												'bmi' => 'BMI',
+												default => $key,
+											};
+											$label = \App\Support\VitalSigns::label($status);
+											$shortLabel = match ($label) {
+												'BELOW NORMAL' => 'Below Normal',
+												'ABOVE NORMAL' => 'Above Normal',
+												'ABNORMAL / CRITICAL' => 'Abnormal',
+												default => $label,
+											};
+											$abnormalSigns[] = $shortLabel . ' - ' . $abbr;
+										}
+									}
+								}
 							@endphp
 							<tr class="data-row" data-status="{{ $overall ?? 'none' }}">
 								<td>{{ $reading->visit_date->format('M d, Y') }}</td>
@@ -89,10 +114,12 @@
 								<td>{{ $reading->spo2 !== null ? $reading->spo2 . '%' : '-' }}</td>
 								<td>{{ $reading->getBMI() ?? '-' }}</td>
 								<td>
-									@if ($overall)
-										<span class="status-badge status-{{ $overall }}">
-											{{ \App\Support\VitalSigns::icon($overall) }} {{ $statusLabel }}
+									@if ($overall && $overall !== \App\Support\VitalSigns::NORMAL)
+										<span class="status-badge status-{{ $overall }}" title="{{ implode(', ', $abnormalSigns) }}">
+											{{ implode(', ', $abnormalSigns) }}
 										</span>
+									@elseif ($overall === \App\Support\VitalSigns::NORMAL)
+										<span class="status-badge status-normal">NORMAL</span>
 									@else
 										<span class="status-badge status-none">NO DATA</span>
 									@endif
