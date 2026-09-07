@@ -119,15 +119,23 @@
                     $abnormalSigns = [];
                     foreach ($vs['statuses'] as $key => $status) {
                         if ($status && $status !== \App\Support\VitalSigns::NORMAL) {
-                            $abnormalSigns[] = match ($key) {
-                                'temperature' => 'Temperature',
-                                'pulse_rate' => 'Pulse Rate',
-                                'respiratory_rate' => 'Respiratory Rate',
-                                'bp_systolic' => 'Blood Pressure',
+                            $abbr = match ($key) {
+                                'temperature' => 'T',
+                                'pulse_rate' => 'PR',
+                                'respiratory_rate' => 'RR',
+                                'bp_systolic' => 'BP',
                                 'spo2' => 'SpO2',
                                 'bmi' => 'BMI',
                                 default => $key,
                             };
+                            $label = \App\Support\VitalSigns::label($status);
+                            $shortLabel = match ($label) {
+                                'BELOW NORMAL' => 'Below Normal',
+                                'ABOVE NORMAL' => 'Above Normal',
+                                'ABNORMAL / CRITICAL' => 'Abnormal',
+                                default => $label,
+                            };
+                            $abnormalSigns[] = $shortLabel . ' - ' . $abbr;
                         }
                     }
                 @endphp
