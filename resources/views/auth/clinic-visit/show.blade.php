@@ -115,8 +115,27 @@
             </div>
 
             @if($vs['overall'])
+                @php
+                    $abnormalSigns = [];
+                    foreach ($vs['statuses'] as $key => $status) {
+                        if ($status && $status !== \App\Support\VitalSigns::NORMAL) {
+                            $abnormalSigns[] = match ($key) {
+                                'temperature' => 'Temperature',
+                                'pulse_rate' => 'Pulse Rate',
+                                'respiratory_rate' => 'Respiratory Rate',
+                                'bp_systolic' => 'Blood Pressure',
+                                'spo2' => 'SpO2',
+                                'bmi' => 'BMI',
+                                default => $key,
+                            };
+                        }
+                    }
+                @endphp
                 <div class="overall-assessment {{ \App\Support\VitalSigns::cssClass($vs['overall']) }}">
                     <strong>Overall Assessment:</strong> {{ \App\Support\VitalSigns::label($vs['overall']) }}
+                    @if($abnormalSigns)
+                        <br><small>{{ implode(', ', $abnormalSigns) }}</small>
+                    @endif
                 </div>
             @endif
         </div>

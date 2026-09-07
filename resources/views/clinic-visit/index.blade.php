@@ -88,10 +88,28 @@
                             <td class="vital-sign">{{ $visit->getBMI() ?: '-' }}</td>
                             <td class="vital-sign">{{ $visit->spo2 ? $visit->spo2 . '%' : '-' }}</td>
                             <td class="cell-center">
-                                @if ($vsOverall)
-                                    <span class="idx-vs-badge idx-vs-{{ $vsOverall }}" title="{{ \App\Support\VitalSigns::label($vsOverall) }}">
-                                        <span class="idx-vs-label">{{ \App\Support\VitalSigns::label($vsOverall) }}</span>
+                                @php
+                                    $abnormalSigns = [];
+                                    foreach ($vsAssessment['statuses'] as $key => $status) {
+                                        if ($status && $status !== \App\Support\VitalSigns::NORMAL) {
+                                            $abnormalSigns[] = match ($key) {
+                                                'temperature' => 'T°',
+                                                'pulse_rate' => 'PR',
+                                                'respiratory_rate' => 'RR',
+                                                'bp_systolic' => 'BP',
+                                                'spo2' => 'SpO2',
+                                                'bmi' => 'BMI',
+                                                default => $key,
+                                            };
+                                        }
+                                    }
+                                @endphp
+                                @if ($vsOverall && $vsOverall !== \App\Support\VitalSigns::NORMAL)
+                                    <span class="idx-vs-badge idx-vs-{{ $vsOverall }}" title="{{ \App\Support\VitalSigns::label($vsOverall) }}: {{ implode(', ', $abnormalSigns) }}">
+                                        <span class="idx-vs-label">{{ implode(', ', $abnormalSigns) }}</span>
                                     </span>
+                                @elseif ($vsOverall === \App\Support\VitalSigns::NORMAL)
+                                    <span class="idx-vs-badge idx-vs-normal">NORMAL</span>
                                 @else
                                     <span class="idx-vs-badge idx-vs-na">—</span>
                                 @endif
@@ -253,7 +271,7 @@
         .visits-table col.col-yr      { width: 78px;  }
         .visits-table col.col-age     { width: 46px;  }
         .visits-table col.col-vital   { width: 48px;  }  /* x8 = 384px */
-            .visits-table col.col-status  { width: 120px; }
+            .visits-table col.col-status  { width: 140px; }
         .visits-table col.col-comp    { width: 94px; }
         .visits-table col.col-diag    { width: 82px; }
         .visits-table col.col-mgmt    { width: 82px; }
@@ -268,12 +286,13 @@
             gap: 3px;
             padding: 3px 7px;
             border-radius: 20px;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 700;
-            white-space: nowrap;
+            white-space: normal;
             line-height: 1.3;
+            text-align: center;
         }
-        .idx-vs-label { font-size: 9px; white-space: nowrap; }
+        .idx-vs-label { font-size: 9px; white-space: normal; }
         .idx-vs-normal       { background: rgba(39,174,96,0.15); color: #27ae60; }
         .idx-vs-above_normal { background: rgba(243,156,18,0.15); color: #b87e00; }
         .idx-vs-below_normal { background: rgba(52,152,219,0.15); color: #2980b9; }
