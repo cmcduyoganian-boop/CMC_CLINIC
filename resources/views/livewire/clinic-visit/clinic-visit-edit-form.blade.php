@@ -52,12 +52,14 @@
 
             <div class="form-group">
                 <label class="form-label">Services Rendered</label>
-                <select wire:model="services" class="form-control" multiple size="6">
+                <div class="services-checkboxes">
                     @foreach($serviceOptions as $option)
-                        <option value="{{ $option }}">{{ $option }}</option>
+                        <label class="service-checkbox">
+                            <input type="checkbox" wire:model="services" value="{{ $option }}">
+                            <span>{{ $option }}</span>
+                        </label>
                     @endforeach
-                </select>
-                <small class="form-hint">Hold Ctrl (Windows) or Cmd (Mac) to select multiple</small>
+                </div>
             </div>
 
             <div class="form-group">
@@ -518,6 +520,48 @@
 
         .vitals-grid {
             grid-template-columns: 1fr;
+        }
+    }
+
+    .services-checkboxes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .service-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--bg-input);
+        border: 1px solid var(--border-input);
+        border-radius: 8px;
+        padding: 10px 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        flex: 1 1 calc(50% - 5px);
+        min-width: 140px;
+    }
+
+    .service-checkbox:hover {
+        background: var(--border-input);
+    }
+
+    .service-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #38bdf8;
+        cursor: pointer;
+    }
+
+    .service-checkbox span {
+        font-size: 13px;
+        color: var(--text-heading);
+    }
+
+    @media (max-width: 480px) {
+        .service-checkbox {
+            flex: 1 1 100%;
         }
     }
 </style>
