@@ -1,9 +1,4 @@
 <div class="clinic-visit-form-page">
-    <!-- Form Header -->
-    <div class="form-header">
-        <h1 class="form-title">Record Clinic Visit</h1>
-        <p class="form-description">Enter patient information and vital signs</p>
-    </div>
 
     @if (session('success'))
         <div class="alert alert-success">
@@ -219,23 +214,6 @@
         display: flex;
         flex-direction: column;
         gap: 24px;
-    }
-
-    .form-header {
-        margin-bottom: 16px;
-    }
-
-    .form-title {
-        margin: 0;
-        font-size: 28px;
-        font-weight: 700;
-        color: var(--text-heading);
-    }
-
-    .form-description {
-        margin: 4px 0 0 0;
-        font-size: 13px;
-        color: var(--text-body);
     }
 
     .alert {
@@ -514,10 +492,6 @@
     }
 
     @media (max-width: 480px) {
-        .form-title {
-            font-size: 22px;
-        }
-
         .vitals-grid {
             grid-template-columns: 1fr;
         }

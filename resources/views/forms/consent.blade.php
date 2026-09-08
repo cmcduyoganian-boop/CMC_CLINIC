@@ -3,20 +3,21 @@
 
     <div class="consent-document-page">
         @if (session('success'))
-            <div class="form-success">{{ session('success') }}</div>
+            <div class="form-success no-print">{{ session('success') }}</div>
         @endif
 
         @if (isset($errors) && $errors->any())
-            <div class="form-errors">{{ $errors->first() }}</div>
+            <div class="form-errors no-print">{{ $errors->first() }}</div>
         @endif
 
-        <form action="{{ route('forms.consent.store') }}" method="POST" class="consent-document">
+        <form action="{{ route('forms.consent.store') }}" method="POST" class="consent-document" id="consent-print-area">
             @csrf
 
             <table class="header-table">
                 <tr>
                     <td class="logo-cell" rowspan="2">
-                        <img src="{{ asset('images/cmc-logo.png') }}" alt="CMC logo" class="seal">
+                        <img src="{{ asset('images/cmc-logo.png') }}" alt="CMC logo" class="seal"
+                             onerror="this.style.display='none'">
                     </td>
                     <td class="school-name">Carmen Municipal College</td>
                 </tr>
@@ -96,20 +97,16 @@
                 </tr>
             </table>
 
-            <div class="form-actions">
-                <a href="{{ route('forms.index') }}">Cancel</a>
-                <button type="button" onclick="window.print()">Print Form</button>
-                <button type="submit">Save Form</button>
-            </div>
         </form>
+
+        <div class="form-actions no-print">
+            <a href="{{ route('forms.index') }}">Cancel</a>
+            <button type="button" onclick="window.print()">Print Form</button>
+            <button type="submit" form="consent-print-area">Save Form</button>
+        </div>
     </div>
 
     <style>
-        @page {
-            size: Letter portrait;
-            margin: 0.35in;
-        }
-
         .consent-document-page {
             width: min(820px, 100%);
             margin: 0 auto;
@@ -322,56 +319,22 @@
             }
         }
 
+        /* ===== Print: only the consent sheet shows, fit to one page ===== */
         @media print {
-            @page {
-                size: auto;
-                margin: 0.5in;
-            }
-
-            body, html {
-                width: 100%;
-                margin: 0;
-                padding: 0;
-            }
-
-            .clinic-sidebar,
-            .sidebar-overlay,
-            .app-topbar,
-            .profile-popup {
-                display: none !important;
-            }
-
-            .consent-document-page {
-                width: 100% !important;
-                max-width: 100% !important;
-            }
-
-            .consent-document {
-                width: 100% !important;
+            body * { visibility: hidden; }
+            #consent-print-area, #consent-print-area * { visibility: visible; }
+            #consent-print-area {
+                position: absolute; top: 0; left: 0; width: 100%; margin: 0;
                 border: 1px solid #000;
-                margin: 0;
-                padding: 18px;
-                background: #fff;
                 box-shadow: none;
             }
+            .no-print { display: none !important; visibility: hidden !important; }
 
-            .header-table,
-            .form-table,
-            .signatures {
-                width: 100%;
-                table-layout: fixed;
-                border-collapse: collapse;
-            }
+            @page { size: portrait; margin: 8mm; }
 
-            .form-actions,
-            .form-success,
-            .form-errors {
-                display: none !important;
-            }
-
-            * {
-                box-sizing: border-box;
-            }
+            .consent-document { font-size: 12px; padding: 12px; }
+            .paragraph-row { min-height: 40px; }
+            .signatures td { height: 96px; }
         }
     </style>
 </x-app-with-sidebar>

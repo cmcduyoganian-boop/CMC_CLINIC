@@ -65,6 +65,37 @@
     .cmc-form .check-col { width: 24px; text-align: center; }
     .cmc-form .center { text-align: center; }
 
+    /* Self-contained centering — doesn't depend on Tailwind's max-w-5xl/mx-auto being built */
+    .cmc-form-wrap {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    /* ===== Action buttons — matches Client Consent / Research Consent / Clinic Visit forms ===== */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin: 12px 0;
+    }
+    .form-actions a,
+    .form-actions button {
+        padding: 9px 15px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        background: #fff;
+        text-decoration: none;
+        cursor: pointer;
+        color: #1e293b;
+        font: inherit;
+        font-size: 13px;
+    }
+    .form-actions button:last-child {
+        background: #1683b9;
+        border-color: #1683b9;
+        color: #fff;
+    }
+
     /* ===== Print: only the form sheet shows, fit to one page ===== */
     @media print {
         body * { visibility: hidden; }
@@ -79,7 +110,8 @@
     }
 </style>
 
-<div class="max-w-5xl mx-auto cmc-form">
+<div class="cmc-form-wrap">
+<div class="cmc-form">
 
     @if (session('message'))
         <div class="mb-3 p-2 rounded bg-green-100 border border-green-300 text-green-800 text-sm no-print">
@@ -373,18 +405,10 @@
     </form>
 
     {{-- Bottom action bar (mirrors the top one, handy after scrolling the long form) --}}
-    <div class="flex justify-end items-center gap-3 mt-3 no-print">
-        <a href="{{ route('forms.index') }}" wire:navigate
-           class="inline-flex items-center px-4 py-2 bg-white border border-gray-400 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition">
-            Cancel
-        </a>
-        <button type="button" onclick="window.print()"
-            class="inline-flex items-center px-4 py-2 bg-gray-700 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition">
-            Print Form
-        </button>
-        <button type="submit" form="student-health-form"
-            class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">
-            {{ $isEdit ? 'Update' : 'Save' }}
-        </button>
+    <div class="form-actions no-print">
+        <a href="{{ route('forms.index') }}" wire:navigate>Cancel</a>
+        <button type="button" onclick="window.print()">Print Form</button>
+        <button type="submit" form="student-health-form">{{ $isEdit ? 'Update' : 'Save' }}</button>
     </div>
+</div>
 </div>

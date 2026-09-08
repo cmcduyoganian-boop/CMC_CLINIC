@@ -266,7 +266,7 @@
         /* ── Table base ─────────────────────────────────────── */
         .visits-table {
             width: 100%;
-            min-width: 1180px;       /* keeps all record fields readable on narrow screens */
+            min-width: 1420px;       /* keeps all record fields readable on narrow screens */
             border-collapse: collapse;
             font-size: 12px;
             table-layout: fixed;     /* column widths are honoured */
@@ -275,11 +275,11 @@
         /* ── Column widths (fixed layout) ───────────────────── */
         .visits-table col.col-date    { width: 74px;  }
         .visits-table col.col-name    { width: 118px; }
-        .visits-table col.col-email   { width: 132px; }
-        .visits-table col.col-yr      { width: 78px;  }
         .visits-table col.col-age     { width: 46px;  }
+        .visits-table col.col-program { width: 110px; }
+        .visits-table col.col-year    { width: 90px;  }
         .visits-table col.col-vital   { width: 48px;  }  /* x8 = 384px */
-            .visits-table col.col-status  { width: 160px; }
+        .visits-table col.col-status  { width: 160px; }
         .visits-table col.col-comp    { width: 94px; }
         .visits-table col.col-diag    { width: 82px; }
         .visits-table col.col-mgmt    { width: 82px; }
