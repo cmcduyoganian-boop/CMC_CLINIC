@@ -82,18 +82,6 @@
                 </div>
             </div>
 
-            <div class="form-row-2">
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" wire:model="patientEmail" class="form-control" placeholder="student@cmc.edu.ph">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Phone</label>
-                    <input type="text" wire:model="patientPhone" class="form-control" placeholder="09123456789">
-                </div>
-            </div>
-
             <div class="form-group">
                 <label class="form-label">Program</label>
                 <input type="text" wire:model="patientProgram" class="form-control" placeholder="BS Computer Science">

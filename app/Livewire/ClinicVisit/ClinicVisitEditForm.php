@@ -21,8 +21,6 @@ class ClinicVisitEditForm extends Component
     public $patientCategory = 'student';
     public $patientYearSection = '';
     public $patientAge = '';
-    public $patientPhone = '';
-    public $patientEmail = '';
     public $patientProgram = '';
 
     // ============ VITAL SIGNS ============
@@ -80,8 +78,6 @@ class ClinicVisitEditForm extends Component
         $this->patientCategory = $patient->category ?? 'student';
         $this->patientYearSection = $patient->year_section ?? '';
         $this->patientAge = $patient->age ?? '';
-        $this->patientPhone = $patient->phone ?? '';
-        $this->patientEmail = $patient->email ?? '';
         $this->patientProgram = $patient->program ?? '';
     }
 
@@ -137,8 +133,6 @@ class ClinicVisitEditForm extends Component
             'patientCategory' => 'required|in:student,faculty,staff',
             'patientYearSection' => 'nullable|string|max:50',
             'patientAge' => 'nullable|integer|min:0',
-            'patientPhone' => 'nullable|string|max:20',
-            'patientEmail' => 'nullable|email|max:255',
             'patientProgram' => 'nullable|string|max:100',
         ]);
 
@@ -176,14 +170,9 @@ class ClinicVisitEditForm extends Component
                 'category' => $validated['patientCategory'],
                 'year_section' => $validated['patientYearSection'],
                 'age' => $validated['patientAge'],
-                'phone' => $validated['patientPhone'],
                 'program' => $validated['patientProgram'],
                 'address' => $validated['address'],
             ];
-
-            if (!empty($validated['patientEmail'])) {
-                $patientData['email'] = $validated['patientEmail'];
-            }
 
             $this->visit->patient->update($patientData);
         }

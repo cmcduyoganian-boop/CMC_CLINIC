@@ -17,8 +17,6 @@ class ClinicVisitCreateForm extends Component
     public $patientProgram = '';
     public $patientYearSection = '';
     public $patientAge = '';
-    public $patientPhone = '';
-    public $patientEmail = '';
     public $showPatientDropdown = false;
 
     // ============ VISIT INFO ============
@@ -140,8 +138,6 @@ class ClinicVisitCreateForm extends Component
             ? ''
             : $patient->year_section;
         $this->patientAge = $patient->age ?? '';
-        $this->patientPhone = $patient->phone ?? '';
-        $this->patientEmail = $patient->email ?? '';
         $this->address = trim((string) ($patient->address ?? ''));
         $this->showPatientDropdown = false;
     }
@@ -159,8 +155,6 @@ class ClinicVisitCreateForm extends Component
             'patientProgram' => 'nullable|string|max:255',
             'patientYearSection' => 'nullable|string|max:255',
             'patientAge' => 'nullable|integer|min:0|max:150',
-            'patientPhone' => 'nullable|string|max:30',
-            'patientEmail' => 'required|email|max:255',
             'visitDate' => 'required|date',
             'visitType' => 'required|in:walk_in,appointment,follow_up',
             'address' => 'required|string|max:500',
@@ -195,16 +189,12 @@ class ClinicVisitCreateForm extends Component
                 'program' => $validated['patientProgram'],
                 'year_section' => $validated['patientYearSection'],
                 'age' => $validated['patientAge'],
-                'phone' => $validated['patientPhone'],
-                'email' => $validated['patientEmail'] ?: null,
                 'address' => $validated['address'],
                 'status' => 'active',
             ]);
         } else {
             $patient->update([
                 'age' => $validated['patientAge'],
-                'phone' => $validated['patientPhone'],
-                'email' => $validated['patientEmail'] ?: null,
                 'address' => $validated['address'],
             ]);
         }
