@@ -65,6 +65,11 @@
     .cmc-form .check-col { width: 24px; text-align: center; }
     .cmc-form .center { text-align: center; }
 
+    /* Medical history table border helpers */
+    .cmc-form .border-none { border: none; }
+    .cmc-form .border-left { border-left: 1px solid #1f2937; }
+    .cmc-form .border-bottom { border-bottom: 1px solid #1f2937; }
+
     /* Self-contained centering — doesn't depend on Tailwind's max-w-5xl/mx-auto being built */
     .cmc-form-wrap {
         max-width: 1000px;
@@ -281,8 +286,8 @@
                 </td>
             </tr>
 
-            {{-- ===================== II. PAST MEDICAL & SURGICAL HISTORY ===================== --}}
-            <tr><td colspan="4" class="section-title">II. Past Medical &amp; Surgical History</td></tr>
+{{-- ===================== II. PAST MEDICAL & SURGICAL HISTORY ===================== --}}
+            <tr><td colspan="4" class="section-title">II. Past Medical & Surgical History</td></tr>
             <tr><td colspan="4" class="sub-title">Past Medical History</td></tr>
 
             @foreach ($medicalItemsLeft as $i => $item)
@@ -290,14 +295,14 @@
                     <td colspan="2" style="padding:0;">
                         <table style="border:none;">
                             <tr>
-                                <td style="border:none;{{ $i < count($medicalItemsLeft) - 1 ? 'border-bottom:1px solid #1f2937;' : '' }}">
+                                <td class="border-none {{ $i < count($medicalItemsLeft) - 1 ? 'border-bottom' : '' }}">
                                     {{ $item['label'] }}
                                     @if (isset($item['specify']))
                                         <input type="text" wire:model="pastMedicalHistory.{{ $item['specify'] }}"
                                                style="width:45%;border-bottom:1px solid #9ca3af;display:inline-block;">
                                     @endif
                                 </td>
-                                <td class="check-col" style="border-left:1px solid #1f2937;{{ $i < count($medicalItemsLeft) - 1 ? 'border-bottom:1px solid #1f2937;' : '' }}">
+                                <td class="check-col border-left {{ $i < count($medicalItemsLeft) - 1 ? 'border-bottom' : '' }}">
                                     <input type="checkbox" wire:model="pastMedicalHistory.{{ $item['key'] }}">
                                 </td>
                             </tr>
@@ -307,14 +312,14 @@
                         @php $r = $medicalItemsRight[$i]; @endphp
                         <table style="border:none;">
                             <tr>
-                                <td style="border:none;{{ $i < count($medicalItemsRight) - 1 ? 'border-bottom:1px solid #1f2937;' : '' }}">
+                                <td class="border-none {{ $i < count($medicalItemsRight) - 1 ? 'border-bottom' : '' }}">
                                     {{ $r['label'] }}
                                     @if (isset($r['specify']))
                                         <input type="text" wire:model="pastMedicalHistory.{{ $r['specify'] }}"
                                                style="width:45%;border-bottom:1px solid #9ca3af;display:inline-block;">
                                     @endif
                                 </td>
-                                <td class="check-col" style="border-left:1px solid #1f2937;{{ $i < count($medicalItemsRight) - 1 ? 'border-bottom:1px solid #1f2937;' : '' }}">
+                                <td class="check-col border-left {{ $i < count($medicalItemsRight) - 1 ? 'border-bottom' : '' }}">
                                     <input type="checkbox" wire:model="pastMedicalHistory.{{ $r['key'] }}">
                                 </td>
                             </tr>
@@ -349,14 +354,14 @@
                     <td colspan="2" style="padding:0;">
                         <table style="border:none;">
                             <tr>
-                                <td style="border:none;{{ $i < count($familyItemsLeft) - 1 ? 'border-bottom:1px solid #1f2937;' : '' }}">
+                                <td class="border-none {{ $i < count($familyItemsLeft) - 1 ? 'border-bottom' : '' }}">
                                     {{ $item['label'] }}
                                     @if (isset($item['specify']))
                                         <input type="text" wire:model="familyHistory.{{ $item['specify'] }}"
                                                style="width:45%;border-bottom:1px solid #9ca3af;display:inline-block;">
                                     @endif
                                 </td>
-                                <td class="check-col" style="border-left:1px solid #1f2937;{{ $i < count($familyItemsLeft) - 1 ? 'border-bottom:1px solid #1f2937;' : '' }}">
+                                <td class="check-col border-left {{ $i < count($familyItemsLeft) - 1 ? 'border-bottom' : '' }}">
                                     <input type="checkbox" wire:model="familyHistory.{{ $item['key'] }}">
                                 </td>
                             </tr>
@@ -366,14 +371,14 @@
                         @php $r = $familyItemsRight[$i]; @endphp
                         <table style="border:none;">
                             <tr>
-                                <td style="border:none;{{ $i < count($familyItemsRight) - 1 ? 'border-bottom:1px solid #1f2937;' : '' }}">
+                                <td class="border-none {{ $i < count($familyItemsRight) - 1 ? 'border-bottom' : '' }}">
                                     {{ $r['label'] }}
                                     @if (isset($r['specify']))
                                         <input type="text" wire:model="familyHistory.{{ $r['specify'] }}"
                                                style="width:45%;border-bottom:1px solid #9ca3af;display:inline-block;">
                                     @endif
                                 </td>
-                                <td class="check-col" style="border-left:1px solid #1f2937;{{ $i < count($familyItemsRight) - 1 ? 'border-bottom:1px solid #1f2937;' : '' }}">
+                                <td class="check-col border-left {{ $i < count($familyItemsRight) - 1 ? 'border-bottom' : '' }}">
                                     <input type="checkbox" wire:model="familyHistory.{{ $r['key'] }}">
                                 </td>
                             </tr>
