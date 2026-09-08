@@ -18,8 +18,10 @@
 <colgroup>
                 <col class="col-date">
                 <col class="col-name">
-                <col class="col-year">
                 <col class="col-age">
+                <col class="col-year">
+                <col class="col-addr">
+                <col class="col-sex">
                 <col class="col-vital"><!-- T -->
                 <col class="col-vital"><!-- PR -->
                 <col class="col-vital"><!-- RR -->
@@ -32,27 +34,25 @@
                 <col class="col-comp">
                 <col class="col-diag">
                 <col class="col-mgmt">
-                <col class="col-addr">
-                <col class="col-sex">
                 <col class="col-act">
             </colgroup>
-<thead>
+            <thead>
                     <tr>
                         <th>DATE</th>
                         <th>FULL NAME</th>
-                        <th>YEAR & SECTION</th>
                         <th class="cell-center">AGE</th>
+                        <th>YEAR & SECTION</th>
+                        <th>ADDRESS</th>
+                        <th class="cell-center">SEX</th>
                         <th colspan="8">VITAL SIGNS</th>
                         <th class="cell-center">VS STATUS</th>
                         <th>COMPLAINTS</th>
                         <th>DIAGNOSIS</th>
                         <th>MANAGEMENT</th>
-                        <th>ADDRESS</th>
-                        <th class="cell-center">SEX</th>
                         <th class="cell-center">ACTIONS</th>
                     </tr>
                     <tr class="vital-signs-header">
-                        <th colspan="4"></th>
+                        <th colspan="6"></th>
                         <th>T°</th>
                         <th>PR</th>
                         <th>RR</th>
@@ -62,7 +62,7 @@
                         <th>BMI</th>
                         <th>SpO2</th>
                         <th></th><!-- VS Status sub-col -->
-                        <th colspan="6"></th>
+                        <th colspan="4"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -74,8 +74,10 @@
                         <tr class="visit-row">
                             <td>{{ $visit->visit_date->format('m/d/Y') }}</td>
                             <td class="patient-name">{{ $visit->patient->name ?? 'N/A' }}</td>
-                            <td class="year-section">{{ $visit->patient->year_section ?? 'N/A' }}</td>
                             <td class="vital-sign">{{ $visit->patient->age ?? 'N/A' }}</td>
+                            <td class="year-section">{{ $visit->patient->year_section ?? 'N/A' }}</td>
+                            <td>{{ $visit->address ?? '-' }}</td>
+                            <td class="vital-sign">{{ ucfirst($visit->sex ?: '-') }}</td>
                             <td class="vital-sign">{{ $visit->temperature ? $visit->temperature . '°C' : '-' }}</td>
                             <td class="vital-sign">{{ $visit->pulse_rate ?: '-' }}</td>
                             <td class="vital-sign">{{ $visit->respiratory_rate ?: '-' }}</td>
