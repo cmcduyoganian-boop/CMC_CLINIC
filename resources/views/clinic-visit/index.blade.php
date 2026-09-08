@@ -124,8 +124,6 @@
                             <td class="text-small">{{ $visit->complaints ?: '-' }}</td>
                             <td class="text-small">{{ $visit->diagnosis ?: '-' }}</td>
                             <td class="text-small">{{ $visit->management ?: '-' }}</td>
-                            <td class="text-small">{{ $visit->address ?: '-' }}</td>
-                            <td class="vital-sign">{{ ucfirst($visit->sex ?: '-') }}</td>
                             <td>
                                 <div class="action-buttons">
                                     <a href="{{ route('clinic-visit.show', $visit->id) }}" class="btn-view" title="View">
@@ -146,7 +144,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="20" style="text-align:center;padding:40px;color:var(--text-muted);">
+                            <td colspan="19" style="text-align:center;padding:40px;color:var(--text-muted);">
                                 No clinic visits recorded yet.
                             </td>
                         </tr>
