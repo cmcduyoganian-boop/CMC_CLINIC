@@ -19,6 +19,7 @@
                 <col class="col-date">
                 <col class="col-name">
                 <col class="col-age">
+                <col class="col-program">
                 <col class="col-year">
                 <col class="col-addr">
                 <col class="col-sex">
@@ -41,6 +42,7 @@
                         <th>DATE</th>
                         <th>FULL NAME</th>
                         <th class="cell-center">AGE</th>
+                        <th>PROGRAM / DEPT</th>
                         <th>YEAR & SECTION</th>
                         <th>ADDRESS</th>
                         <th class="cell-center">SEX</th>
@@ -52,7 +54,7 @@
                         <th class="cell-center">ACTIONS</th>
                     </tr>
                     <tr class="vital-signs-header">
-                        <th colspan="6"></th>
+                        <th colspan="7"></th>
                         <th>T°</th>
                         <th>PR</th>
                         <th>RR</th>
@@ -75,6 +77,7 @@
                             <td>{{ $visit->visit_date->format('m/d/Y') }}</td>
                             <td class="patient-name">{{ $visit->patient->name ?? 'N/A' }}</td>
                             <td class="vital-sign">{{ $visit->patient->age ?? 'N/A' }}</td>
+                            <td>{{ $visit->patient->program ?? '-' }}</td>
                             <td class="year-section">{{ $visit->patient->year_section ?? 'N/A' }}</td>
                             <td>{{ $visit->address ?? '-' }}</td>
                             <td class="vital-sign">{{ ucfirst($visit->sex ?: '-') }}</td>
@@ -144,7 +147,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="19" style="text-align:center;padding:40px;color:var(--text-muted);">
+                            <td colspan="20" style="text-align:center;padding:40px;color:var(--text-muted);">
                                 No clinic visits recorded yet.
                             </td>
                         </tr>
