@@ -25,12 +25,12 @@
 
         <div class="control-group">
             <label class="control-label">Start Date</label>
-            <input type="date" wire:model="startDate" class="form-control">
+            <input type="date" wire:model.live="startDate" class="form-control">
         </div>
 
         <div class="control-group">
             <label class="control-label">End Date</label>
-            <input type="date" wire:model="endDate" class="form-control">
+            <input type="date" wire:model.live="endDate" class="form-control">
         </div>
     </div>
 

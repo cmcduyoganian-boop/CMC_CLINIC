@@ -78,6 +78,151 @@
             min-height: 100vh;
         }
 
+        /* ── Date Filter Bar (shared across all report pages) ─── */
+        .date-filter-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            padding: 14px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .date-filter-form {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .dff-presets {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .dff-preset {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            background: var(--bg-input);
+            color: var(--text-muted);
+            border: 1px solid var(--border-card);
+            transition: all 0.18s;
+            white-space: nowrap;
+        }
+
+        .dff-preset:hover {
+            border-color: #38bdf8;
+            color: #38bdf8;
+        }
+
+        .dff-preset.active {
+            background: linear-gradient(135deg, rgba(56,189,248,0.2), rgba(37,99,235,0.15));
+            border-color: #38bdf8;
+            color: #38bdf8;
+        }
+
+        .dff-range {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+
+        .dff-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .dff-input {
+            background: var(--bg-input);
+            border: 1px solid var(--border-input);
+            border-radius: 6px;
+            padding: 7px 10px;
+            font-size: 12px;
+            color: var(--text-heading);
+            font-family: inherit;
+            transition: border-color 0.2s;
+            cursor: pointer;
+        }
+
+        .dff-input:focus {
+            outline: none;
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56,189,248,0.1);
+        }
+
+        .dff-sep {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .dff-apply {
+            background: linear-gradient(135deg, #38bdf8, #2563eb);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+            transition: opacity 0.2s;
+        }
+
+        .dff-apply:hover { opacity: 0.85; }
+
+        .dff-clear {
+            background: rgba(231,76,60,0.12);
+            color: #e74c3c;
+            border: 1px solid rgba(231,76,60,0.3);
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.2s;
+        }
+
+        .dff-clear:hover { background: rgba(231,76,60,0.22); }
+
+        .dff-result-info {
+            font-size: 12px;
+            color: #38bdf8;
+            background: rgba(56,189,248,0.07);
+            border: 1px solid rgba(56,189,248,0.2);
+            border-radius: 6px;
+            padding: 7px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dff-result-info strong { color: var(--text-heading); }
+
+        @media (max-width: 768px) {
+            .dff-range  { margin-left: 0; }
+            .date-filter-form { flex-direction: column; align-items: stretch; }
+        }
+
         /* ============ SIDEBAR (slide-in/out) ============ */
         .clinic-sidebar {
             position: fixed;

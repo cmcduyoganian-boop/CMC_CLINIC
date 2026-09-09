@@ -232,16 +232,18 @@
             gap: 24px;
         }
 
+        /* ── Search bar ───────────────────────────── */
         .reports-search {
             display: flex;
             align-items: center;
             width: min(420px, 100%);
-            min-height: 42px;
-            padding: 0 14px;
+            min-height: 46px;
+            padding: 0 16px;
             background: var(--bg-card);
             border: 1px solid var(--border-card);
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            gap: 10px;
         }
 
         .reports-search .search-icon {
@@ -249,37 +251,22 @@
             transform: none;
             flex-shrink: 0;
             color: var(--text-muted);
+            font-size: 14px;
         }
 
         .reports-search .search-input {
-            width: 100%;
+            flex: 1;
             min-width: 0;
             border: 0;
             outline: 0;
-            padding: 9px 0 9px 10px;
+            padding: 10px 0;
             background: transparent;
             color: var(--text-heading);
+            font-size: 13px;
+            font-family: 'Figtree', sans-serif;
         }
 
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-         .page-title {
-             margin: 0;
-             font-size: 28px;
-             font-weight: 700;
-             color: var(--text-heading);
-         }
-
-         .page-description {
-             margin: 4px 0 0 0;
-             font-size: 13px;
-             color: var(--text-muted);
-         }
-
+        /* ── Stat cards (top row) ─────────────────── */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -288,92 +275,104 @@
 
         .stat-card {
             background: var(--bg-card);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
+            padding: 20px 22px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
             display: flex;
             align-items: center;
             gap: 16px;
-            transition: all 0.2s;
+            transition: all 0.22s;
         }
 
         .stat-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(0,0,0,0.13);
+            transform: translateY(-3px);
+            border-color: rgba(41,128,185,0.25);
         }
 
         .stat-card .icon {
-            font-size: 32px;
-            color: #38bdf8;
-            width: 50px;
-            height: 50px;
-            background: rgba(56, 189, 248, 0.15);
-            border-radius: 10px;
+            font-size: 22px;
+            color: #2980b9;
+            width: 54px;
+            height: 54px;
+            background: linear-gradient(135deg, rgba(41,128,185,0.15), rgba(26,110,168,0.08));
+            border-radius: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            border: 1px solid rgba(41,128,185,0.18);
         }
 
+        .stat-body { flex: 1; min-width: 0; }
+
         .stat-body h3 {
-            margin: 0;
-            font-size: 12px;
-            font-weight: 600;
+            margin: 0 0 6px;
+            font-size: 10px;
+            font-weight: 700;
             color: var(--text-muted);
             text-transform: uppercase;
+            letter-spacing: .7px;
         }
 
         .stat-number {
-            margin: 8px 0 0 0;
-            font-size: 28px;
-            font-weight: 700;
+            margin: 0;
+            font-size: 34px;
+            font-weight: 800;
             color: var(--text-heading);
+            line-height: 1;
         }
 
+        /* ── Report Cards Grid ────────────────────── */
         .reports-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 20px;
         }
 
         .report-card {
             background: var(--bg-card);
-            border-radius: 10px;
-            padding: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            transition: all 0.2s;
+            gap: 14px;
+            transition: all 0.22s;
         }
 
         .report-card:hover {
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.13);
             transform: translateY(-4px);
+            border-color: rgba(41,128,185,0.3);
         }
 
         .report-header {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
         .report-icon {
-            font-size: 24px;
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
-            color: white;
-            border-radius: 10px;
+            font-size: 19px;
+            width: 46px;
+            height: 46px;
+            background: linear-gradient(135deg, #2980b9, #1a6ea8);
+            color: #fff;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(41,128,185,0.35);
         }
 
         .report-header h3 {
             margin: 0;
-            font-size: 16px;
-            font-weight: 700;
+            font-size: 15px;
+            font-weight: 800;
             color: var(--text-heading);
         }
 

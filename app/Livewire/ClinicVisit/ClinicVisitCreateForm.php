@@ -41,6 +41,7 @@ class ClinicVisitCreateForm extends Component
     public $diagnosis = '';
     public $notes = '';
     public $services = [];
+    public $otherService = '';   // stores the custom text when "Other" is checked
 
     public $serviceOptions = [
         'Vital Signs',
@@ -150,30 +151,39 @@ class ClinicVisitCreateForm extends Component
     public function save()
     {
         $validated = $this->validate([
-            'patientName' => 'required|string|max:255',
-            'patientCategory' => 'required|in:student,faculty,staff',
-            'patientProgram' => 'nullable|string|max:255',
+            'patientName'        => 'required|string|max:255',
+            'patientCategory'    => 'required|in:student,faculty,staff',
+            'patientProgram'     => 'nullable|string|max:255',
             'patientYearSection' => 'nullable|string|max:255',
-            'patientAge' => 'nullable|integer|min:0|max:150',
-            'visitDate' => 'required|date',
-            'visitType' => 'required|in:walk_in,appointment,follow_up',
-            'address' => 'required|string|max:500',
-            'sex' => 'required|in:male,female',
-            'temperature' => 'nullable|numeric',
-            'pulseRate' => 'nullable|numeric',
-            'respiratoryRate' => 'nullable|numeric',
-            'bpSystolic' => 'nullable|numeric',
-            'bpDiastolic' => 'nullable|numeric',
-            'height' => 'nullable|numeric',
-            'weight' => 'nullable|numeric',
-            'spo2' => 'nullable|numeric',
-            'complaints' => 'nullable|string',
-            'management' => 'nullable|string',
-            'diagnosis' => 'nullable|string',
-            'notes' => 'nullable|string',
-            'services' => 'nullable|array',
-            'services.*' => 'string|max:255',
+            'patientAge'         => 'nullable|integer|min:0|max:150',
+            'visitDate'          => 'required|date',
+            'visitType'          => 'required|in:walk_in,appointment,follow_up',
+            'address'            => 'required|string|max:500',
+            'sex'                => 'required|in:male,female',
+            'temperature'        => 'nullable|numeric',
+            'pulseRate'          => 'nullable|numeric',
+            'respiratoryRate'    => 'nullable|numeric',
+            'bpSystolic'         => 'nullable|numeric',
+            'bpDiastolic'        => 'nullable|numeric',
+            'height'             => 'nullable|numeric',
+            'weight'             => 'nullable|numeric',
+            'spo2'               => 'nullable|numeric',
+            'complaints'         => 'nullable|string',
+            'management'         => 'nullable|string',
+            'diagnosis'          => 'nullable|string',
+            'notes'              => 'nullable|string',
+            'services'           => 'nullable|array',
+            'services.*'         => 'string|max:255',
+            'otherService'       => 'nullable|string|max:255',
         ]);
+
+        // Replace generic "Other" entry with the actual typed value
+        $services = $validated['services'] ?? [];
+        if (in_array('Other', $services) && !empty(trim($validated['otherService'] ?? ''))) {
+            $services = array_filter($services, fn($s) => $s !== 'Other');
+            $services[] = trim($validated['otherService']);
+        }
+        $validated['services'] = array_values($services);
 
         // Find or create patient (same logic as the original controller)
         $patient = $this->patientId

@@ -12,26 +12,74 @@ use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
-    public function patients()
+    // ── Shared date parser ─────────────────────────────────────────
+    private function parseDateRange(Request $request): array
     {
-        $patients = Patient::with('clinicVisits')
-            ->withCount('clinicVisits')
-            ->orderBy('name')
-            ->get();
+        $dateFrom = null;
+        $dateTo   = null;
+
+        if ($request->filled('date')) {
+            $dateFrom = Carbon::parse($request->date)->startOfDay();
+            $dateTo   = Carbon::parse($request->date)->endOfDay();
+        }
+
+        // Quick preset overrides explicit date
+        if ($request->preset === 'today') {
+            $dateFrom = now()->startOfDay();
+            $dateTo   = now()->endOfDay();
+        } elseif ($request->preset === 'week') {
+            $dateFrom = now()->startOfWeek();
+            $dateTo   = now()->endOfWeek();
+        } elseif ($request->preset === 'month') {
+            $dateFrom = now()->startOfMonth();
+            $dateTo   = now()->endOfMonth();
+        }
+
+        return [$dateFrom, $dateTo];
+    }
+
+    private function applyDateFilter($query, ?Carbon $dateFrom, ?Carbon $dateTo, string $column = 'visit_date')
+    {
+        if ($dateFrom && $dateTo) {
+            $query->whereBetween($column, [$dateFrom, $dateTo]);
+        } elseif ($dateFrom) {
+            $query->where($column, '>=', $dateFrom);
+        } elseif ($dateTo) {
+            $query->where($column, '<=', $dateTo);
+        }
+        return $query;
+    }
+
+    public function patients(Request $request)
+    {
+        [$dateFrom, $dateTo] = $this->parseDateRange($request);
+
+        // Patient list — filter by first visit date if date range given
+        $patientsQuery = Patient::with('clinicVisits')->withCount('clinicVisits')->orderBy('name');
+        if ($dateFrom || $dateTo) {
+            $patientsQuery->whereHas('clinicVisits', function ($q) use ($dateFrom, $dateTo) {
+                $this->applyDateFilter($q, $dateFrom, $dateTo);
+            });
+        }
 
         return view('reports.patients', [
-            'totalPatients'   => Patient::count(),
-            'students'        => Patient::where('category', 'student')->count(),
-            'faculty'         => Patient::where('category', 'faculty')->count(),
-            'staff'           => Patient::where('category', 'staff')->count(),
-            'activePatients'  => Patient::where('status', 'active')->count(),
-            'inactivePatients'=> Patient::where('status', 'inactive')->count(),
-            'patients'        => $patients,
+            'totalPatients'    => Patient::count(),
+            'students'         => Patient::where('category', 'student')->count(),
+            'faculty'          => Patient::where('category', 'faculty')->count(),
+            'staff'            => Patient::where('category', 'staff')->count(),
+            'activePatients'   => Patient::where('status', 'active')->count(),
+            'inactivePatients' => Patient::where('status', 'inactive')->count(),
+            'patients'         => $patientsQuery->get(),
+            'date'          => $request->date ?? '',
+            'preset'           => $request->preset ?? '',
+            'filteredCount'    => $patientsQuery->count(),
         ]);
     }
 
-    public function clinicVisits()
+    public function clinicVisits(Request $request)
     {
+        [$dateFrom, $dateTo] = $this->parseDateRange($request);
+
         $last30Days = collect(range(29, 0))->map(function ($days) {
             $date = now()->subDays($days);
             return [
@@ -40,127 +88,126 @@ class ReportController extends Controller
             ];
         });
 
+        $visitsQuery = ClinicVisit::with('patient')->orderBy('visit_date', 'desc');
+        $this->applyDateFilter($visitsQuery, $dateFrom, $dateTo);
+
         return view('reports.clinic-visits', [
             'totalVisits'    => ClinicVisit::count(),
             'todayVisits'    => ClinicVisit::whereDate('visit_date', today())->count(),
-            'monthVisits'    => ClinicVisit::whereBetween('visit_date', [
-                now()->startOfMonth(),
-                now()->endOfMonth()
-            ])->count(),
+            'monthVisits'    => ClinicVisit::whereBetween('visit_date', [now()->startOfMonth(), now()->endOfMonth()])->count(),
             'uniquePatients' => ClinicVisit::distinct('patient_id')->count('patient_id'),
             'last30Days'     => $last30Days,
-            'recentVisits'   => ClinicVisit::with('patient')
-                ->orderBy('visit_date', 'desc')
-                ->limit(20)
-                ->get(),
+            'recentVisits'   => $visitsQuery->get(),
+            'date'          => $request->date ?? '',
+            'preset'         => $request->preset ?? '',
+            'filteredCount'  => $visitsQuery->count(),
         ]);
     }
 
-    public function diagnosis()
+    public function diagnosis(Request $request)
     {
-        $topDiagnoses = ClinicVisit::select('diagnosis')
-            ->whereNotNull('diagnosis')
-            ->where('diagnosis', '!=', '')
+        [$dateFrom, $dateTo] = $this->parseDateRange($request);
+
+        $diagQuery = ClinicVisit::select('diagnosis')
+            ->whereNotNull('diagnosis')->where('diagnosis', '!=', '');
+        $this->applyDateFilter($diagQuery, $dateFrom, $dateTo);
+        $topDiagnoses = (clone $diagQuery)
             ->groupBy('diagnosis')
             ->selectRaw('diagnosis, COUNT(*) as count')
             ->orderByRaw('COUNT(*) DESC')
-            ->limit(10)
-            ->get();
+            ->limit(10)->get();
 
         return view('reports.diagnosis', [
-            'topDiagnoses'        => $topDiagnoses,
-            'totalUniqueDiagnoses'=> ClinicVisit::whereNotNull('diagnosis')
-                ->distinct('diagnosis')
-                ->count('diagnosis'),
+            'topDiagnoses'         => $topDiagnoses,
+            'totalUniqueDiagnoses' => ClinicVisit::whereNotNull('diagnosis')->distinct('diagnosis')->count('diagnosis'),
+            'date'          => $request->date ?? '',
+            'preset'               => $request->preset ?? '',
+            'filteredCount'        => $topDiagnoses->sum('count'),
         ]);
     }
 
-    public function medicines()
+    public function medicines(Request $request)
     {
-        $medicines = Medicine::where('status', 'active')
-            ->orderBy('quantity')
-            ->get();
+        // Medicines have no visit date — we keep as-is, date just shown in UI
+        [$dateFrom, $dateTo] = $this->parseDateRange($request);
+
+        $medicines = Medicine::where('status', 'active')->orderBy('quantity')->get();
 
         return view('reports.medicines', [
             'totalMedicines' => Medicine::count(),
             'lowStock'       => Medicine::whereRaw('quantity <= minimum_stock')->count(),
             'outOfStock'     => Medicine::where('quantity', '<=', 0)->count(),
             'medicines'      => $medicines,
+            'date'          => $request->date ?? '',
+            'preset'         => $request->preset ?? '',
         ]);
     }
 
-    public function appointments()
+    public function appointments(Request $request)
     {
+        [$dateFrom, $dateTo] = $this->parseDateRange($request);
+
+        $apptQuery = Appointment::with('patient')->orderBy('appointment_date', 'desc');
+        $this->applyDateFilter($apptQuery, $dateFrom, $dateTo, 'appointment_date');
+
         return view('reports.appointments', [
             'totalAppointments' => Appointment::count(),
             'scheduled'         => Appointment::where('status', 'scheduled')->count(),
             'completed'         => Appointment::where('status', 'completed')->count(),
             'noShow'            => Appointment::where('status', 'no-show')->count(),
             'cancelled'         => Appointment::where('status', 'cancelled')->count(),
-            'appointments'      => Appointment::with('patient')
-                ->orderBy('appointment_date', 'desc')
-                ->limit(20)
-                ->get(),
+            'appointments'      => $apptQuery->get(),
+            'date'          => $request->date ?? '',
+            'preset'            => $request->preset ?? '',
+            'filteredCount'     => $apptQuery->count(),
         ]);
     }
 
-    public function vitalSigns()
+    public function vitalSigns(Request $request)
     {
-        // Fetch ALL visits that have at least one vital sign recorded
-        $allReadings = ClinicVisit::with('patient')
-            ->where(function ($q) {
-                $q->whereNotNull('temperature')
-                  ->orWhereNotNull('pulse_rate')
-                  ->orWhereNotNull('respiratory_rate')
-                  ->orWhereNotNull('bp_systolic')
-                  ->orWhereNotNull('spo2')
-                  ->orWhereNotNull('height')
-                  ->orWhereNotNull('weight');
-            })
-            ->orderBy('visit_date', 'desc')
-            ->get();
+        [$dateFrom, $dateTo] = $this->parseDateRange($request);
 
-        // Build summary counts using correct VitalSigns thresholds
-        // ── Temperature ──
-        $highFever      = ClinicVisit::whereNotNull('temperature')->where('temperature', '>=', 38.0)->count();
-        $lowTemperature = ClinicVisit::whereNotNull('temperature')->where('temperature', '<', 36.0)->count();
-        $criticalTemp   = ClinicVisit::whereNotNull('temperature')
-            ->where(fn($q) => $q->where('temperature', '<', 35.0)->orWhere('temperature', '>=', 38.0))
-            ->count();
+        $baseQuery = fn() => ClinicVisit::where(function ($q) {
+            $q->whereNotNull('temperature')
+              ->orWhereNotNull('pulse_rate')
+              ->orWhereNotNull('respiratory_rate')
+              ->orWhereNotNull('bp_systolic')
+              ->orWhereNotNull('spo2')
+              ->orWhereNotNull('height')
+              ->orWhereNotNull('weight');
+        });
 
-        // ── SpO₂ ──
-        $lowOxygen      = ClinicVisit::whereNotNull('spo2')->where('spo2', '<=', 92)->count();
-        $criticalOxygen = ClinicVisit::whereNotNull('spo2')->where('spo2', '<=', 90)->count();
+        $readingsQuery = $baseQuery()->orderBy('visit_date', 'desc');
+        $this->applyDateFilter($readingsQuery, $dateFrom, $dateTo);
+        $allReadings = $readingsQuery->with('patient')->get();
 
-        // ── Blood Pressure ──
-        $highBP = ClinicVisit::where(fn($q) => $q
-            ->where('bp_systolic', '>=', 140)->orWhere('bp_diastolic', '>=', 90))->count();
-        $lowBP  = ClinicVisit::where(fn($q) => $q
-            ->where('bp_systolic', '<', 90)->orWhere('bp_diastolic', '<', 60))->count();
-        $criticalBP = ClinicVisit::where(fn($q) => $q
-            ->where('bp_systolic', '>=', 180)->orWhere('bp_diastolic', '>=', 120)
+        // Summary counts (respect date filter)
+        $cntQ = fn() => tap($baseQuery(), fn($q) => $this->applyDateFilter($q, $dateFrom, $dateTo));
+
+        $highFever      = (clone $cntQ())->whereNotNull('temperature')->where('temperature', '>=', 38.0)->count();
+        $lowTemperature = (clone $cntQ())->whereNotNull('temperature')->where('temperature', '<', 36.0)->count();
+        $criticalTemp   = (clone $cntQ())->whereNotNull('temperature')
+            ->where(fn($q) => $q->where('temperature', '<', 35.0)->orWhere('temperature', '>=', 38.0))->count();
+
+        $lowOxygen      = (clone $cntQ())->whereNotNull('spo2')->where('spo2', '<=', 92)->count();
+        $criticalOxygen = (clone $cntQ())->whereNotNull('spo2')->where('spo2', '<=', 90)->count();
+
+        $highBP     = (clone $cntQ())->where(fn($q) => $q->where('bp_systolic', '>=', 140)->orWhere('bp_diastolic', '>=', 90))->count();
+        $lowBP      = (clone $cntQ())->where(fn($q) => $q->where('bp_systolic', '<', 90)->orWhere('bp_diastolic', '<', 60))->count();
+        $criticalBP = (clone $cntQ())->where(fn($q) => $q->where('bp_systolic', '>=', 180)->orWhere('bp_diastolic', '>=', 120)
             ->orWhere('bp_systolic', '<', 80)->orWhere('bp_diastolic', '<', 50))->count();
 
-        // ── Pulse Rate ──
-        $highPulse    = ClinicVisit::whereNotNull('pulse_rate')->where('pulse_rate', '>', 100)->count();
-        $lowPulse     = ClinicVisit::whereNotNull('pulse_rate')->where('pulse_rate', '<', 60)->count();
-        $criticalPulse = ClinicVisit::whereNotNull('pulse_rate')
-            ->where(fn($q) => $q->where('pulse_rate', '<', 50)->orWhere('pulse_rate', '>', 120))
-            ->count();
+        $highPulse     = (clone $cntQ())->whereNotNull('pulse_rate')->where('pulse_rate', '>', 100)->count();
+        $lowPulse      = (clone $cntQ())->whereNotNull('pulse_rate')->where('pulse_rate', '<', 60)->count();
+        $criticalPulse = (clone $cntQ())->whereNotNull('pulse_rate')
+            ->where(fn($q) => $q->where('pulse_rate', '<', 50)->orWhere('pulse_rate', '>', 120))->count();
 
-        // ── Respiratory Rate ──
-        $highRespRate    = ClinicVisit::whereNotNull('respiratory_rate')->where('respiratory_rate', '>', 20)->count();
-        $lowRespRate     = ClinicVisit::whereNotNull('respiratory_rate')->where('respiratory_rate', '<', 10)->count();
-        $criticalRespRate = ClinicVisit::whereNotNull('respiratory_rate')
-            ->where(fn($q) => $q->where('respiratory_rate', '<', 8)->orWhere('respiratory_rate', '>', 30))
-            ->count();
+        $highRespRate     = (clone $cntQ())->whereNotNull('respiratory_rate')->where('respiratory_rate', '>', 20)->count();
+        $lowRespRate      = (clone $cntQ())->whereNotNull('respiratory_rate')->where('respiratory_rate', '<', 10)->count();
+        $criticalRespRate = (clone $cntQ())->whereNotNull('respiratory_rate')
+            ->where(fn($q) => $q->where('respiratory_rate', '<', 8)->orWhere('respiratory_rate', '>', 30))->count();
 
-        // Overall counts per classification
-        $normalCount   = 0;
-        $aboveCount    = 0;
-        $belowCount    = 0;
-        $abnormalCount = 0;
-
+        $normalCount = $aboveCount = $belowCount = $abnormalCount = 0;
         foreach ($allReadings as $r) {
             $overall = $r->getVitalSignsAssessment()['overall'];
             match ($overall) {
@@ -179,7 +226,11 @@ class ReportController extends Controller
             'highPulse', 'lowPulse', 'criticalPulse',
             'highRespRate', 'lowRespRate', 'criticalRespRate',
             'normalCount', 'aboveCount', 'belowCount', 'abnormalCount',
-        ));
+        ) + [
+            'date'          => $request->date ?? '',
+            'preset'        => $request->preset ?? '',
+            'filteredCount' => $allReadings->count(),
+        ]);
     }
 
     public function download($type)

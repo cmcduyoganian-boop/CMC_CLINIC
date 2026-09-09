@@ -1,26 +1,53 @@
 <x-app-with-sidebar>
-	<x-slot name="header">Vital Signs Report</x-slot>
+    <x-slot name="header">Vital Signs Report</x-slot>
 
-	<div class="report-page">
-		<div class="report-header">
-			<div>
-				<h1 class="report-title">Vital Signs Report</h1>
-				<p class="report-subtitle">Recorded vital signs and health assessments</p>
-			</div>
-			<div class="header-actions">
-				<button type="button" onclick="window.print()" class="btn btn-print">
-					<i class="fas fa-print"></i> Print
-				</button>
-				<a href="{{ route('reports.download', 'vital-signs') }}" class="btn btn-download">
-					<i class="fas fa-file-download"></i> Download Excel
-				</a>
-				<a href="{{ route('reports.index') }}" class="btn btn-back">
-					<i class="fas fa-arrow-left"></i> Back
-				</a>
-			</div>
-		</div>
+    <div class="report-page">
+        <!-- Header -->
+        <div class="report-header">
+            <div class="header-actions">
+                <button onclick="window.print()" class="btn btn-print">
+                    <i class="fas fa-print"></i> Print
+                </button>
+                <a href="{{ route('reports.download', 'vital-signs') }}" class="btn btn-download">
+                    <i class="fas fa-file-download"></i> Download Excel
+                </a>
+                <a href="{{ route('reports.index') }}" class="btn btn-back">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
 
-		<div class="summary-cards">
+        {{-- Date Filter Bar --}}
+        <div class="date-filter-bar">
+            <form method="GET" action="{{ route('reports.vital-signs') }}" class="date-filter-form">
+                <div class="dff-presets">
+                    <a href="{{ route('reports.vital-signs') }}" class="dff-preset {{ !($date ?? null) && !($preset ?? null) ? 'active' : '' }}">All Time</a>
+                    <a href="{{ route('reports.vital-signs', ['preset' => 'today']) }}" class="dff-preset {{ ($preset ?? '') === 'today' ? 'active' : '' }}">Today</a>
+                    <a href="{{ route('reports.vital-signs', ['preset' => 'week']) }}" class="dff-preset {{ ($preset ?? '') === 'week' ? 'active' : '' }}">This Week</a>
+                    <a href="{{ route('reports.vital-signs', ['preset' => 'month']) }}" class="dff-preset {{ ($preset ?? '') === 'month' ? 'active' : '' }}">This Month</a>
+                </div>
+                <div class="dff-range">
+                    <span class="dff-label"><i class="fas fa-calendar-alt"></i> Filter by Date:</span>
+                    <input type="date" name="date" value="{{ $date ?? '' }}" class="dff-input" max="{{ date('Y-m-d') }}">
+                    <button type="submit" class="dff-apply"><i class="fas fa-filter"></i> Apply</button>
+                    @if(!empty($date) || !empty($preset))
+                        <a href="{{ route('reports.vital-signs') }}" class="dff-clear"><i class="fas fa-times"></i> Clear</a>
+                    @endif
+                </div>
+            </form>
+            @if(!empty($date) || !empty($preset))
+                <div class="dff-result-info">
+                    <i class="fas fa-info-circle"></i>
+                    @if(!empty($date))
+                        Showing <strong>{{ $filteredCount ?? 0 }}</strong> record(s) on <strong>{{ \Carbon\Carbon::parse($date)->format('F d, Y') }}</strong>
+                    @else
+                        Showing <strong>{{ $filteredCount ?? 0 }}</strong> record(s) — <strong>{{ ucfirst($preset) }}</strong>
+                    @endif
+                </div>
+            @endif
+        </div>
+
+        <div class="summary-cards">
 			<div class="card status-card clickable-card" data-filter="all">
 				<h3>Total Readings</h3>
 				<p class="card-value">{{ $allReadings->count() }}</p>

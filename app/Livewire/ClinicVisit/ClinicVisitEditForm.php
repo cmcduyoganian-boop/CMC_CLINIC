@@ -39,6 +39,7 @@ class ClinicVisitEditForm extends Component
     public $diagnosis = '';
     public $notes = '';
     public $services = [];
+    public $otherService = '';
 
     public $serviceOptions = [
         'Vital Signs',
@@ -72,6 +73,17 @@ class ClinicVisitEditForm extends Component
         $this->diagnosis = $this->visit->diagnosis;
         $this->notes = $this->visit->notes;
         $this->services = $this->visit->services ?: [];
+
+        // Restore otherService: any value not in the standard options list
+        $standardOptions = ['Vital Signs','Health Education','Referral','First Aid','Counseling','Medicine Dispensing','Wound Dressing','Other'];
+        foreach ($this->services as $svc) {
+            if (!in_array($svc, $standardOptions)) {
+                $this->otherService = $svc;
+                // Replace the custom value back with 'Other' in the array
+                $this->services = array_map(fn($s) => $s === $svc ? 'Other' : $s, $this->services);
+                break;
+            }
+        }
 
         $patient = $this->visit->patient;
         $this->patientName = $patient->name ?? '';
@@ -157,6 +169,15 @@ class ClinicVisitEditForm extends Component
             'notes' => $validated['notes'],
             'services' => $validated['services'] ?: null,
         ]);
+
+        // Replace 'Other' placeholder with the actual typed service name
+        if (!empty($validated['services']) && in_array('Other', $validated['services']) && trim($this->otherService)) {
+            $finalServices = array_map(
+                fn($s) => $s === 'Other' ? trim($this->otherService) : $s,
+                $validated['services']
+            );
+            $this->visit->update(['services' => $finalServices]);
+        }
 
         Log::info('Clinic visit updated', [
             'visit_id' => $this->visit->id,

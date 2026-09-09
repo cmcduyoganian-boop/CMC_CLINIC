@@ -4,10 +4,6 @@
     <div class="report-page">
         <!-- Header -->
         <div class="report-header">
-            <div>
-                <h1 class="report-title">Clinic Visits Report</h1>
-                <p class="report-subtitle">Generated on {{ now()->format('F d, Y \a\t H:i A') }}</p>
-            </div>
             <div class="header-actions">
                 <button onclick="window.print()" class="btn btn-print">
                     <i class="fas fa-print"></i> Print
@@ -19,6 +15,36 @@
                     <i class="fas fa-arrow-left"></i> Back
                 </a>
             </div>
+        </div>
+
+        {{-- Date Filter Bar --}}
+        <div class="date-filter-bar">
+            <form method="GET" action="{{ route('reports.clinic-visits') }}" class="date-filter-form">
+                <div class="dff-presets">
+                    <a href="{{ route('reports.clinic-visits') }}" class="dff-preset {{ !($date ?? null) && !($preset ?? null) ? 'active' : '' }}">All Time</a>
+                    <a href="{{ route('reports.clinic-visits', ['preset' => 'today']) }}" class="dff-preset {{ ($preset ?? '') === 'today' ? 'active' : '' }}">Today</a>
+                    <a href="{{ route('reports.clinic-visits', ['preset' => 'week']) }}" class="dff-preset {{ ($preset ?? '') === 'week' ? 'active' : '' }}">This Week</a>
+                    <a href="{{ route('reports.clinic-visits', ['preset' => 'month']) }}" class="dff-preset {{ ($preset ?? '') === 'month' ? 'active' : '' }}">This Month</a>
+                </div>
+                <div class="dff-range">
+                    <span class="dff-label"><i class="fas fa-calendar-alt"></i> Filter by Date:</span>
+                    <input type="date" name="date" value="{{ $date ?? '' }}" class="dff-input" max="{{ date('Y-m-d') }}">
+                    <button type="submit" class="dff-apply"><i class="fas fa-filter"></i> Apply</button>
+                    @if(!empty($date) || !empty($preset))
+                        <a href="{{ route('reports.clinic-visits') }}" class="dff-clear"><i class="fas fa-times"></i> Clear</a>
+                    @endif
+                </div>
+            </form>
+            @if(!empty($date) || !empty($preset))
+                <div class="dff-result-info">
+                    <i class="fas fa-info-circle"></i>
+                    @if(!empty($date))
+                        Showing <strong>{{ $filteredCount ?? 0 }}</strong> record(s) on <strong>{{ \Carbon\Carbon::parse($date)->format('F d, Y') }}</strong>
+                    @else
+                        Showing <strong>{{ $filteredCount ?? 0 }}</strong> record(s) — <strong>{{ ucfirst($preset) }}</strong>
+                    @endif
+                </div>
+            @endif
         </div>
 
         <!-- Summary Cards -->

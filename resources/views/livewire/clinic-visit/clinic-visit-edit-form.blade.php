@@ -52,15 +52,90 @@
 
             <div class="form-group">
                 <label class="form-label">Services Rendered</label>
-                <div class="services-checkboxes">
-                    @foreach($serviceOptions as $option)
-                        <label class="service-checkbox">
-                            <input type="checkbox" wire:model="services" value="{{ $option }}">
-                            <span>{{ $option }}</span>
-                        </label>
-                    @endforeach
+
+                {{-- Modern multi-select dropdown (same as create form) --}}
+                <div
+                    class="ms-dropdown"
+                    x-data="{ open: false }"
+                    x-on:click.outside="open = false"
+                >
+                    {{-- Trigger button --}}
+                    <button
+                        type="button"
+                        class="ms-trigger"
+                        x-on:click="open = !open"
+                        x-bind:class="{ 'ms-trigger-open': open }"
+                    >
+                        <span class="ms-trigger-text">
+                            @if(count($services) === 0)
+                                <span class="ms-placeholder">— Select services rendered —</span>
+                            @else
+                                <span class="ms-tags">
+                                    @foreach($services as $svc)
+                                        <span class="ms-tag">{{ $svc === 'Other' ? (trim($otherService) ?: 'Other') : $svc }}</span>
+                                    @endforeach
+                                </span>
+                            @endif
+                        </span>
+                        <i class="fas ms-chevron" x-bind:class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                    </button>
+
+                    {{-- Dropdown panel --}}
+                    <div class="ms-panel" x-show="open" x-transition>
+                        <div class="ms-options">
+                            @foreach($serviceOptions as $option)
+                                <label class="ms-option">
+                                    <input
+                                        type="checkbox"
+                                        wire:model.live="services"
+                                        value="{{ $option }}"
+                                        class="ms-checkbox"
+                                    >
+                                    <span class="ms-check-icon">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                    <span class="ms-option-label">
+                                        @if($option === 'Vital Signs')           <i class="fas fa-heartbeat ms-opt-icon"></i>
+                                        @elseif($option === 'Health Education')  <i class="fas fa-book-medical ms-opt-icon"></i>
+                                        @elseif($option === 'Referral')          <i class="fas fa-share-square ms-opt-icon"></i>
+                                        @elseif($option === 'First Aid')         <i class="fas fa-first-aid ms-opt-icon"></i>
+                                        @elseif($option === 'Counseling')        <i class="fas fa-comments ms-opt-icon"></i>
+                                        @elseif($option === 'Medicine Dispensing') <i class="fas fa-pills ms-opt-icon"></i>
+                                        @elseif($option === 'Wound Dressing')   <i class="fas fa-band-aid ms-opt-icon"></i>
+                                        @elseif($option === 'Other')             <i class="fas fa-plus-circle ms-opt-icon"></i>
+                                        @endif
+                                        {{ $option }}
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
+
+                        {{-- "Other" text input --}}
+                        @if(in_array('Other', $services))
+                            <div class="ms-other-wrap">
+                                <i class="fas fa-pencil-alt ms-other-icon"></i>
+                                <input
+                                    type="text"
+                                    wire:model.live="otherService"
+                                    class="ms-other-input"
+                                    placeholder="Please specify the service..."
+                                    maxlength="255"
+                                >
+                            </div>
+                        @endif
+
+                        @if(count($services) > 0)
+                            <div class="ms-footer">
+                                <span class="ms-count">{{ count($services) }} service(s) selected</span>
+                                <button type="button" class="ms-done" x-on:click="open = false">
+                                    <i class="fas fa-check"></i> Done
+                                </button>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
+
 
             <div class="form-group">
                 <label class="form-label">Sex *</label>
@@ -523,45 +598,231 @@
         }
     }
 
-    .services-checkboxes {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
+    .ms-dropdown {
+        position: relative;
+        width: 100%;
     }
 
-    .service-checkbox {
+    /* Trigger button */
+    .ms-trigger {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        background: var(--bg-input);
+        border: 1px solid var(--border-input, #162135);
+        border-radius: 6px;
+        padding: 10px 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: 'Figtree', sans-serif;
+        text-align: left;
+        min-height: 42px;
+    }
+
+    .ms-trigger:hover,
+    .ms-trigger-open {
+        border-color: #38bdf8;
+        box-shadow: 0 0 0 3px rgba(56,189,248,0.1);
+    }
+
+    .ms-trigger-text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .ms-placeholder {
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .ms-chevron {
+        font-size: 11px;
+        color: var(--text-muted);
+        flex-shrink: 0;
+        transition: transform 0.2s;
+    }
+
+    /* Selected tags inside trigger */
+    .ms-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .ms-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        background: linear-gradient(135deg, rgba(56,189,248,0.18), rgba(37,99,235,0.15));
+        color: #38bdf8;
+        border: 1px solid rgba(56,189,248,0.3);
+        white-space: nowrap;
+    }
+
+    /* Dropdown panel */
+    .ms-panel {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        z-index: 50;
+        overflow: hidden;
+    }
+
+    /* Options list */
+    .ms-options {
+        max-height: 260px;
+        overflow-y: auto;
+        padding: 6px 0;
+    }
+
+    .ms-options::-webkit-scrollbar { width: 4px; }
+    .ms-options::-webkit-scrollbar-track { background: transparent; }
+    .ms-options::-webkit-scrollbar-thumb { background: var(--border-inner); border-radius: 2px; }
+
+    /* Individual option row */
+    .ms-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        cursor: pointer;
+        transition: background 0.15s;
+        position: relative;
+    }
+
+    .ms-option:hover {
+        background: var(--bg-input);
+    }
+
+    /* Hide real checkbox */
+    .ms-checkbox {
+        display: none;
+    }
+
+    /* Custom check box indicator */
+    .ms-check-icon {
+        width: 18px;
+        height: 18px;
+        border-radius: 5px;
+        border: 1.5px solid var(--border-inner);
+        background: var(--bg-input);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.15s;
+        color: transparent;
+        font-size: 10px;
+    }
+
+    .ms-checkbox:checked ~ .ms-check-icon {
+        background: #38bdf8;
+        border-color: #38bdf8;
+        color: #fff;
+    }
+
+    /* Row highlight when checked */
+    .ms-option:has(.ms-checkbox:checked) {
+        background: rgba(56,189,248,0.06);
+    }
+
+    .ms-option-label {
         display: flex;
         align-items: center;
         gap: 8px;
-        background: var(--bg-input);
-        border: 1px solid var(--border-input);
-        border-radius: 8px;
-        padding: 10px 14px;
-        cursor: pointer;
-        transition: all 0.2s;
-        flex: 1 1 calc(50% - 5px);
-        min-width: 140px;
-    }
-
-    .service-checkbox:hover {
-        background: var(--border-input);
-    }
-
-    .service-checkbox input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
-        accent-color: #38bdf8;
-        cursor: pointer;
-    }
-
-    .service-checkbox span {
         font-size: 13px;
         color: var(--text-heading);
+        font-weight: 500;
     }
 
-    @media (max-width: 480px) {
-        .service-checkbox {
-            flex: 1 1 100%;
-        }
+    .ms-opt-icon {
+        font-size: 12px;
+        color: var(--text-muted);
+        width: 14px;
+        text-align: center;
     }
+
+    /* "Other" input inside dropdown */
+    .ms-other-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 10px 8px;
+        background: rgba(139,92,246,0.07);
+        border: 1.5px solid rgba(139,92,246,0.4);
+        border-radius: 8px;
+        padding: 9px 12px;
+        animation: slideDown 0.15s ease;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-4px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .ms-other-icon {
+        color: #8b5cf6;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+
+    .ms-other-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 13px;
+        color: var(--text-heading);
+        font-family: 'Figtree', sans-serif;
+    }
+
+    .ms-other-input::placeholder {
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    /* Footer bar */
+    .ms-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 9px 14px;
+        border-top: 1px solid var(--border-inner);
+        background: var(--bg-input);
+    }
+
+    .ms-count {
+        font-size: 11px;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+
+    .ms-done {
+        background: linear-gradient(135deg, #38bdf8, #2563eb);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 5px 14px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-family: 'Figtree', sans-serif;
+        transition: opacity 0.2s;
+    }
+
+    .ms-done:hover { opacity: 0.85; }
+
 </style>
