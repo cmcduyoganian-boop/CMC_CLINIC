@@ -9,7 +9,7 @@
                 <button onclick="window.print()" class="btn btn-print">
                     <i class="fas fa-print"></i> Print
                 </button>
-                <a href="{{ route('reports.download', 'appointments') }}" class="btn btn-download">
+                <a href="{{ route('reports.download', ['type' => 'appointments', 'date' => $date ?? '', 'preset' => $preset ?? '']) }}" class="btn btn-download">
                     <i class="fas fa-file-excel"></i> Download Excel
                 </a>
                 <a href="{{ route('reports.index') }}" class="btn btn-back">

@@ -4,11 +4,11 @@
     <div class="report-page">
         <!-- Header -->
         <div class="report-header">
-            <div class="header-actions">
+<div class="header-actions">
                 <button onclick="window.print()" class="btn btn-print">
                     <i class="fas fa-print"></i> Print
                 </button>
-                <a href="{{ route('reports.download', 'clinic-visits') }}" class="btn btn-download">
+                <a href="{{ route('reports.download', ['type' => 'clinic-visits', 'date' => $date ?? '', 'preset' => $preset ?? '']) }}" class="btn btn-download">
                     <i class="fas fa-file-excel"></i> Download Excel
                 </a>
                 <a href="{{ route('reports.index') }}" class="btn btn-back">
