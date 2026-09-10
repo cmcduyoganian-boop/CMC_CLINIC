@@ -62,13 +62,18 @@ class ReportController extends Controller
             });
         }
 
+        $baseQuery = fn() => Patient::query();
+        $filteredQuery = (clone $baseQuery())->when($dateFrom || $dateTo, fn($q) => $q->whereHas('clinicVisits', function ($q2) use ($dateFrom, $dateTo) {
+            $this->applyDateFilter($q2, $dateFrom, $dateTo);
+        }));
+
         return view('reports.patients', [
-            'totalPatients'    => Patient::count(),
-            'students'         => Patient::where('category', 'student')->count(),
-            'faculty'          => Patient::where('category', 'faculty')->count(),
-            'staff'            => Patient::where('category', 'staff')->count(),
-            'activePatients'   => Patient::where('status', 'active')->count(),
-            'inactivePatients' => Patient::where('status', 'inactive')->count(),
+            'totalPatients'    => $filteredQuery->count(),
+            'students'         => (clone $baseQuery())->where('category', 'student')->count(),
+            'faculty'          => (clone $baseQuery())->where('category', 'faculty')->count(),
+            'staff'            => (clone $baseQuery())->where('category', 'staff')->count(),
+            'activePatients'   => (clone $baseQuery())->where('status', 'active')->count(),
+            'inactivePatients' => (clone $baseQuery())->where('status', 'inactive')->count(),
             'patients'         => $patientsQuery->get(),
             'date'          => $request->date ?? '',
             'preset'           => $request->preset ?? '',
@@ -91,11 +96,14 @@ class ReportController extends Controller
         $visitsQuery = ClinicVisit::with('patient')->orderBy('visit_date', 'desc');
         $this->applyDateFilter($visitsQuery, $dateFrom, $dateTo);
 
+        $baseQuery = fn() => ClinicVisit::query();
+        $filteredQuery = (clone $baseQuery())->when($dateFrom || $dateTo, fn($q) => $this->applyDateFilter($q, $dateFrom, $dateTo));
+
         return view('reports.clinic-visits', [
-            'totalVisits'    => ClinicVisit::count(),
-            'todayVisits'    => ClinicVisit::whereDate('visit_date', today())->count(),
-            'monthVisits'    => ClinicVisit::whereBetween('visit_date', [now()->startOfMonth(), now()->endOfMonth()])->count(),
-            'uniquePatients' => ClinicVisit::distinct('patient_id')->count('patient_id'),
+            'totalVisits'    => $filteredQuery->count(),
+            'todayVisits'    => (clone $baseQuery())->whereDate('visit_date', today())->count(),
+            'monthVisits'    => (clone $baseQuery())->whereBetween('visit_date', [now()->startOfMonth(), now()->endOfMonth()])->count(),
+            'uniquePatients' => (clone $baseQuery())->distinct('patient_id')->count('patient_id'),
             'last30Days'     => $last30Days,
             'recentVisits'   => $visitsQuery->get(),
             'date'          => $request->date ?? '',
@@ -117,9 +125,12 @@ class ReportController extends Controller
             ->orderByRaw('COUNT(*) DESC')
             ->limit(10)->get();
 
+        $baseQuery = fn() => ClinicVisit::whereNotNull('diagnosis')->where('diagnosis', '!=', '');
+        $filteredQuery = (clone $baseQuery())->when($dateFrom || $dateTo, fn($q) => $this->applyDateFilter($q, $dateFrom, $dateTo));
+
         return view('reports.diagnosis', [
             'topDiagnoses'         => $topDiagnoses,
-            'totalUniqueDiagnoses' => ClinicVisit::whereNotNull('diagnosis')->distinct('diagnosis')->count('diagnosis'),
+            'totalUniqueDiagnoses' => $filteredQuery->distinct('diagnosis')->count('diagnosis'),
             'date'          => $request->date ?? '',
             'preset'               => $request->preset ?? '',
             'filteredCount'        => $topDiagnoses->sum('count'),
@@ -150,12 +161,15 @@ class ReportController extends Controller
         $apptQuery = Appointment::with('patient')->orderBy('appointment_date', 'desc');
         $this->applyDateFilter($apptQuery, $dateFrom, $dateTo, 'appointment_date');
 
+        $baseQuery = fn() => Appointment::query();
+        $filteredQuery = (clone $baseQuery())->when($dateFrom || $dateTo, fn($q) => $this->applyDateFilter($q, $dateFrom, $dateTo, 'appointment_date'));
+
         return view('reports.appointments', [
-            'totalAppointments' => Appointment::count(),
-            'scheduled'         => Appointment::where('status', 'scheduled')->count(),
-            'completed'         => Appointment::where('status', 'completed')->count(),
-            'noShow'            => Appointment::where('status', 'no-show')->count(),
-            'cancelled'         => Appointment::where('status', 'cancelled')->count(),
+            'totalAppointments' => $filteredQuery->count(),
+            'scheduled'         => (clone $baseQuery())->where('status', 'scheduled')->count(),
+            'completed'         => (clone $baseQuery())->where('status', 'completed')->count(),
+            'noShow'            => (clone $baseQuery())->where('status', 'no-show')->count(),
+            'cancelled'         => (clone $baseQuery())->where('status', 'cancelled')->count(),
             'appointments'      => $apptQuery->get(),
             'date'          => $request->date ?? '',
             'preset'            => $request->preset ?? '',
@@ -233,8 +247,10 @@ class ReportController extends Controller
         ]);
     }
 
-    public function download($type)
+    public function download($type, Request $request)
     {
+        [$dateFrom, $dateTo] = $this->parseDateRange($request);
+
         $filename = match ($type) {
             'patients'      => 'patients-report.csv',
             'clinic-visits' => 'clinic-visits-report.csv',
@@ -255,12 +271,12 @@ class ReportController extends Controller
         ];
 
         $callback = match ($type) {
-            'patients'      => $this->exportPatients(),
-            'clinic-visits' => $this->exportClinicVisits(),
-            'diagnosis'     => $this->exportDiagnosis(),
-            'medicines'     => $this->exportMedicines(),
-            'appointments'  => $this->exportAppointments(),
-            'vital-signs'   => $this->exportVitalSigns(),
+            'patients'      => $this->exportPatients($dateFrom, $dateTo),
+            'clinic-visits' => $this->exportClinicVisits($dateFrom, $dateTo),
+            'diagnosis'     => $this->exportDiagnosis($dateFrom, $dateTo),
+            'medicines'     => $this->exportMedicines($dateFrom, $dateTo),
+            'appointments'  => $this->exportAppointments($dateFrom, $dateTo),
+            'vital-signs'   => $this->exportVitalSigns($dateFrom, $dateTo),
             default         => null,
         };
 
@@ -283,9 +299,15 @@ class ReportController extends Controller
         return $callback;
     }
 
-    protected function exportPatients()
+    protected function exportPatients(?Carbon $dateFrom, ?Carbon $dateTo)
     {
-        $patients = Patient::with('clinicVisits')->withCount('clinicVisits')->orderBy('name')->get();
+        $query = Patient::with('clinicVisits')->withCount('clinicVisits')->orderBy('name');
+        if ($dateFrom || $dateTo) {
+            $query->whereHas('clinicVisits', function ($q) use ($dateFrom, $dateTo) {
+                $this->applyDateFilter($q, $dateFrom, $dateTo);
+            });
+        }
+        $patients = $query->get();
         $rows = $patients->map(fn($p) => [
             'Name'         => $p->name,
             'Category'     => ucfirst($p->category),
@@ -304,9 +326,13 @@ class ReportController extends Controller
         ]);
     }
 
-    protected function exportClinicVisits()
+    protected function exportClinicVisits(?Carbon $dateFrom, ?Carbon $dateTo)
     {
-        $visits = ClinicVisit::with('patient')->orderBy('visit_date', 'desc')->get();
+        $query = ClinicVisit::with('patient')->orderBy('visit_date', 'desc');
+        if ($dateFrom || $dateTo) {
+            $this->applyDateFilter($query, $dateFrom, $dateTo);
+        }
+        $visits = $query->get();
         $rows = $visits->map(fn($v) => [
             'Date'             => Carbon::parse($v->visit_date)->format('Y-m-d'),
             'Patient'          => $v->patient->name ?? 'N/A',
@@ -332,12 +358,18 @@ class ReportController extends Controller
         ]);
     }
 
-    protected function exportDiagnosis()
+    protected function exportDiagnosis(?Carbon $dateFrom, ?Carbon $dateTo)
     {
-        $diagnoses = ClinicVisit::select('diagnosis')
-            ->whereNotNull('diagnosis')->where('diagnosis', '!=', '')
-            ->groupBy('diagnosis')->selectRaw('diagnosis, COUNT(*) as count')
-            ->orderByRaw('COUNT(*) DESC')->get();
+        $query = ClinicVisit::select('diagnosis')
+            ->whereNotNull('diagnosis')->where('diagnosis', '!=', '');
+        if ($dateFrom || $dateTo) {
+            $this->applyDateFilter($query, $dateFrom, $dateTo);
+        }
+        $diagnoses = $query
+            ->groupBy('diagnosis')
+            ->selectRaw('diagnosis, COUNT(*) as count')
+            ->orderByRaw('COUNT(*) DESC')
+            ->get();
 
         return $this->outputCsv(
             $diagnoses->map(fn($i) => ['Diagnosis' => $i->diagnosis, 'Count' => $i->count])->toArray(),
@@ -345,7 +377,7 @@ class ReportController extends Controller
         );
     }
 
-    protected function exportMedicines()
+    protected function exportMedicines(?Carbon $dateFrom, ?Carbon $dateTo)
     {
         $medicines = Medicine::where('status', 'active')->orderBy('quantity')->get();
         $rows = $medicines->map(fn($m) => [
@@ -360,9 +392,13 @@ class ReportController extends Controller
         return $this->outputCsv($rows, ['Name','Category','Quantity','Minimum Stock','Unit','Status']);
     }
 
-    protected function exportAppointments()
+    protected function exportAppointments(?Carbon $dateFrom, ?Carbon $dateTo)
     {
-        $appointments = Appointment::with('patient')->orderBy('appointment_date', 'desc')->get();
+        $query = Appointment::with('patient')->orderBy('appointment_date', 'desc');
+        if ($dateFrom || $dateTo) {
+            $this->applyDateFilter($query, $dateFrom, $dateTo, 'appointment_date');
+        }
+        $appointments = $query->get();
         $rows = $appointments->map(fn($a) => [
             'Date'     => Carbon::parse($a->appointment_date)->format('Y-m-d'),
             'Time'     => $a->appointment_time ?? 'N/A',
@@ -376,16 +412,18 @@ class ReportController extends Controller
         return $this->outputCsv($rows, ['Date','Time','Patient','Category','Reason','Status','Notes']);
     }
 
-    protected function exportVitalSigns()
+    protected function exportVitalSigns(?Carbon $dateFrom, ?Carbon $dateTo)
     {
-        $visits = ClinicVisit::with('patient')
+        $query = ClinicVisit::with('patient')
             ->where(function ($q) {
                 $q->whereNotNull('temperature')->orWhereNotNull('pulse_rate')
                   ->orWhereNotNull('respiratory_rate')->orWhereNotNull('bp_systolic')
                   ->orWhereNotNull('spo2')->orWhereNotNull('height')->orWhereNotNull('weight');
-            })
-            ->orderBy('visit_date', 'desc')
-            ->get();
+            });
+        if ($dateFrom || $dateTo) {
+            $this->applyDateFilter($query, $dateFrom, $dateTo);
+        }
+        $visits = $query->orderBy('visit_date', 'desc')->get();
 
         $rows = $visits->map(function ($v) {
             $a   = $v->getVitalSignsAssessment();
