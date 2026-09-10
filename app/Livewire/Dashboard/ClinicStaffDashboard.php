@@ -409,5 +409,7 @@ class ClinicStaffDashboard extends Component
     {
         $this->dateRange = 'today';
         $this->patientType = 'all';
+        $this->customStartDate = now()->startOfDay()->format('Y-m-d');
+        $this->customEndDate = now()->endOfDay()->format('Y-m-d');
     }
 }

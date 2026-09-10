@@ -719,8 +719,10 @@ class NurseDashboard extends Component
 
     public function resetFilters()
     {
-        $this->dateRange   = 'today';
-        $this->visitType   = 'all';
-        $this->patientType = 'all';
+        $this->dateRange       = 'today';
+        $this->visitType       = 'all';
+        $this->patientType     = 'all';
+        $this->customStartDate = now()->startOfDay()->format('Y-m-d');
+        $this->customEndDate   = now()->endOfDay()->format('Y-m-d');
     }
 }

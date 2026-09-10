@@ -1,4 +1,5 @@
 <div class="patient-dashboard">
+    @section('subtitle', "Good {{ now()->hour < 12 ? 'morning' : (now()->hour < 18 ? 'afternoon' : 'evening') }}, {{ auth()->user()->name }}")
     <!-- Page Header -->
     <div class="page-header">
         <div>

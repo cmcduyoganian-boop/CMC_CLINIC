@@ -1,4 +1,5 @@
-<div class="dashboard-wrapper" wire:poll-30000ms>
+<div class="dashboard-wrapper" wire:poll-30000ms x-data="{ dateRange: @entangle('dateRange') }">
+    @section('subtitle', "Here's what's happening in your clinic today.")
     <div class="dashboard-search" x-data="{ open: false }" @click.outside="open = false">
         <div class="dashboard-search-input-wrap">
             <i class="fas fa-search"></i>
@@ -204,6 +205,14 @@
                     <option value="this_month">This Month</option>
                     <option value="custom">Custom</option>
                 </select>
+            </div>
+            <div class="filter-item" x-show="dateRange === 'custom'" x-cloak>
+                <label>Start Date</label>
+                <input type="date" wire:model.live="customStartDate" class="filter-select">
+            </div>
+            <div class="filter-item" x-show="dateRange === 'custom'" x-cloak>
+                <label>End Date</label>
+                <input type="date" wire:model.live="customEndDate" class="filter-select">
             </div>
             <div class="filter-item">
                 <label>Patient Type</label>

@@ -484,11 +484,27 @@
             min-width: 0;
         }
 
+        .topbar-title-wrap {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
         .topbar-page-title {
             color: var(--text-heading);
             font-size: 16px;
             font-weight: 700;
             white-space: nowrap;
+        }
+
+        .topbar-page-subtitle {
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
         }
 
         .topbar-right {
@@ -916,8 +932,14 @@
                             : (request()->routeIs('clinic-visit.*')
                                 ? 'Clinic Records'
                                 : (isset($header) && trim((string) $header) !== '' ? $header : 'CMC Clinic'));
+                        $topbarSubtitle = isset($subtitle) && trim((string) $subtitle) !== '' ? $subtitle : '';
                     @endphp
-                    <span class="topbar-page-title">{{ $topbarTitle }}</span>
+                    <div class="topbar-title-wrap">
+                        <span class="topbar-page-title">{{ $topbarTitle }}</span>
+                        @if ($topbarSubtitle)
+                            <span class="topbar-page-subtitle d-md-none">{{ $topbarSubtitle }}</span>
+                        @endif
+                    </div>
                 </div>
 
                 <div class="topbar-right">
