@@ -1,4 +1,4 @@
-<div class="dashboard-wrapper" wire:poll-30000ms x-data="{ dateRange: @entangle('dateRange') }">
+<div class="dashboard-wrapper" wire:poll-60000ms x-data="{ dateRange: @entangle('dateRange') }">
     @section('subtitle', "Here's what's happening in your clinic today.")
     <div class="dashboard-search" x-data="{ open: false }" @click.outside="open = false">
         <div class="dashboard-search-input-wrap">

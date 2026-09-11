@@ -1,278 +1,200 @@
 <x-app-with-sidebar>
-    <x-slot name="header">Client Consent Form</x-slot>
+    <x-slot name="header">Research Data Consent</x-slot>
 
-    <div class="consent-document-page">
+    <div class="form-container">
         @if (session('success'))
             <div class="form-success no-print">{{ session('success') }}</div>
         @endif
 
-        @if (isset($errors) && $errors->any())
+        @if ($errors->any())
             <div class="form-errors no-print">{{ $errors->first() }}</div>
         @endif
 
-        <form action="{{ route('forms.consent.store') }}" method="POST" class="consent-document" id="consent-print-area">
+        <form action="{{ route('forms.research-consent.store') }}" method="POST" class="paper-form" id="research-consent-print-area">
             @csrf
 
-            <table class="header-table">
-                <tr>
-                    <td class="logo-cell" rowspan="2">
-                        <img src="{{ asset('images/cmc_background.jpg') }}" alt="Left Seal" class="seal"
-                             onerror="this.style.display='none'">
-                    </td>
-                    <td class="school-name">Carmen Municipal College</td>
-                    <td class="logo-cell" rowspan="2">
-                        <img src="{{ asset('images/cmc-logo.png') }}" alt="CMC logo" class="seal"
-                             onerror="this.style.display='none'">
-                    </td>
-                </tr>
-                <tr>
-                    <td class="location">Carmen, Bohol</td>
-                </tr>
-                <tr>
-                    <th class="document-title" colspan="3">CLIENT CONSENT FORM</th>
-                </tr>
-            </table>
+            <div class="form-heading">
+                <img src="{{ asset('images/cmc_background.jpg') }}" alt="Bayan ng Carmen Seal" onerror="this.style.visibility='hidden'">
+                <div>
+                    <h2>Republic of the Philippines</h2>
+                    <p>Province of Bohol</p>
+                    <strong>MUNICIPALITY OF CARMEN</strong><br>
+                    <strong>CARMEN MUNICIPAL COLLEGE</strong><br>
+                    <strong>COLLEGE CLINIC</strong>
+                </div>
+                <img src="{{ asset('images/cmc-logo.png') }}" alt="CMC Logo" onerror="this.style.visibility='hidden'">
+            </div>
 
-            <table class="form-table">
-                <tr><th class="section-title" colspan="2">I. PERSONAL INFORMATION</th></tr>
-                <tr>
-                    <td class="label-cell">Full Name</td>
-                    <td class="input-cell"><input type="text" name="full_name" value="{{ old('full_name') }}" required></td>
-                </tr>
-                <tr>
-                    <td class="label-cell">Date of Birth</td>
-                    <td class="input-cell"><input type="date" name="date_of_birth" value="{{ old('date_of_birth') }}"></td>
-                </tr>
-                <tr>
-                    <td class="label-cell">Address</td>
-                    <td class="input-cell"><input type="text" name="address" value="{{ old('address') }}"></td>
-                </tr>
-                <tr>
-                    <td class="label-cell">Phone Number</td>
-                    <td class="input-cell"><input type="text" name="phone_number" value="{{ old('phone_number') }}"></td>
-                </tr>
-                <tr>
-                    <td class="label-cell">Emergency Contact Name</td>
-                    <td class="input-cell"><input type="text" name="emergency_contact_name" value="{{ old('emergency_contact_name') }}"></td>
-                </tr>
-                <tr>
-                    <td class="label-cell">Emergency Contact Number</td>
-                    <td class="input-cell"><input type="text" name="emergency_contact_number" value="{{ old('emergency_contact_number') }}"></td>
-                </tr>
+            <h3 class="document-title">Consent to Access Clinic and Personnel Data for Research</h3>
 
-                <tr><th class="section-title" colspan="2">II. CONSENT FOR TREATMENT</th></tr>
-                <tr>
-                    <td class="paragraph-row" colspan="2">
-                        I, <span class="fill-line"><input type="text" name="client_signature" value="{{ old('client_signature') }}" class="inline-signature-input"></span>, hereby consent to receive medical treatment and services at the Carmen Municipal College School Clinic.
-                    </td>
-                </tr>
+            <p>As a student of Carmen Municipal College, I hereby give my full consent for the <strong>faculty, staff, and administration</strong> of the institution to access and utilize my clinic records and relevant student data solely for <strong>educational research purposes</strong>. I understand that:</p>
 
-                <tr><th class="section-title" colspan="2">III. CONFIDENTIALITY</th></tr>
-                <tr>
-                    <td class="paragraph-row" colspan="2">I understand that my medical information will be kept confidential.</td>
-                </tr>
+            <ol>
+                <li><strong>Confidentiality</strong> will be strictly observed, and all personal and medical information will be treated with utmost privacy and used only for legitimate research approved by the College.</li>
+                <li>The data collected will not be used for any purpose other than research and academic improvement.</li>
+                <li>My identity will be protected, and any data released or published will be <strong>anonymized</strong> to maintain confidentiality.</li>
+                <li>I have the right to withdraw my consent at any time without any academic consequences.</li>
+            </ol>
 
-                <tr><th class="section-title" colspan="2">IV. PARENT/GUARDIAN CONSENT (if applicable)</th></tr>
-                <tr>
-                    <td class="paragraph-row" colspan="2">If the client is under 18 years of age, the parent or legal guardian must provide consent for treatment.</td>
-                </tr>
+            <p>By signing below, I acknowledge that I have read and understood the purpose of this consent and voluntarily agree to participate.</p>
 
-                <tr><th class="section-title" colspan="2">V. EMERGENCY SITUATIONS</th></tr>
-                <tr>
-                    <td class="paragraph-row" colspan="2">In the event of a medical emergency where I am unable to communicate, I authorize the clinic staff to provide necessary medical treatment as deemed appropriate by healthcare professionals.</td>
-                </tr>
+            <div class="signature-fields">
+                <label>Personnel Name: <input type="text" name="personnel_name" value="{{ old('personnel_name', auth()->user()->name) }}" required></label>
+                <label>Course/Year: <input type="text" name="course_year" value="{{ old('course_year') }}"></label>
+                <label>Student ID Number: <input type="text" name="student_id" value="{{ old('student_id') }}"></label>
+                <label>Signature: <input type="text" name="signature" value="{{ old('signature') }}"></label>
+                <label>Date: <input type="date" name="consent_date" value="{{ old('consent_date', now()->format('Y-m-d')) }}" required></label>
+            </div>
 
-                <tr><th class="section-title" colspan="2">VI. AGREEMENT</th></tr>
-                <tr>
-                    <td class="paragraph-row" colspan="2">I have read and understand the information provided in this consent form. I agree to receive medical treatment and services at the Carmen Municipal College.</td>
-                </tr>
-            </table>
-
-            <table class="signatures">
-                <tr>
-                    <td>
-                        <div class="signature-line"><input type="text" name="client_signature_date" value="{{ old('client_signature_date') }}" class="signature-input"></div>
-                        <div class="signature-caption">CLIENT'S SIGNATURE OVER PRINTED NAME / DATE</div>
-                    </td>
-                    <td>
-                        <div class="signature-line"><input type="text" name="guardian_signature" value="{{ old('guardian_signature') }}" class="signature-input"></div>
-                        <div class="signature-caption">PARENT/GUARDIAN SIGNATURE (if applicable) / DATE</div>
-                    </td>
-                </tr>
-            </table>
-
+            <h4 class="witness-title">Witnessed by:</h4>
+            <div class="signature-fields witness-fields">
+                <label>Name: <input type="text" name="witness_name" value="{{ old('witness_name') }}"></label>
+                <label>Position: <input type="text" name="witness_position" value="{{ old('witness_position') }}"></label>
+                <label>Signature: <input type="text" name="witness_signature" value="{{ old('witness_signature') }}"></label>
+                <label>Date: <input type="date" name="witness_date" value="{{ old('witness_date') }}"></label>
+            </div>
         </form>
 
         <div class="form-actions no-print">
             <a href="{{ route('forms.index') }}">Cancel</a>
-            <button type="button" onclick="window.print()">Print Form</button>
-            <button type="submit" form="consent-print-area">Save Form</button>
+            <button type="button" onclick="window.print()">Print</button>
+            <button type="submit" form="research-consent-print-area">Save Form</button>
         </div>
     </div>
 
     <style>
-        .consent-document-page {
-            width: min(820px, 100%);
-            margin: 0 auto;
+        .form-container {
+            width: 100%;
+            max-width: 8.5in;
+            margin: auto;
         }
 
-        .consent-document {
-            width: 100%;
+        .paper-form {
+            width: 7.6in;
+            min-height: 12.1in;
+            margin: auto;
             background: #fff;
-            border: 1px solid #111;
-            padding: 18px;
-            color: #111;
+            padding: .34in;
+            border: 1px solid #dbe3ec;
+            box-shadow: 0 2px 8px #0001;
+            color: #1e293b;
+            font-family: "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.45;
             box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 13px;
         }
 
-        .header-table,
-        .form-table,
-        .signatures {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-
-        .header-table th,
-        .header-table td,
-        .form-table th,
-        .form-table td,
-        .signatures td {
-            border: 1px solid #111;
-            vertical-align: middle;
-        }
-
-        .header-table .logo-cell {
-            width: 120px;
-            height: 56px;
+        .form-heading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
             text-align: center;
-            vertical-align: middle;
-            padding: 8px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 14px;
         }
 
-        .seal {
-            width: 52px;
-            height: 52px;
+        .form-heading img {
+            width: 68px;
+            height: 68px;
             object-fit: contain;
-            display: block;
-            margin: 0 auto;
+            flex-shrink: 0;
         }
 
-        .school-name {
-            text-align: center;
-            font-size: 16px;
-            font-weight: 700;
-            padding: 8px;
+        .form-heading h2,
+        .form-heading p {
+            margin: 0;
         }
 
-        .location {
-            text-align: center;
-            font-size: 13px;
-            padding: 6px;
-        }
+        .form-heading h2 { font-size: 16px; }
+        .form-heading p { font-size: 13px; }
+        .form-heading strong { font-size: 12px; }
 
         .document-title {
-            padding: 12px 8px;
             text-align: center;
-            font-size: 20px;
+            text-transform: none;
+            margin: 28px 0 20px;
+            font-size: 14px;
+        }
+
+        .paper-form ol {
+            margin: 16px 0;
+            padding-left: 25px;
+        }
+
+        .paper-form ol li {
+            padding-left: 4px;
+            margin-bottom: 8px;
+        }
+
+        .signature-fields {
+            margin-top: 24px;
+        }
+
+        .signature-fields label {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            margin: 9px 0;
             font-weight: 700;
-            background: #fff;
+            font-size: 13px;
         }
 
-        .section-title {
-            padding: 7px 9px;
-            background: #f2f2f2;
-            font-weight: 700;
-            text-align: left;
-        }
-
-        .label-cell {
-            width: 35%;
-            font-weight: 600;
-            padding: 8px 9px;
-        }
-
-        .input-cell {
-            padding: 8px 9px;
-        }
-
-        .input-cell input,
-        .inline-signature-input,
-        .signature-input {
-            width: 100%;
+        .paper-form input {
+            flex: 1;
+            min-width: 0;
+            padding: 2px 3px;
             border: none;
+            border-bottom: 1px solid #94a3b8;
+            border-radius: 0;
             background: transparent;
-            font: inherit;
-            padding: 2px 0;
             outline: none;
-            box-sizing: border-box;
+            font: inherit;
+            font-weight: 400;
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
         }
 
-        .input-cell,
-        .signature-line {
-            border-bottom: none;
-            padding-bottom: 0;
+        .paper-form input:focus {
+            border-bottom-color: #1683b9;
         }
 
-        .paragraph-row {
-            min-height: 52px;
-            line-height: 1.45;
-            padding: 8px 9px;
+        .witness-title {
+            margin: 44px 0 12px;
+            font-size: 13px;
         }
 
-        .fill-line {
-            display: inline-block;
-            min-width: 180px;
-            margin: 0 6px;
-            vertical-align: bottom;
-        }
-
-        .signatures {
-            margin-top: 18px;
-            border: 0;
-        }
-
-        .signatures td {
-            height: 128px;
-            padding: 0 22px 8px;
-            border: 0;
-            vertical-align: bottom;
-            text-align: center;
-        }
-
-        .signature-line {
-            height: 64px;
-            border-bottom: 1px solid #111;
-            padding: 0;
-        }
-
-        .signature-caption {
-            padding-top: 8px;
-            font-size: 12px;
-            font-weight: 700;
+        .witness-fields {
+            margin-top: 0;
         }
 
         .form-actions {
             display: flex;
             justify-content: flex-end;
-            gap: 8px;
+            gap: 10px;
             margin-top: 16px;
+            max-width: 8.5in;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .form-actions a,
         .form-actions button {
-            padding: 8px 14px;
-            border: 1px solid #111;
+            padding: 9px 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
             background: #fff;
-            cursor: pointer;
-            font: inherit;
             text-decoration: none;
-            color: #111;
+            cursor: pointer;
+            font-family: inherit;
+            color: #1e293b;
+        }
+
+        .form-actions button:last-child {
+            background: #1683b9;
+            border-color: #1683b9;
+            color: #fff;
         }
 
         .form-success {
@@ -289,46 +211,28 @@
             font-weight: 600;
         }
 
-        @media (max-width: 640px) {
-            .consent-document-page {
+        @media (max-width: 700px) {
+            .paper-form {
                 width: 100%;
+                min-height: 0;
+                padding: 18px;
             }
-
-            .consent-document {
-                padding: 10px;
-                border: 0;
-            }
-
-            .header-table .logo-cell {
-                width: 90px;
-            }
-
-            .school-name {
-                font-size: 14px;
-            }
-
-            .document-title {
-                font-size: 17px;
-            }
-
-            .form-actions {
-                display: flex;
-                gap: 8px;
-            }
-
-            .form-actions a,
-            .form-actions button {
-                flex: 1;
-                text-align: center;
-            }
+            .form-heading img { width: 48px; height: 48px; }
+            .signature-fields label { align-items: stretch; flex-direction: column; gap: 2px; }
+            .form-actions { flex-wrap: wrap; }
         }
 
         /* ===== Print: only the consent sheet shows, fit to one page ===== */
         @media print {
             body * { visibility: hidden; }
-            #consent-print-area, #consent-print-area * { visibility: visible; }
-            #consent-print-area {
-                position: absolute; top: 0; left: 0; width: 100%; margin: 0;
+            #research-consent-print-area, #research-consent-print-area * { visibility: visible; }
+            #research-consent-print-area {
+                position: absolute; top: 0; left: 0;
+                width: 100% !important;
+                min-height: auto;
+                height: auto;
+                margin: 0;
+                padding: 0.3in;
                 border: 1px solid #000;
                 box-shadow: none;
             }
@@ -336,9 +240,7 @@
 
             @page { size: portrait; margin: 8mm; }
 
-            .consent-document { font-size: 12px; padding: 12px; }
-            .paragraph-row { min-height: 40px; }
-            .signatures td { height: 96px; }
+            .form-container { width: 100% !important; max-width: 100% !important; }
         }
     </style>
 </x-app-with-sidebar>

@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard;
 
 use Livewire\Component;
+use Livewire\Attributes\Computed;
 use App\Models\ClinicVisit;
 use App\Models\Medicine;
 use App\Models\Appointment;
@@ -10,23 +11,19 @@ use App\Models\Patient;
 use App\Models\User;
 use App\Models\PendingRegistration;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class NurseDashboard extends Component
 {
-    // ============ FILTER PROPERTIES ============
     public $dateRange = 'today';
     public $visitType = 'all';
     public $patientType = 'all';
     public ?string $customStartDate = null;
     public ?string $customEndDate = null;
     public $dashboardSearch = '';
-
-    // ============ MODAL ============
     public $showActivitiesModal = false;
-
-    // ============ AUTO-REFRESH ============
-    public $autoRefreshInterval = 30000; // 30 seconds
+    public $autoRefreshInterval = 60000;
 
     protected $listeners = ['resetFilters'];
 
@@ -36,8 +33,7 @@ class NurseDashboard extends Component
         $this->customEndDate = now()->endOfDay()->format('Y-m-d');
     }
 
-    // ============ GET DATE RANGE ============
-    private function getDateRange()
+    private function getDateRange(): array
     {
         $start = now()->startOfDay();
         $end = now()->endOfDay();
@@ -74,655 +70,526 @@ class NurseDashboard extends Component
         return [$start, $end];
     }
 
-    // ============ BUILD BASE QUERY ============
+    private function cacheKey(string $method): string
+    {
+        return "dashboard:nurse:{$method}:{$this->dateRange}:{$this->visitType}:{$this->patientType}:{$this->customStartDate}:{$this->customEndDate}";
+    }
+
     private function buildVisitQuery()
     {
         [$start, $end] = $this->getDateRange();
 
-        $query = ClinicVisit::whereBetween('visit_date', [$start, $end]);
-
-        if ($this->patientType !== 'all') {
-            $query->whereHas('patient', function ($q) {
-                $q->where('category', $this->patientType);
-            });
-        }
-
-        if ($this->visitType !== 'all') {
-            $query->where('visit_type', $this->visitType);
-        }
-
-        return $query;
+        return ClinicVisit::whereBetween('visit_date', [$start, $end])
+            ->when($this->patientType !== 'all', fn ($q) => $q->whereHas('patient', fn ($s) => $s->where('category', $this->patientType)))
+            ->when($this->visitType !== 'all', fn ($q) => $q->where('visit_type', $this->visitType));
     }
 
-    // ============ KPI: VISITS TODAY WITH TREND ============
-    public function getVisitsToday()
+    #[Computed]
+    public function visitsToday(): array
     {
-        [$start, $end] = $this->getDateRange();
-        $total = $this->buildVisitQuery()->count();
-        
-        // Calculate trend (compare with previous period)
-        $periodLength = $start->diffInDays($end) + 1;
-        $previousStart = (clone $start)->subDays($periodLength);
-        $previousEnd = (clone $start)->subDay()->endOfDay();
-        
-        $previousQuery = ClinicVisit::whereBetween('visit_date', [$previousStart, $previousEnd]);
-        
-        if ($this->patientType !== 'all') {
-            $previousQuery->whereHas('patient', function ($q) {
-                $q->where('category', $this->patientType);
-            });
-        }
+        return Cache::remember($this->cacheKey('visits_today'), 30, function () {
+            [$start, $end] = $this->getDateRange();
+            $total = $this->buildVisitQuery()->count();
 
-        if ($this->visitType !== 'all') {
-            $previousQuery->where('visit_type', $this->visitType);
-        }
-        
-        $previous = $previousQuery->count();
-        
-        // Calculate percentage trend
-        $trend = $previous > 0 ? round((($total - $previous) / $previous) * 100) : ($total > 0 ? 100 : 0);
+            $periodLength = $start->diffInDays($end) + 1;
+            $previousStart = (clone $start)->subDays($periodLength);
+            $previousEnd = (clone $start)->subDay()->endOfDay();
 
-        return [
-            'total' => $total,
-            'trend' => $trend,
-            'trendType' => $trend >= 0 ? 'up' : 'down',
-        ];
-    }
-
-    // ============ KPI: LOW STOCK MEDICINES ============
-    public function getLowStockMedicines()
-    {
-        return Medicine::whereRaw('quantity <= minimum_stock')
-            ->where('status', 'active')
-            ->count();
-    }
-
-    // ============ KPI: PENDING APPOINTMENTS ============
-    public function getPendingAppointments()
-    {
-        [$start, $end] = $this->getDateRange();
-
-        $query = Appointment::where('status', 'scheduled')
-            ->whereBetween('appointment_date', [$start, $end]);
-
-        if ($this->patientType !== 'all') {
-            $query->whereHas('patient', function ($q) {
-                $q->where('category', $this->patientType);
-            });
-        }
-
-        return $query->count();
-    }
-
-    // ============ KPI: ABNORMAL / CRITICAL VITALS ============
-    public function getAbnormalVitals()
-    {
-        [$start, $end] = $this->getDateRange();
-
-        $query = ClinicVisit::whereBetween('created_at', [$start, $end])
-            ->where(function ($q) {
-                // Temperature: Abnormal if <35.0 or ≥38.0
-                $q->where(fn($s) => $s->whereNotNull('temperature')->where('temperature', '<', 35.0))
-                  ->orWhere(fn($s) => $s->whereNotNull('temperature')->where('temperature', '>=', 38.0))
-                  // Pulse Rate: Abnormal if <50 or >120
-                  ->orWhere(fn($s) => $s->whereNotNull('pulse_rate')->where('pulse_rate', '<', 50))
-                  ->orWhere(fn($s) => $s->whereNotNull('pulse_rate')->where('pulse_rate', '>', 120))
-                  // Respiratory Rate: Abnormal if <8 or >30
-                  ->orWhere(fn($s) => $s->whereNotNull('respiratory_rate')->where('respiratory_rate', '<', 8))
-                  ->orWhere(fn($s) => $s->whereNotNull('respiratory_rate')->where('respiratory_rate', '>', 30))
-                  // Systolic BP: Abnormal if <80 or ≥180
-                  ->orWhere(fn($s) => $s->whereNotNull('bp_systolic')->where('bp_systolic', '<', 80))
-                  ->orWhere(fn($s) => $s->whereNotNull('bp_systolic')->where('bp_systolic', '>=', 180))
-                  // Diastolic BP: Abnormal if <50 or ≥120
-                  ->orWhere(fn($s) => $s->whereNotNull('bp_diastolic')->where('bp_diastolic', '<', 50))
-                  ->orWhere(fn($s) => $s->whereNotNull('bp_diastolic')->where('bp_diastolic', '>=', 120))
-                  // SpO2: Abnormal if ≤90
-                  ->orWhere(fn($s) => $s->whereNotNull('spo2')->where('spo2', '<=', 90));
-            });
-
-        if ($this->patientType !== 'all') {
-            $query->whereHas('patient', function ($q) {
-                $q->where('category', $this->patientType);
-            });
-        }
-
-        return $query->count();
-    }
-
-    // ============ KPI: PENDING USER APPROVALS ============
-    public function getPendingUserApprovals()
-    {
-        return User::where('approval_status', 'pending')
-            ->where('id', '!=', 1)
-            ->count() + PendingRegistration::count();
-    }
-
-    // ============ CHART DATA: VISITS BAR/LINE (respects filters) ============
-    public function getLast7DaysChart()
-    {
-        [$start, $end] = $this->getDateRange();
-        $days = $start->diffInDays($end) + 1;
-
-        if ($days > 30) {
-            $visits = $this->buildVisitQuery()
-                ->selectRaw((DB::connection()->getDriverName() === 'sqlite'
-                    ? "strftime('%Y-%W', visit_date)"
-                    : 'DATE_FORMAT(visit_date, "%Y-%u")') . ' as period, COUNT(*) as count')
-                ->groupBy('period')
-                ->orderBy('period')
-                ->pluck('count', 'period');
-
-            return [
-                'labels' => $visits->keys()->map(fn ($period) => 'Week ' . substr($period, -2))->values()->toArray(),
-                'data' => $visits->values()->map(fn ($count) => (int) $count)->toArray(),
-            ];
-        }
-
-        $visits = $this->buildVisitQuery()
-            ->selectRaw('DATE(visit_date) as date, COUNT(*) as count')
-            ->groupBy('date')
-            ->pluck('count', 'date');
-
-        $labels = [];
-        $data = [];
-
-        for ($day = $start->copy(); $day->lte($end); $day->addDay()) {
-            $key = $day->format('Y-m-d');
-            $labels[] = $days <= 7 ? $day->format('D') : $day->format('M d');
-            $data[] = (int) ($visits[$key] ?? 0);
-        }
-
-        return [
-            'labels' => $labels,
-            'data' => $data,
-        ];
-    }
-
-    // ============ CHART DATA: VISITS TREND (always min 7 days for context) ============
-    public function getVisitsTrendData()
-    {
-        [$start, $end] = $this->getDateRange();
-
-        $daysDiff = $start->diffInDays($end);
-
-        // Always show at least 7 days so the trend line is meaningful
-        if ($daysDiff < 6) {
-            $start = now()->subDays(6)->startOfDay();
-            $end   = now()->endOfDay();
-            $daysDiff = 6;
-        }
-
-        if ($daysDiff > 30) {
-            // Weekly data
-            $weekExpression = DB::connection()->getDriverName() === 'sqlite'
-                ? "strftime('%Y-%W', visit_date)"
-                : 'DATE_FORMAT(visit_date, "%Y-%u")';
-
-            $visits = ClinicVisit::selectRaw("{$weekExpression} as week, COUNT(*) as count")
-                ->whereBetween('visit_date', [$start, $end])
-                ->when($this->patientType !== 'all', function ($q) {
-                    return $q->whereHas('patient', function ($subQ) {
-                        $subQ->where('category', $this->patientType);
-                    });
-                })
+            $previous = ClinicVisit::whereBetween('visit_date', [$previousStart, $previousEnd])
+                ->when($this->patientType !== 'all', fn ($q) => $q->whereHas('patient', fn ($s) => $s->where('category', $this->patientType)))
                 ->when($this->visitType !== 'all', fn ($q) => $q->where('visit_type', $this->visitType))
-                ->groupBy('week')
-                ->orderBy('week')
-                ->get();
+                ->count();
 
-            $labels = $visits->map(fn($v) => 'Week ' . substr($v->week, -2))->toArray();
-            $data   = $visits->pluck('count')->toArray();
-        } else {
-            // Daily data — fill every day in range (including zeros)
+            $trend = $previous > 0 ? round((($total - $previous) / $previous) * 100) : ($total > 0 ? 100 : 0);
+
+            return ['total' => $total, 'trend' => $trend, 'trendType' => $trend >= 0 ? 'up' : 'down'];
+        });
+    }
+
+    #[Computed]
+    public function lowStockMedicines(): int
+    {
+        return Cache::remember('dashboard:nurse:low_stock_medicines', 60, function () {
+            return Medicine::whereRaw('quantity <= minimum_stock')->where('status', 'active')->count();
+        });
+    }
+
+    #[Computed]
+    public function pendingAppointments(): int
+    {
+        return Cache::remember($this->cacheKey('pending_appointments'), 30, function () {
+            [$start, $end] = $this->getDateRange();
+            return Appointment::where('status', 'scheduled')
+                ->whereBetween('appointment_date', [$start, $end])
+                ->when($this->patientType !== 'all', fn ($q) => $q->whereHas('patient', fn ($s) => $s->where('category', $this->patientType)))
+                ->count();
+        });
+    }
+
+    #[Computed]
+    public function abnormalVitals(): int
+    {
+        return Cache::remember($this->cacheKey('abnormal_vitals'), 30, function () {
+            [$start, $end] = $this->getDateRange();
+            return ClinicVisit::whereBetween('created_at', [$start, $end])
+                ->where(function ($q) {
+                    $q->where(fn ($s) => $s->whereNotNull('temperature')->where('temperature', '<', 35.0))
+                      ->orWhere(fn ($s) => $s->whereNotNull('temperature')->where('temperature', '>=', 38.0))
+                      ->orWhere(fn ($s) => $s->whereNotNull('pulse_rate')->where('pulse_rate', '<', 50))
+                      ->orWhere(fn ($s) => $s->whereNotNull('pulse_rate')->where('pulse_rate', '>', 120))
+                      ->orWhere(fn ($s) => $s->whereNotNull('respiratory_rate')->where('respiratory_rate', '<', 8))
+                      ->orWhere(fn ($s) => $s->whereNotNull('respiratory_rate')->where('respiratory_rate', '>', 30))
+                      ->orWhere(fn ($s) => $s->whereNotNull('bp_systolic')->where('bp_systolic', '<', 80))
+                      ->orWhere(fn ($s) => $s->whereNotNull('bp_systolic')->where('bp_systolic', '>=', 180))
+                      ->orWhere(fn ($s) => $s->whereNotNull('bp_diastolic')->where('bp_diastolic', '<', 50))
+                      ->orWhere(fn ($s) => $s->whereNotNull('bp_diastolic')->where('bp_diastolic', '>=', 120))
+                      ->orWhere(fn ($s) => $s->whereNotNull('spo2')->where('spo2', '<=', 90));
+                })
+                ->when($this->patientType !== 'all', fn ($q) => $q->whereHas('patient', fn ($s) => $s->where('category', $this->patientType)))
+                ->count();
+        });
+    }
+
+    #[Computed]
+    public function pendingUserApprovals(): int
+    {
+        return Cache::remember('dashboard:nurse:pending_approvals', 60, function () {
+            return User::where('approval_status', 'pending')->where('id', '!=', 1)->count() + PendingRegistration::count();
+        });
+    }
+
+    #[Computed]
+    public function last7DaysChart(): array
+    {
+        return Cache::remember($this->cacheKey('last_7_days_chart'), 60, function () {
+            [$start, $end] = $this->getDateRange();
+            $days = $start->diffInDays($end) + 1;
+
+            if ($days > 30) {
+                $visits = $this->buildVisitQuery()
+                    ->selectRaw('DATE_FORMAT(visit_date, "%Y-%u") as period, COUNT(*) as count')
+                    ->groupBy('period')
+                    ->orderBy('period')
+                    ->pluck('count', 'period');
+
+                return [
+                    'labels' => $visits->keys()->map(fn ($p) => 'Week ' . substr($p, -2))->values()->toArray(),
+                    'data' => $visits->values()->map(fn ($c) => (int) $c)->toArray(),
+                ];
+            }
+
+            $visits = $this->buildVisitQuery()
+                ->selectRaw('DATE(visit_date) as date, COUNT(*) as count')
+                ->groupBy('date')
+                ->pluck('count', 'date');
+
+            $labels = [];
+            $data = [];
+
+            for ($day = $start->copy(); $day->lte($end); $day->addDay()) {
+                $key = $day->format('Y-m-d');
+                $labels[] = $days <= 7 ? $day->format('D') : $day->format('M d');
+                $data[] = (int) ($visits[$key] ?? 0);
+            }
+
+            return ['labels' => $labels, 'data' => $data];
+        });
+    }
+
+    #[Computed]
+    public function visitsTrendData(): array
+    {
+        return Cache::remember($this->cacheKey('visits_trend'), 30, function () {
+            [$start, $end] = $this->getDateRange();
+            $daysDiff = $start->diffInDays($end);
+
+            if ($daysDiff < 6) {
+                $start = now()->subDays(6)->startOfDay();
+                $end = now()->endOfDay();
+                $daysDiff = 6;
+            }
+
+            if ($daysDiff > 30) {
+                $visits = ClinicVisit::selectRaw('DATE_FORMAT(visit_date, "%Y-%u") as week, COUNT(*) as count')
+                    ->whereBetween('visit_date', [$start, $end])
+                    ->when($this->patientType !== 'all', fn ($q) => $q->whereHas('patient', fn ($s) => $s->where('category', $this->patientType)))
+                    ->when($this->visitType !== 'all', fn ($q) => $q->where('visit_type', $this->visitType))
+                    ->groupBy('week')
+                    ->orderBy('week')
+                    ->get();
+
+                return [
+                    'labels' => $visits->map(fn ($v) => 'Week ' . substr($v->week, -2))->toArray(),
+                    'data' => $visits->pluck('count')->toArray(),
+                ];
+            }
+
             $visits = ClinicVisit::selectRaw('DATE(visit_date) as date, COUNT(*) as count')
                 ->whereBetween('visit_date', [$start, $end])
-                ->when($this->patientType !== 'all', function ($q) {
-                    return $q->whereHas('patient', function ($subQ) {
-                        $subQ->where('category', $this->patientType);
-                    });
-                })
+                ->when($this->patientType !== 'all', fn ($q) => $q->whereHas('patient', fn ($s) => $s->where('category', $this->patientType)))
                 ->when($this->visitType !== 'all', fn ($q) => $q->where('visit_type', $this->visitType))
                 ->groupBy('date')
                 ->orderBy('date')
                 ->pluck('count', 'date');
 
             $labels = [];
-            $data   = [];
+            $data = [];
             for ($day = $start->copy(); $day->lte($end); $day->addDay()) {
-                $key      = $day->format('Y-m-d');
+                $key = $day->format('Y-m-d');
                 $labels[] = $day->format('M d');
-                $data[]   = (int) ($visits[$key] ?? 0);
+                $data[] = (int) ($visits[$key] ?? 0);
             }
-        }
 
-        return compact('labels', 'data');
+            return compact('labels', 'data');
+        });
     }
 
-    // ============ NORMALIZE ADDRESS for grouping ============
     private function normalizeAddress(string $address): string
     {
-        // Lowercase, strip punctuation, collapse spaces, sort words for consistent grouping
         $clean = strtolower(trim($address));
-        $clean = preg_replace('/[^\w\s]/', ' ', $clean); // remove punctuation
-        $clean = preg_replace('/\s+/', ' ', $clean);      // collapse whitespace
+        $clean = preg_replace('/[^\w\s]/', ' ', $clean);
+        $clean = preg_replace('/\s+/', ' ', $clean);
         $words = array_filter(explode(' ', $clean));
         sort($words);
         return implode(' ', $words);
     }
 
-    public function getPatientLocationData()
+    #[Computed]
+    public function patientLocationData(): array
     {
-        $visits = $this->buildVisitQuery()
-            ->with('patient:id,address')
-            ->get();
+        return Cache::remember($this->cacheKey('patient_location'), 60, function () {
+            [$start, $end] = $this->getDateRange();
 
-        // Group by normalized address, then display the most common raw form
-        $grouped = $visits->groupBy(function ($visit) {
-            $address = trim((string) ($visit->patient?->address ?? ''));
-            if ($address === '') return '__unknown__';
-            return $this->normalizeAddress($address);
+            $locations = ClinicVisit::selectRaw('COALESCE(NULLIF(TRIM(p.address), ""), "Address not provided") as address, COUNT(*) as count')
+                ->join('patients as p', 'clinic_visits.patient_id', '=', 'p.id')
+                ->whereBetween('clinic_visits.visit_date', [$start, $end])
+                ->when($this->patientType !== 'all', fn ($q) => $q->where('p.category', $this->patientType))
+                ->when($this->visitType !== 'all', fn ($q) => $q->where('clinic_visits.visit_type', $this->visitType))
+                ->groupBy('address')
+                ->orderByDesc('count')
+                ->limit(10)
+                ->get();
+
+            $ranked = $locations->map(fn ($l) => ['label' => $l->address, 'count' => (int) $l->count])->values()->toArray();
+
+            return [
+                'labels' => $locations->pluck('address')->toArray(),
+                'data' => $locations->pluck('count')->map(fn ($c) => (int) $c)->toArray(),
+                'rankedLocations' => $ranked,
+                'topLocation' => $locations->first()?->address ?? 'No location data',
+                'topCount' => (int) ($locations->first()?->count ?? 0),
+            ];
         });
-
-        // For each normalized group, pick the most frequent raw address as the label
-        $locations = $grouped->map(function ($groupVisits, $key) {
-            if ($key === '__unknown__') return ['label' => 'Address not provided', 'count' => $groupVisits->count()];
-
-            $rawCounts = $groupVisits->groupBy(fn ($v) => trim((string) ($v->patient?->address ?? '')))
-                ->map->count()
-                ->sortDesc();
-
-            return ['label' => $rawCounts->keys()->first(), 'count' => $groupVisits->count()];
-        })
-        ->sortByDesc('count')
-        ->take(10);
-
-        $labels = $locations->pluck('label')->values()->toArray();
-        $data   = $locations->pluck('count')->values()->map(fn($c) => (int) $c)->toArray();
-
-        return [
-            'labels'      => $labels,
-            'data'        => $data,
-            'rankedLocations' => $locations->map(fn ($location) => [
-                'label' => $location['label'],
-                'count' => (int) $location['count'],
-            ])->values()->toArray(),
-            'topLocation' => $labels[0] ?? 'No location data',
-            'topCount'    => $data[0] ?? 0,
-        ];
     }
 
-    // ============ HEALTH MONITORING: VITAL SIGNS OVERVIEW ============
-    public function getVitalSignsOverview()
+    #[Computed]
+    public function vitalSignsOverview(): array
     {
-        [$start, $end] = $this->getDateRange();
+        return Cache::remember($this->cacheKey('vital_signs'), 30, function () {
+            [$start, $end] = $this->getDateRange();
 
-        $query = ClinicVisit::whereBetween('created_at', [$start, $end]);
+            $query = ClinicVisit::whereBetween('created_at', [$start, $end])
+                ->when($this->patientType !== 'all', fn ($q) => $q->whereHas('patient', fn ($s) => $s->where('category', $this->patientType)));
 
-        if ($this->patientType !== 'all') {
-            $query->whereHas('patient', function ($q) {
-                $q->where('category', $this->patientType);
-            });
-        }
+            $total = $query->count();
 
-        $visits = $query->get(['temperature', 'pulse_rate', 'respiratory_rate',
-                               'bp_systolic', 'bp_diastolic', 'spo2', 'height', 'weight']);
-
-        $total    = $visits->count();
-        $abnormal = 0;
-        $elevated = 0; // above_normal or below_normal
-        $normal   = 0;
-
-        foreach ($visits as $visit) {
-            $assessment = $visit->getVitalSignsAssessment();
-            $overall    = $assessment['overall'];
-
-            if ($overall === \App\Support\VitalSigns::ABNORMAL) {
-                $abnormal++;
-            } elseif (in_array($overall, [\App\Support\VitalSigns::ABOVE_NORMAL, \App\Support\VitalSigns::BELOW_NORMAL])) {
-                $elevated++;
-            } else {
-                $normal++;
+            if ($total === 0) {
+                return ['normal' => 0, 'elevated' => 0, 'abnormal' => 0, 'total' => 0];
             }
-        }
 
-        return [
-            'normal'   => $normal,
-            'elevated' => $elevated,
-            'abnormal' => $abnormal,
-            'total'    => $total,
-        ];
-    }
+            $abnormal = (clone $query)->where(function ($q) {
+                $q->where('temperature', '<', 35.0)
+                  ->orWhere('temperature', '>=', 38.0)
+                  ->orWhere('pulse_rate', '<', 50)
+                  ->orWhere('pulse_rate', '>', 120)
+                  ->orWhere('respiratory_rate', '<', 8)
+                  ->orWhere('respiratory_rate', '>', 30)
+                  ->orWhere('bp_systolic', '<', 80)
+                  ->orWhere('bp_systolic', '>=', 180)
+                  ->orWhere('bp_diastolic', '<', 50)
+                  ->orWhere('bp_diastolic', '>=', 120)
+                  ->orWhere('spo2', '<=', 90);
+            })->count();
 
-    // ============ MEDICINE INVENTORY STATUS ============
-    public function getMedicineInventoryStatus()
-    {
-        $total = Medicine::where('status', 'active')->count();
-        $available = Medicine::where('status', 'active')->whereRaw('quantity > minimum_stock')->count();
-        $lowStock = Medicine::where('status', 'active')->whereRaw('quantity <= minimum_stock')->count();
-        $expiringSoon = Medicine::where('status', 'active')
-            ->whereNotNull('expiration_date')
-            ->whereDate('expiration_date', '>=', now())
-            ->whereDate('expiration_date', '<=', now()->addDays(30))
-            ->count();
+            $elevated = (clone $query)->where(function ($q) {
+                $q->whereBetween('temperature', [37.1, 37.9])
+                  ->orWhereBetween('pulse_rate', [101, 120])
+                  ->orWhereBetween('respiratory_rate', [21, 30])
+                  ->orWhereBetween('bp_systolic', [130, 139])
+                  ->orWhereBetween('bp_systolic', [90, 89]) // impossible, so skip
+                  ->orWhereBetween('bp_diastolic', [80, 89])
+                  ->orWhereBetween('spo2', [91, 92]);
+            })->count();
 
-        return [
-            'total' => $total,
-            'available' => $available,
-            'lowStock' => $lowStock,
-            'expiringSoon' => $expiringSoon,
-        ];
-    }
+            $normal = $total - $abnormal - $elevated;
 
-    // ============ APPOINTMENTS & FOLLOW-UPS ============
-    public function getAppointmentStats()
-    {
-        [$start, $end] = $this->getDateRange();
-
-        $query = Appointment::whereBetween('appointment_date', [$start, $end]);
-
-        if ($this->patientType !== 'all') {
-            $query->whereHas('patient', function ($q) {
-                $q->where('category', $this->patientType);
-            });
-        }
-
-        return [
-            'total' => $query->count(),
-            'scheduled' => $query->where('status', 'scheduled')->count(),
-            'completed' => $query->where('status', 'completed')->count(),
-            'noShow' => $query->where('status', 'no-show')->count(),
-            'cancelled' => $query->where('status', 'cancelled')->count(),
-        ];
-    }
-
-    // ============ RECENT ACTIVITIES ============
-    public function getRecentActivities()
-    {
-        [$start, $end] = $this->getDateRange();
-
-        $activities = [];
-
-        // Recent clinic visits
-        $visits = ClinicVisit::whereBetween('created_at', [$start, $end])
-            ->with('patient')
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get()
-            ->map(function ($visit) {
-                return [
-                    'type' => 'visit',
-                    'icon' => 'fa-stethoscope',
-                    'color' => 'blue',
-                    'message' => ($visit->patient->name ?? 'Patient') . ' - New Clinic Visit Recorded',
-                    'timestamp' => $visit->created_at,
-                ];
-            });
-
-        $activities = array_merge($activities, $visits->toArray());
-
-        // Recent appointments scheduled
-        $appointments = Appointment::whereBetween('created_at', [$start, $end])
-            ->with('patient')
-            ->orderBy('created_at', 'desc')
-            ->limit(3)
-            ->get()
-            ->map(function ($apt) {
-                return [
-                    'type' => 'appointment',
-                    'icon' => 'fa-calendar-check',
-                    'color' => 'green',
-                    'message' => ($apt->patient->name ?? 'Patient') . ' - Follow-up Appointment Scheduled',
-                    'timestamp' => $apt->created_at,
-                ];
-            });
-
-        $activities = array_merge($activities, $appointments->toArray());
-
-        // Low stock alerts
-        $lowStock = Medicine::whereRaw('quantity <= minimum_stock')
-            ->orderBy('updated_at', 'desc')
-            ->limit(2)
-            ->get()
-            ->map(function ($med) {
-                return [
-                    'type' => 'inventory',
-                    'icon' => 'fa-exclamation-triangle',
-                    'color' => 'orange',
-                    'message' => $med->name . ' - Low Stock Alert',
-                    'timestamp' => $med->updated_at,
-                ];
-            });
-
-        $activities = array_merge($activities, $lowStock->toArray());
-
-        // Expiring soon alerts
-        $expiringSoon = Medicine::where('status', 'active')
-            ->whereNotNull('expiration_date')
-            ->whereDate('expiration_date', '>=', now())
-            ->whereDate('expiration_date', '<=', now()->addDays(30))
-            ->orderBy('expiration_date')
-            ->limit(2)
-            ->get()
-            ->map(function ($med) {
-                return [
-                    'type' => 'inventory',
-                    'icon' => 'fa-hourglass-half',
-                    'color' => 'orange',
-                    'message' => $med->name . ' - Expiring on ' . $med->expiration_date->format('M d, Y'),
-                    'timestamp' => $med->updated_at,
-                ];
-            });
-
-        $activities = array_merge($activities, $expiringSoon->toArray());
-
-        // Pending user approvals
-        $pendingUsers = User::where('approval_status', 'pending')
-            ->orderBy('created_at', 'desc')
-            ->limit(2)
-            ->get()
-            ->map(function ($user) {
-                return [
-                    'type' => 'user',
-                    'icon' => 'fa-user-clock',
-                    'color' => 'blue',
-                    'message' => $user->name . ' - Pending Account Approval',
-                    'timestamp' => $user->created_at,
-                ];
-            });
-
-        $activities = array_merge($activities, $pendingUsers->toArray());
-
-        // Sort by timestamp and limit to 10
-        usort($activities, function ($a, $b) {
-            return $b['timestamp']->timestamp <=> $a['timestamp']->timestamp;
+            return [
+                'normal' => max(0, $normal),
+                'elevated' => $elevated,
+                'abnormal' => $abnormal,
+                'total' => $total,
+            ];
         });
-
-        return array_slice($activities, 0, 10);
     }
 
-    public function getDashboardSearchResults()
+    #[Computed]
+    public function medicineInventory(): array
     {
-        $term = trim($this->dashboardSearch);
+        return Cache::remember('dashboard:nurse:medicine_inventory', 60, function () {
+            $base = Medicine::where('status', 'active');
+            return [
+                'total' => (clone $base)->count(),
+                'available' => (clone $base)->whereRaw('quantity > minimum_stock')->count(),
+                'lowStock' => (clone $base)->whereRaw('quantity <= minimum_stock')->count(),
+                'expiringSoon' => (clone $base)
+                    ->whereNotNull('expiration_date')
+                    ->whereDate('expiration_date', '>=', now())
+                    ->whereDate('expiration_date', '<=', now()->addDays(30))
+                    ->count(),
+            ];
+        });
+    }
 
-        if (strlen($term) < 2) {
+    #[Computed]
+    public function appointmentStats(): array
+    {
+        return Cache::remember($this->cacheKey('appointment_stats'), 30, function () {
+            [$start, $end] = $this->getDateRange();
+            $query = Appointment::whereBetween('appointment_date', [$start, $end])
+                ->when($this->patientType !== 'all', fn ($q) => $q->whereHas('patient', fn ($s) => $s->where('category', $this->patientType)));
+
+            return [
+                'total' => (clone $query)->count(),
+                'scheduled' => (clone $query)->where('status', 'scheduled')->count(),
+                'completed' => (clone $query)->where('status', 'completed')->count(),
+                'noShow' => (clone $query)->where('status', 'no-show')->count(),
+                'cancelled' => (clone $query)->where('status', 'cancelled')->count(),
+            ];
+        });
+    }
+
+    #[Computed]
+    public function recentActivities(): array
+    {
+        return Cache::remember($this->cacheKey('recent_activities'), 30, function () {
+            [$start, $end] = $this->getDateRange();
+
+            $activities = [];
+
+            $visits = ClinicVisit::whereBetween('created_at', [$start, $end])
+                ->with('patient:id,name')
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get()
+                ->map(fn ($v) => [
+                    'type' => 'visit', 'icon' => 'fa-stethoscope', 'color' => 'blue',
+                    'message' => ($v->patient->name ?? 'Patient') . ' - New Clinic Visit Recorded',
+                    'timestamp' => $v->created_at,
+                ]);
+
+            $appointments = Appointment::whereBetween('created_at', [$start, $end])
+                ->with('patient:id,name')
+                ->orderBy('created_at', 'desc')
+                ->limit(3)
+                ->get()
+                ->map(fn ($a) => [
+                    'type' => 'appointment', 'icon' => 'fa-calendar-check', 'color' => 'green',
+                    'message' => ($a->patient->name ?? 'Patient') . ' - Follow-up Appointment Scheduled',
+                    'timestamp' => $a->created_at,
+                ]);
+
+            $lowStock = Medicine::whereRaw('quantity <= minimum_stock')
+                ->orderBy('updated_at', 'desc')
+                ->limit(2)
+                ->get()
+                ->map(fn ($m) => [
+                    'type' => 'inventory', 'icon' => 'fa-exclamation-triangle', 'color' => 'orange',
+                    'message' => $m->name . ' - Low Stock Alert',
+                    'timestamp' => $m->updated_at,
+                ]);
+
+            $expiringSoon = Medicine::where('status', 'active')
+                ->whereNotNull('expiration_date')
+                ->whereDate('expiration_date', '>=', now())
+                ->whereDate('expiration_date', '<=', now()->addDays(30))
+                ->orderBy('expiration_date')
+                ->limit(2)
+                ->get()
+                ->map(fn ($m) => [
+                    'type' => 'inventory', 'icon' => 'fa-hourglass-half', 'color' => 'orange',
+                    'message' => $m->name . ' - Expiring on ' . $m->expiration_date->format('M d, Y'),
+                    'timestamp' => $m->updated_at,
+                ]);
+
+            $pendingUsers = User::where('approval_status', 'pending')
+                ->orderBy('created_at', 'desc')
+                ->limit(2)
+                ->get()
+                ->map(fn ($u) => [
+                    'type' => 'user', 'icon' => 'fa-user-clock', 'color' => 'blue',
+                    'message' => $u->name . ' - Pending Account Approval',
+                    'timestamp' => $u->created_at,
+                ]);
+
+            return collect()
+                ->merge($visits)
+                ->merge($appointments)
+                ->merge($lowStock)
+                ->merge($expiringSoon)
+                ->merge($pendingUsers)
+                ->sortByDesc('timestamp')
+                ->take(10)
+                ->values()
+                ->toArray();
+        });
+    }
+
+    #[Computed]
+    public function allActivities(): array
+    {
+        if (!$this->showActivitiesModal) {
             return [];
         }
 
+        return Cache::remember('dashboard:nurse:all_activities', 60, function () {
+            $activities = [];
+
+            $visits = ClinicVisit::with('patient:id,name')
+                ->orderBy('created_at', 'desc')
+                ->limit(30)
+                ->get()
+                ->map(fn ($v) => [
+                    'type' => 'visit', 'icon' => 'fa-stethoscope', 'color' => 'blue',
+                    'message' => ($v->patient->name ?? 'Patient') . ' — Clinic Visit Recorded',
+                    'detail' => $v->visit_type ? ucfirst(str_replace('_', ' ', $v->visit_type)) : null,
+                    'timestamp' => $v->created_at, 'link' => route('clinic-visit.index'),
+                ]);
+
+            $appointments = Appointment::with('patient:id,name')
+                ->orderBy('created_at', 'desc')
+                ->limit(20)
+                ->get()
+                ->map(fn ($a) => [
+                    'type' => 'appointment', 'icon' => 'fa-calendar-check', 'color' => 'green',
+                    'message' => ($a->patient->name ?? 'Patient') . ' — Appointment ' . ucfirst($a->status ?? 'Scheduled'),
+                    'detail' => $a->appointment_date ? Carbon::parse($a->appointment_date)->format('M d, Y') : null,
+                    'timestamp' => $a->created_at, 'link' => route('appointments.index'),
+                ]);
+
+            $lowStock = Medicine::whereRaw('quantity <= minimum_stock')
+                ->where('status', 'active')
+                ->orderBy('updated_at', 'desc')
+                ->limit(10)
+                ->get()
+                ->map(fn ($m) => [
+                    'type' => 'inventory', 'icon' => 'fa-exclamation-triangle', 'color' => 'orange',
+                    'message' => $m->name . ' — Low Stock Alert',
+                    'detail' => 'Qty: ' . $m->quantity . ' (Min: ' . $m->minimum_stock . ')',
+                    'timestamp' => $m->updated_at, 'link' => route('medicines.index'),
+                ]);
+
+            $expiringSoon = Medicine::where('status', 'active')
+                ->whereNotNull('expiration_date')
+                ->whereDate('expiration_date', '>=', now())
+                ->whereDate('expiration_date', '<=', now()->addDays(30))
+                ->orderBy('expiration_date')
+                ->limit(10)
+                ->get()
+                ->map(fn ($m) => [
+                    'type' => 'inventory', 'icon' => 'fa-hourglass-half', 'color' => 'orange',
+                    'message' => $m->name . ' — Expiring Soon',
+                    'detail' => 'Expires: ' . $m->expiration_date->format('M d, Y'),
+                    'timestamp' => $m->updated_at, 'link' => route('medicines.index'),
+                ]);
+
+            $pendingUsers = User::where('approval_status', 'pending')
+                ->orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get()
+                ->map(fn ($u) => [
+                    'type' => 'user', 'icon' => 'fa-user-clock', 'color' => 'purple',
+                    'message' => $u->name . ' — Pending Account Approval',
+                    'detail' => $u->email ?? null,
+                    'timestamp' => $u->created_at, 'link' => route('admin.users'),
+                ]);
+
+            return collect()
+                ->merge($visits)
+                ->merge($appointments)
+                ->merge($lowStock)
+                ->merge($expiringSoon)
+                ->merge($pendingUsers)
+                ->sortByDesc('timestamp')
+                ->take(50)
+                ->values()
+                ->toArray();
+        });
+    }
+
+    #[Computed]
+    public function dashboardSearchResults(): array
+    {
+        $term = trim($this->dashboardSearch);
+        if (strlen($term) < 2) {
+            return [];
+        }
         return Patient::whereHas('clinicVisits')
-            ->where(function ($query) use ($term) {
-                $query->where('name', 'like', "%{$term}%")
-                    ->orWhere('email', 'like', "%{$term}%")
-                    ->orWhere('year_section', 'like', "%{$term}%");
+            ->where(function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                  ->orWhere('email', 'like', "%{$term}%")
+                  ->orWhere('year_section', 'like', "%{$term}%");
             })
             ->orderBy('name')
             ->limit(8)
             ->get()
-            ->map(function ($patient) {
-                $latestVisit = $patient->clinicVisits()->latest('visit_date')->first();
-
-                return [
-                    'name' => $patient->name,
-                    'category' => ucfirst($patient->category ?? 'Patient'),
-                    'visitId' => $latestVisit?->id,
-                ];
-            })
-            ->all();
+            ->map(fn ($p) => [
+                'name' => $p->name,
+                'category' => ucfirst($p->category ?? 'Patient'),
+                'visitId' => $p->clinicVisits()->latest('visit_date')->first()?->id,
+            ])
+            ->toArray();
     }
 
-    // ============ MODAL: OPEN / CLOSE ============
-    public function openActivitiesModal(): void
-    {
-        $this->showActivitiesModal = true;
-    }
-
-    public function closeActivitiesModal(): void
-    {
-        $this->showActivitiesModal = false;
-    }
-
-    // ============ ALL ACTIVITIES (for modal — last 50) ============
-    public function getAllActivities(): array
-    {
-        $activities = [];
-
-        // All clinic visits (last 100, we'll sort and trim)
-        $visits = ClinicVisit::with('patient')
-            ->orderBy('created_at', 'desc')
-            ->limit(30)
-            ->get()
-            ->map(function ($visit) {
-                return [
-                    'type'      => 'visit',
-                    'icon'      => 'fa-stethoscope',
-                    'color'     => 'blue',
-                    'message'   => ($visit->patient->name ?? 'Patient') . ' — Clinic Visit Recorded',
-                    'detail'    => $visit->visit_type ? ucfirst(str_replace('_', ' ', $visit->visit_type)) : null,
-                    'timestamp' => $visit->created_at,
-                    'link'      => route('clinic-visit.index'),
-                ];
-            });
-        $activities = array_merge($activities, $visits->toArray());
-
-        // All appointments
-        $appointments = Appointment::with('patient')
-            ->orderBy('created_at', 'desc')
-            ->limit(20)
-            ->get()
-            ->map(function ($apt) {
-                return [
-                    'type'      => 'appointment',
-                    'icon'      => 'fa-calendar-check',
-                    'color'     => 'green',
-                    'message'   => ($apt->patient->name ?? 'Patient') . ' — Appointment ' . ucfirst($apt->status ?? 'Scheduled'),
-                    'detail'    => $apt->appointment_date ? \Carbon\Carbon::parse($apt->appointment_date)->format('M d, Y') : null,
-                    'timestamp' => $apt->created_at,
-                    'link'      => route('appointments.index'),
-                ];
-            });
-        $activities = array_merge($activities, $appointments->toArray());
-
-        // Low stock alerts
-        $lowStock = Medicine::whereRaw('quantity <= minimum_stock')
-            ->where('status', 'active')
-            ->orderBy('updated_at', 'desc')
-            ->limit(10)
-            ->get()
-            ->map(function ($med) {
-                return [
-                    'type'      => 'inventory',
-                    'icon'      => 'fa-exclamation-triangle',
-                    'color'     => 'orange',
-                    'message'   => $med->name . ' — Low Stock Alert',
-                    'detail'    => 'Qty: ' . $med->quantity . ' (Min: ' . $med->minimum_stock . ')',
-                    'timestamp' => $med->updated_at,
-                    'link'      => route('medicines.index'),
-                ];
-            });
-        $activities = array_merge($activities, $lowStock->toArray());
-
-        // Expiring medicines
-        $expiringSoon = Medicine::where('status', 'active')
-            ->whereNotNull('expiration_date')
-            ->whereDate('expiration_date', '>=', now())
-            ->whereDate('expiration_date', '<=', now()->addDays(30))
-            ->orderBy('expiration_date')
-            ->limit(10)
-            ->get()
-            ->map(function ($med) {
-                return [
-                    'type'      => 'inventory',
-                    'icon'      => 'fa-hourglass-half',
-                    'color'     => 'orange',
-                    'message'   => $med->name . ' — Expiring Soon',
-                    'detail'    => 'Expires: ' . $med->expiration_date->format('M d, Y'),
-                    'timestamp' => $med->updated_at,
-                    'link'      => route('medicines.index'),
-                ];
-            });
-        $activities = array_merge($activities, $expiringSoon->toArray());
-
-        // Pending user approvals
-        $pendingUsers = User::where('approval_status', 'pending')
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get()
-            ->map(function ($user) {
-                return [
-                    'type'      => 'user',
-                    'icon'      => 'fa-user-clock',
-                    'color'     => 'purple',
-                    'message'   => $user->name . ' — Pending Account Approval',
-                    'detail'    => $user->email ?? null,
-                    'timestamp' => $user->created_at,
-                    'link'      => route('admin.users'),
-                ];
-            });
-        $activities = array_merge($activities, $pendingUsers->toArray());
-
-        // Sort by timestamp desc, limit to 50
-        usort($activities, fn($a, $b) => $b['timestamp']->timestamp <=> $a['timestamp']->timestamp);
-
-        return array_slice($activities, 0, 50);
-    }
+    public function openActivitiesModal(): void { $this->showActivitiesModal = true; }
+    public function closeActivitiesModal(): void { $this->showActivitiesModal = false; }
 
     public function render()
     {
         $data = [
-            'visitsToday'         => $this->getVisitsToday(),
-            'lowStockMedicines'   => $this->getLowStockMedicines(),
-            'pendingAppointments' => $this->getPendingAppointments(),
-            'abnormalVitals'      => $this->getAbnormalVitals(),
-            'pendingUserApprovals'=> $this->getPendingUserApprovals(),
-            'visitsTrendData'     => $this->getVisitsTrendData(),
-            'patientLocationData' => $this->getPatientLocationData(),
-            'last7DaysChart'      => $this->getLast7DaysChart(),
-            'vitalSignsOverview'  => $this->getVitalSignsOverview(),
-            'medicineInventory'   => $this->getMedicineInventoryStatus(),
-            'appointmentStats'    => $this->getAppointmentStats(),
-            'recentActivities'    => $this->getRecentActivities(),
-            'allActivities'       => $this->showActivitiesModal ? $this->getAllActivities() : [],
-            'dashboardSearchResults' => $this->getDashboardSearchResults(),
+            'visitsToday' => $this->visitsToday,
+            'lowStockMedicines' => $this->lowStockMedicines,
+            'pendingAppointments' => $this->pendingAppointments,
+            'abnormalVitals' => $this->abnormalVitals,
+            'pendingUserApprovals' => $this->pendingUserApprovals,
+            'visitsTrendData' => $this->visitsTrendData,
+            'patientLocationData' => $this->patientLocationData,
+            'last7DaysChart' => $this->last7DaysChart,
+            'vitalSignsOverview' => $this->vitalSignsOverview,
+            'medicineInventory' => $this->medicineInventory,
+            'appointmentStats' => $this->appointmentStats,
+            'recentActivities' => $this->recentActivities,
+            'allActivities' => $this->allActivities,
+            'dashboardSearchResults' => $this->dashboardSearchResults,
         ];
 
-        // Dispatch chart data to JS after every render so graphs stay reactive
         $this->dispatch('dashboard-charts-update', chartData: [
-            'visits'       => $data['last7DaysChart'],
-            'trend'        => $data['visitsTrendData'],
-            'location'     => $data['patientLocationData'],
-            'vitals'       => $data['vitalSignsOverview'],
+            'visits' => $data['last7DaysChart'],
+            'trend' => $data['visitsTrendData'],
+            'location' => $data['patientLocationData'],
+            'vitals' => $data['vitalSignsOverview'],
             'appointments' => $data['appointmentStats'],
-            'medicine'     => $data['medicineInventory'],
+            'medicine' => $data['medicineInventory'],
         ]);
 
         return view('livewire.dashboard.nurse-dashboard', $data);
     }
 
-    public function resetFilters()
+    public function resetFilters(): void
     {
-        $this->dateRange       = 'today';
-        $this->visitType       = 'all';
-        $this->patientType     = 'all';
+        $this->dateRange = 'today';
+        $this->visitType = 'all';
+        $this->patientType = 'all';
         $this->customStartDate = now()->startOfDay()->format('Y-m-d');
-        $this->customEndDate   = now()->endOfDay()->format('Y-m-d');
+        $this->customEndDate = now()->endOfDay()->format('Y-m-d');
     }
 }
