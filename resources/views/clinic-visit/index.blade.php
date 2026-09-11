@@ -158,14 +158,30 @@
 
         <!-- Pagination -->
         @if ($visits->hasPages())
-            <div class="pagination-section">
-                <p class="pagination-info">
-                    Showing {{ $visits->firstItem() ?? 0 }} to {{ $visits->lastItem() ?? 0 }} of {{ $visits->total() }} visits
-                </p>
-                <div class="pagination">
-                    {{ $visits->links() }}
+            <form method="GET" class="pagination-form" action="{{ route('clinic-visit.index') }}">
+                @foreach(request()->except(['per_page', 'page']) as $key => $value)
+                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                @endforeach
+                <div class="pagination-section">
+                    <div class="pagination-left">
+                        <p class="pagination-info">
+                            Showing {{ $visits->firstItem() ?? 0 }} to {{ $visits->lastItem() ?? 0 }} of {{ $visits->total() }} visits
+                        </p>
+                        <div class="per-page-selector">
+                            <label for="perPage" class="visually-hidden">Results per page</label>
+                            <select id="perPage" name="per_page" onchange="this.form.submit()" class="per-page-select">
+                                @foreach([10, 25, 50, 100] as $option)
+                                    <option value="{{ $option }}" {{ $perPage == $option ? 'selected' : '' }}>{{ $option }} per page</option>
+                                @endforeach
+                            </select>
+                            <noscript><button type="submit" class="btn-apply-small">Apply</button></noscript>
+                        </div>
+                    </div>
+                    <div class="pagination">
+                        {{ $visits->appends(request()->except('page'))->links() }}
+                    </div>
                 </div>
-            </div>
+            </form>
         @endif
     </div>
 
@@ -442,14 +458,27 @@
         .btn-delete:hover{ background: rgba(231,76,60,.12); }
 
         /* ── Pagination ─────────────────────────────────────── */
+        .pagination-form {
+            width: 100%;
+        }
+
         .pagination-section {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
             background: var(--bg-card);
             border: 1px solid var(--border-card);
             border-radius: 10px;
             padding: 14px 20px;
+        }
+
+        .pagination-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
         }
 
         .pagination-info {
@@ -459,24 +488,89 @@
             font-weight: 600;
         }
 
-        .pagination { display: flex; gap: 6px; }
+        .per-page-selector {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .per-page-select {
+            background: var(--bg-input);
+            border: 1px solid var(--border-input);
+            border-radius: 6px;
+            padding: 6px 28px 6px 10px;
+            font-size: 12px;
+            color: var(--text-heading);
+            font-weight: 500;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 12px;
+            min-width: 140px;
+        }
+
+        .per-page-select:focus {
+            outline: none;
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+        }
+
+        .btn-apply-small {
+            background: var(--bg-input);
+            border: 1px solid var(--border-input);
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-body);
+            cursor: pointer;
+        }
+
+        .pagination { display: flex; gap: 4px; align-items: center; }
 
         .pagination a,
         .pagination span {
-            padding: 6px 10px;
-            border-radius: 6px;
+            padding: 8px 12px;
+            border-radius: 8px;
             border: 1px solid var(--border-card);
             background: var(--bg-card);
-            color: var(--text-muted);
-            font-size: 12px;
+            color: var(--text-body);
+            font-size: 13px;
             font-weight: 600;
             text-decoration: none;
-            transition: all 0.18s;
+            transition: all 0.15s;
+            min-width: 40px;
+            text-align: center;
         }
 
-        .pagination a:hover       { background:#3498db; color:#fff; border-color:#3498db; }
-        .pagination .active       { background:#3498db; color:#fff; border-color:#3498db; }
-        .pagination .disabled     { opacity:.45; cursor:not-allowed; }
+        .pagination a:hover {
+            background: #38bdf8;
+            color: #fff;
+            border-color: #38bdf8;
+            transform: translateY(-1px);
+        }
+
+        .pagination .active {
+            background: linear-gradient(135deg, #38bdf8, #2563eb);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+        }
+
+        .pagination .disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .pagination .page-ellipsis {
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            padding: 8px 4px;
+        }
 
         /* ── Responsive ─────────────────────────────────────── */
         @media (max-width: 768px) {
@@ -484,7 +578,10 @@
             .records-search, .btn-new-visit { width: 100%; }
             .btn-new-visit { justify-content: center; }
             .pagination-section { flex-direction: column; gap: 10px; }
-            .pagination { width: 100%; justify-content: center; }
+            .pagination-left { flex-direction: column; align-items: flex-start; gap: 10px; width: 100%; }
+            .pagination { width: 100%; justify-content: center; flex-wrap: wrap; }
+            .pagination-info { font-size: 11px; }
+            .per-page-select { padding: 8px 32px 8px 12px; font-size: 13px; }
         }
     </style>
 </x-app-with-sidebar>

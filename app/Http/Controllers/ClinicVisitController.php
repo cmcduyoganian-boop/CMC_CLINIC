@@ -10,9 +10,12 @@ use Illuminate\Support\Facades\Auth;
 
 class ClinicVisitController extends Controller
 {
-    public function index(Request $request)
+public function index(Request $request)
     {
         [$rangeStart, $rangeEnd] = $this->resolveDateRange($request);
+
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
 
         $visits = ClinicVisit::with('patient')
             ->when($rangeStart && $rangeEnd, function ($query) use ($rangeStart, $rangeEnd) {
@@ -34,10 +37,10 @@ class ClinicVisitController extends Controller
                 });
             })
             ->orderBy('visit_date', 'desc')
-            ->paginate(10)
+            ->paginate($perPage)
             ->withQueryString();
-        
-        return view('clinic-visit.index', compact('visits'));
+
+        return view('clinic-visit.index', compact('visits', 'perPage'));
     }
 
     private function resolveDateRange(Request $request): array
