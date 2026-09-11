@@ -58,11 +58,18 @@ class PatientController extends Controller
         $patient = Patient::where('email', $user->email)->first();
 
         if (!$patient) {
+            $roleCategoryMap = [
+                'student' => 'student',
+                'faculty' => 'faculty',
+                'staff' => 'staff',
+                'clinic_nurse' => 'staff',
+                'clinic_staff' => 'staff',
+            ];
             $patient = Patient::create([
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
-                'category' => $user->role ?? 'student',
+                'category' => $roleCategoryMap[$user->role] ?? 'student',
                 'status' => 'active',
             ]);
         }
