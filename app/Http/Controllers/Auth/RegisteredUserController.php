@@ -27,12 +27,11 @@ class RegisteredUserController extends Controller
     {
         Log::info('🟢 REGISTRATION STARTED');
 
-        // ✅ UPDATED: Validate with username and updated password requirements
         $validated = $request->validate(
             [
                 'name' => 'required|string|max:255',
-                'username' => 'required|string|min:3|max:50|unique:users,username|unique:pending_registrations,username',
-                'email' => 'required|string|email|max:255|unique:users,email|unique:pending_registrations,email',
+                'username' => 'required|string|min:3|max:50',
+                'email' => 'required|string|email|max:255',
                 'phone' => 'required|string|max:20',
                 'role' => 'required|in:student,faculty,staff,clinic_staff',
                 'password' => 'required|string|min:6|max:8|confirmed|regex:/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/',
@@ -46,6 +45,45 @@ class RegisteredUserController extends Controller
                 'password.confirmed' => 'Passwords do not match.',
             ]
         );
+
+        // Check if user already exists with this email/username
+        $existingUser = User::where('email', $validated['email'])
+            ->orWhere('username', $validated['username'])
+            ->first();
+
+        if ($existingUser) {
+            // If clinic_staff already exists, they should just log in
+            if ($existingUser->role === 'clinic_staff') {
+                return redirect()->route('login')
+                    ->with('info', 'You already have a Clinic Staff account. Please log in with your existing credentials. Your patient record will be created automatically on first login.');
+            }
+
+            // For other roles, show specific error
+            $errors = [];
+            if (User::where('email', $validated['email'])->exists() || PendingRegistration::where('email', $validated['email'])->exists()) {
+                $errors['email'] = 'This email is already registered.';
+            }
+            if (User::where('username', $validated['username'])->exists() || PendingRegistration::where('username', $validated['username'])->exists()) {
+                $errors['username'] = 'This username is already taken.';
+            }
+            return back()->withInput()->withErrors($errors);
+        }
+
+        // Also check pending_registrations
+        $existingPending = PendingRegistration::where('email', $validated['email'])
+            ->orWhere('username', $validated['username'])
+            ->first();
+
+        if ($existingPending) {
+            $errors = [];
+            if (PendingRegistration::where('email', $validated['email'])->exists()) {
+                $errors['email'] = 'This email is already registered.';
+            }
+            if (PendingRegistration::where('username', $validated['username'])->exists()) {
+                $errors['username'] = 'This username is already taken.';
+            }
+            return back()->withInput()->withErrors($errors);
+        }
 
         try {
             Log::info('✅ Validation passed');
@@ -107,12 +145,47 @@ class RegisteredUserController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'username' => 'required|string|min:3|max:50|unique:users,username|unique:pending_registrations,username',
-            'email' => 'required|string|email|max:255|unique:users,email|unique:pending_registrations,email',
+            'username' => 'required|string|min:3|max:50',
+            'email' => 'required|string|email|max:255',
             'phone' => 'required|string|max:20',
             'clinic_name' => 'required|string|max:255',
             'password' => 'required|string|min:6|max:8|confirmed|regex:/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/',
         ]);
+
+        // Check if user already exists with this email/username
+        $existingUser = User::where('email', $validated['email'])
+            ->orWhere('username', $validated['username'])
+            ->first();
+
+        if ($existingUser) {
+            if ($existingUser->role === 'clinic_staff') {
+                return redirect()->route('login')
+                    ->with('info', 'You already have a Clinic Staff account. Please log in with your existing credentials.');
+            }
+            $errors = [];
+            if (User::where('email', $validated['email'])->exists() || PendingRegistration::where('email', $validated['email'])->exists()) {
+                $errors['email'] = 'This email is already registered.';
+            }
+            if (User::where('username', $validated['username'])->exists() || PendingRegistration::where('username', $validated['username'])->exists()) {
+                $errors['username'] = 'This username is already taken.';
+            }
+            return back()->withInput()->withErrors($errors);
+        }
+
+        $existingPending = PendingRegistration::where('email', $validated['email'])
+            ->orWhere('username', $validated['username'])
+            ->first();
+
+        if ($existingPending) {
+            $errors = [];
+            if (PendingRegistration::where('email', $validated['email'])->exists()) {
+                $errors['email'] = 'This email is already registered.';
+            }
+            if (PendingRegistration::where('username', $validated['username'])->exists()) {
+                $errors['username'] = 'This username is already taken.';
+            }
+            return back()->withInput()->withErrors($errors);
+        }
 
         try {
             $pending = PendingRegistration::create([
