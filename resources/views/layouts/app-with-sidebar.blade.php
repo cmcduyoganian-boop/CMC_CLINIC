@@ -877,10 +877,10 @@
                     <a href="{{ route('reports.index') }}" class="sidebar-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                         <i class="fas fa-chart-bar sidebar-icon"></i> Reports
                     </a>
-                    <a href="{{ route('forms.index') }}" class="sidebar-link {{ request()->routeIs('forms.*') ? 'active' : '' }}">
-                        <i class="fas fa-file-contract sidebar-icon"></i> Forms
-                    </a>
                 @endif
+                <a href="{{ route('forms.index') }}" class="sidebar-link {{ request()->routeIs('forms.*') ? 'active' : '' }}">
+                    <i class="fas fa-file-contract sidebar-icon"></i> Forms
+                </a>
                 @if (auth()->user() && auth()->user()->role === 'clinic_nurse')
                     <a href="{{ route('users.index') }}" class="sidebar-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
                         <i class="fas fa-user-shield sidebar-icon"></i> User Management
