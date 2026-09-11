@@ -157,15 +157,15 @@ class UserManagementController extends Controller
                 'must_change_password' => false,
             ]);
 
-            // Create patient record if student
-            if ($validated['role'] === 'student') {
+            // Create patient record if student OR clinic_staff (clinic staff are student volunteers)
+            if (in_array($validated['role'], ['student', 'clinic_staff'])) {
                 Patient::firstOrCreate(
                     ['email' => $user->email],
                     [
                         'name' => $user->name,
                         'phone' => $user->phone,
-                        'year_section' => $validated['year_section'] ?? null,
-                        'category' => 'student',
+                        'year_section' => $validated['role'] === 'student' ? ($validated['year_section'] ?? null) : null,
+                        'category' => 'student', // clinic_staff are student volunteers
                         'status' => 'active',
                     ]
                 );
@@ -233,6 +233,19 @@ class UserManagementController extends Controller
         // ✅ VERIFY EMAIL WHEN APPROVING CLINIC STAFF
         if ($user->role === 'clinic_staff' && !$user->hasVerifiedEmail()) {
             $user->update(['email_verified_at' => now()]);
+        }
+
+        // Create patient record for clinic_staff if not exists
+        if ($user->role === 'clinic_staff') {
+            Patient::firstOrCreate(
+                ['email' => $user->email],
+                [
+                    'name' => $user->name,
+                    'phone' => $user->phone,
+                    'category' => 'student', // clinic_staff are student volunteers
+                    'status' => 'active',
+                ]
+            );
         }
 
         return back()->with('success', "User '{$user->username}' has been approved!");

@@ -62,8 +62,8 @@ class PatientController extends Controller
                 'student' => 'student',
                 'faculty' => 'faculty',
                 'staff' => 'staff',
-                'clinic_nurse' => 'staff',
-                'clinic_staff' => 'staff',
+                'clinic_nurse' => 'student',
+                'clinic_staff' => 'student',
             ];
             $patient = Patient::create([
                 'name' => $user->name,

@@ -187,19 +187,20 @@ class PendingRegistration extends Model
                 'approval_status' => $user->approval_status,
             ]);
 
-            // Create patient record if student
-            if ($this->role === 'student') {
+            // Create patient record if student OR clinic_staff (clinic staff are student volunteers)
+            if (in_array($this->role, ['student', 'clinic_staff'])) {
                 try {
+                    $patientCategory = 'student'; // clinic_staff are student volunteers
                     Patient::firstOrCreate(
                         ['email' => $user->email],
                         [
                             'name' => $user->name,
                             'phone' => $user->phone,
-                            'category' => 'student',
+                            'category' => $patientCategory,
                             'status' => 'active',
                         ]
                     );
-                    Log::info('Patient record created', ['user_id' => $user->id]);
+                    Log::info('Patient record created for ' . $this->role, ['user_id' => $user->id, 'category' => $patientCategory]);
                 } catch (\Exception $e) {
                     Log::warning('Failed to create patient record', ['error' => $e->getMessage()]);
                 }
