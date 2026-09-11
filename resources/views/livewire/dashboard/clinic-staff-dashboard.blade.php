@@ -400,6 +400,12 @@
             <a href="{{ route('medicines.index') }}" class="action-btn">
                 <i class="fas fa-pills"></i> View Inventory
             </a>
+            <a href="{{ route('patient.records') }}" class="action-btn">
+                <i class="fas fa-file-medical"></i> My Records
+            </a>
+            <a href="{{ route('patient.profile') }}" class="action-btn">
+                <i class="fas fa-user"></i> My Profile
+            </a>
         </div>
     </div>
 
