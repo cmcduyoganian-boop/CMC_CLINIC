@@ -10,8 +10,10 @@ use Illuminate\Support\Facades\Auth;
 
 class ClinicVisitController extends Controller
 {
-public function index(Request $request)
+    public function index(Request $request)
     {
+        $this->authorize('viewAny', ClinicVisit::class);
+
         [$rangeStart, $rangeEnd] = $this->resolveDateRange($request);
 
         $perPage = (int) $request->get('per_page', 10);
@@ -77,11 +79,13 @@ public function index(Request $request)
 
         public function create()
     {
+        $this->authorize('create', ClinicVisit::class);
         return view('clinic-visit.create');
     }
 
     public function store(Request $request)
     {
+        $this->authorize('create', ClinicVisit::class);
         $validated = $request->validate([
             'patient_name' => 'required|string|max:255',
             'patient_category' => 'required|in:student,faculty,staff',
@@ -145,17 +149,21 @@ public function index(Request $request)
     public function show(int $id)
     {
         $visit = ClinicVisit::with('patient.clinicVisits')->findOrFail($id);
+        $this->authorize('view', $visit);
         return view('clinic-visit.show', compact('visit'));
     }
 
     public function edit(int $id)
     {
+        $visit = ClinicVisit::findOrFail($id);
+        $this->authorize('update', $visit);
         return view('clinic-visit.edit', ['visitId' => $id]);
     }
 
     public function update(Request $request, int $id)
     {
         $visit = ClinicVisit::findOrFail($id);
+        $this->authorize('update', $visit);
 
         $validated = $request->validate([
             'visit_date' => 'required|date',
@@ -182,6 +190,8 @@ public function index(Request $request)
     public function destroy(int $id)
     {
         $visit = ClinicVisit::findOrFail($id);
+        $this->authorize('delete', $visit);
+
         $visit->delete();
 
         return redirect()->route('clinic-visit.index')
@@ -190,6 +200,8 @@ public function index(Request $request)
 
     public function search(Request $request)
     {
+        $this->authorize('viewAny', Patient::class);
+        
         $query = $request->input('q');
         
         $patients = Patient::where('name', 'like', "%$query%")

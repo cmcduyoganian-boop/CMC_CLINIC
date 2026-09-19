@@ -8,25 +8,32 @@ use Illuminate\Http\Request;
 class PatientController extends Controller
 {
     public function index()
-{
-    return view('patients.index');
-}
+    {
+        $this->authorize('viewAny', Patient::class);
+        return view('patients.index');
+    }
+
     public function show($id)
     {
         $patient = Patient::with(['clinicVisits' => function ($query) {
             $query->orderBy('visit_date', 'desc');
         }])->findOrFail($id);
 
+        $this->authorize('view', $patient);
+
         return view('patients.show', compact('patient'));
     }
 
     public function create()
     {
+        $this->authorize('create', Patient::class);
         return view('patients.create');
     }
 
     public function edit($id)
     {
+        $patient = Patient::findOrFail($id);
+        $this->authorize('update', $patient);
         return view('patients.edit', ['patientId' => $id]);
     }
 
@@ -34,6 +41,22 @@ class PatientController extends Controller
     {
         $user = auth()->user();
         $patient = Patient::where('email', $user->email)->first();
+
+        // Verify ownership by checking name similarity
+        if ($patient) {
+            $patientName = strtolower(trim($patient->name));
+            $userName = strtolower(trim($user->name));
+            similar_text($patientName, $userName, $percent);
+            if ($percent < 70) {
+                \Illuminate\Support\Facades\Log::warning('MyProfile access denied - name mismatch', [
+                    'user_id' => $user->id,
+                    'user_email' => $user->email,
+                    'patient_id' => $patient->id,
+                    'similarity_percent' => $percent,
+                ]);
+                $patient = null;
+            }
+        }
 
         return view('patients.my-profile', compact('patient'));
     }
@@ -44,6 +67,22 @@ class PatientController extends Controller
         $patient = Patient::where('email', $user->email)->with(['clinicVisits' => function ($query) {
             $query->orderBy('visit_date', 'desc');
         }])->first();
+
+        // Verify ownership by checking name similarity
+        if ($patient) {
+            $patientName = strtolower(trim($patient->name));
+            $userName = strtolower(trim($user->name));
+            similar_text($patientName, $userName, $percent);
+            if ($percent < 70) {
+                \Illuminate\Support\Facades\Log::warning('MyRecords access denied - name mismatch', [
+                    'user_id' => $user->id,
+                    'user_email' => $user->email,
+                    'patient_id' => $patient->id,
+                    'similarity_percent' => $percent,
+                ]);
+                $patient = null;
+            }
+        }
 
         if (!$patient) {
             return redirect()->route('dashboard')->with('info', 'You do not have a patient record yet.');
@@ -105,6 +144,8 @@ class PatientController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', Patient::class);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|unique:patients',

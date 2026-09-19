@@ -17,6 +17,7 @@ Route::middleware('guest')->group(function () {
 
     // ✅ FIX: Added route name
     Route::post('register', [RegisteredUserController::class, 'store'])
+                ->middleware('throttle:5,1')
                 ->name('register.store');
 
     // Clinic Staff Registration
@@ -24,6 +25,7 @@ Route::middleware('guest')->group(function () {
                 ->name('register.clinic-staff');
 
     Route::post('register/clinic-staff', [RegisteredUserController::class, 'storeClinicStaff'])
+                ->middleware('throttle:5,1')
                 ->name('register.clinic-staff.store');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
@@ -31,18 +33,21 @@ Route::middleware('guest')->group(function () {
 
     // ✅ FIX: Added route name
     Route::post('login', [AuthenticatedSessionController::class, 'store'])
+                ->middleware('throttle:5,1')
                 ->name('login.store');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
                 ->name('password.request');
 
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+                ->middleware('throttle:3,1')
                 ->name('password.email');
 
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
                 ->name('password.reset');
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
+                ->middleware('throttle:3,1')
                 ->name('password.update');
 });
 

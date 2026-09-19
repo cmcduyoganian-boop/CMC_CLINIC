@@ -6,7 +6,7 @@ use App\Models\Patient;
 use App\Models\ClinicVisit;
 use App\Models\Appointment;
 use Livewire\Component;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class PatientDashboard extends Component
 {
@@ -31,18 +31,41 @@ class PatientDashboard extends Component
         $this->totalVisits = 0;
         $this->upcomingAppointments = 0;
 
-        $user = auth()->user();
-        $accountName = Str::lower(Str::squish($user->name));
-        $accountEmail = Str::lower(trim($user->email));
+        $user = Auth::user();
 
-        // A patient account can access records only when both identity fields match.
-        $this->patient = Patient::whereRaw('LOWER(email) = ?', [$accountEmail])
-            ->get()
-            ->first(function (Patient $patient) use ($accountName) {
-                return Str::lower(Str::squish($patient->name)) === $accountName;
-            });
+        // Only allow patient roles (student, faculty, staff) to access their records
+        if (!in_array($user->role, ['student', 'faculty', 'staff'], true)) {
+            return;
+        }
 
+        // Use email as the primary unique identifier - it's unique in both users and patients tables
+        $userEmail = strtolower(trim($user->email));
+
+        $this->patient = Patient::whereRaw('LOWER(email) = ?', [$userEmail])->first();
+
+        // Additional safety: verify the patient record belongs to this user by checking name similarity
+        // This is a secondary check in case email matching alone isn't sufficient
         if ($this->patient) {
+            $patientName = strtolower(trim($this->patient->name));
+            $userName = strtolower(trim($user->name));
+            
+            // Names should be reasonably similar (allowing for minor variations)
+            similar_text($patientName, $userName, $percent);
+            if ($percent < 70) {
+                // Name mismatch - possible data integrity issue, log and deny access
+                \Illuminate\Support\Facades\Log::warning('Patient dashboard access denied - name mismatch', [
+                    'user_id' => $user->id,
+                    'user_email' => $user->email,
+                    'user_name' => $user->name,
+                    'patient_id' => $this->patient->id,
+                    'patient_email' => $this->patient->email,
+                    'patient_name' => $this->patient->name,
+                    'similarity_percent' => $percent,
+                ]);
+                $this->patient = null;
+                return;
+            }
+
             // Get clinic visits
             $this->visits = ClinicVisit::where('patient_id', $this->patient->id)
                 ->orderBy('visit_date', 'desc')

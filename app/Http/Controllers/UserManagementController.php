@@ -171,16 +171,16 @@ class UserManagementController extends Controller
                 );
             }
 
-            // ✅ SHOW PASSWORD TO ADMIN
+            // ✅ SHOW PASSWORD TO ADMIN (via secure one-time display)
             return redirect()->route('users.create')->with([
                 'success' => "User '{$user->name}' created successfully!",
                 'show_password' => $showPassword,
                 'default_username' => $user->username,
-                'default_password' => $password,
                 'default_email' => $user->email,
                 'default_name' => $user->name,
                 'default_role' => $user->getRoleLabel(),
                 'email_verification' => 'Pre-verified by Admin',
+                'temp_password' => $showPassword ? $password : null,
             ]);
         } catch (\Exception $e) {
             return back()->withInput()->with('error', 'Failed to create user: ' . $e->getMessage());
@@ -288,8 +288,8 @@ class UserManagementController extends Controller
             'success' => "Password reset for '{$user->username}'",
             'show_password' => true,
             'default_username' => $user->username,
-            'default_password' => $newPassword,
             'default_email' => $user->email,
+            'temp_password' => $newPassword,
         ]);
     }
 

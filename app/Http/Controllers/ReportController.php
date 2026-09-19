@@ -9,6 +9,7 @@ use App\Models\Medicine;
 use App\Support\VitalSigns;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ReportController extends Controller
 {
@@ -249,6 +250,11 @@ class ReportController extends Controller
 
     public function download($type, Request $request)
     {
+        // Authorization: only clinic_nurse can download reports
+        if (!in_array(auth()->user()?->role, ['clinic_nurse'], true)) {
+            abort(403, 'Unauthorized - Clinic Nurse access required for data exports');
+        }
+
         [$dateFrom, $dateTo] = $this->parseDateRange($request);
 
         $filename = match ($type) {
@@ -262,6 +268,18 @@ class ReportController extends Controller
         };
 
         if (!$filename) abort(404);
+
+        // Audit log: record data export access
+        Log::warning('Data export accessed', [
+            'user_id' => auth()->id(),
+            'user_name' => auth()->user()->name ?? 'Unknown',
+            'user_role' => auth()->user()->role ?? 'Unknown',
+            'export_type' => $type,
+            'date_from' => $dateFrom?->toDateString(),
+            'date_to' => $dateTo?->toDateString(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
 
         $headers = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
@@ -470,9 +488,26 @@ class ReportController extends Controller
 
     public function clinicReportPdf(Request $request)
     {
+        // Authorization: only clinic_nurse can access PDF reports
+        if (!in_array(auth()->user()?->role, ['clinic_nurse'], true)) {
+            abort(403, 'Unauthorized - Clinic Nurse access required for PDF reports');
+        }
+
         $reportType = $request->query('type', 'weekly');
         $startDate = $request->query('start', now()->startOfWeek()->format('Y-m-d'));
         $endDate = $request->query('end', now()->endOfWeek()->format('Y-m-d'));
+
+        // Audit log: record PDF report access
+        Log::warning('PDF report accessed', [
+            'user_id' => auth()->id(),
+            'user_name' => auth()->user()->name ?? 'Unknown',
+            'user_role' => auth()->user()->role ?? 'Unknown',
+            'report_type' => $reportType,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
 
         $component = new \App\Livewire\Reports\ClinicReport();
         $component->reportType = $reportType;

@@ -36,10 +36,12 @@ Route::middleware('guest')->group(function () {
 
     // ✅ Verify OTP and create account
     Route::post('/verify-email/{email}', [\App\Http\Controllers\OtpController::class, 'verify'])
+        ->middleware('throttle:10,1')
         ->name('otp.verify');
 
     // ✅ Resend OTP
     Route::post('/resend-otp', [\App\Http\Controllers\OtpController::class, 'resend'])
+        ->middleware('throttle:3,1')
         ->name('otp.resend');
 });
 
@@ -87,18 +89,19 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
     Route::resource('patients', PatientController::class)->middleware('clinic.role:clinic_nurse');
 
     // ✅ CLINIC VISIT ROUTES
-    Route::resource('clinic-visit', ClinicVisitController::class)
-        ->only(['index', 'create', 'store', 'show'])
-        ->parameters(['clinic-visit' => 'id'])
-        ->middleware('clinic.role');
-    Route::middleware('clinic.role:clinic_nurse,clinic_staff')->group(function () {
+    Route::middleware('clinic.role:clinic_nurse')->group(function () {
+        Route::resource('clinic-visit', ClinicVisitController::class)
+            ->only(['index', 'create', 'store', 'show'])
+            ->parameters(['clinic-visit' => 'id']);
+        
         Route::get('/clinic-visit/{id}/edit', [ClinicVisitController::class, 'edit'])->name('clinic-visit.edit');
         Route::put('/clinic-visit/{id}', [ClinicVisitController::class, 'update'])->name('clinic-visit.update');
         Route::patch('/clinic-visit/{id}', [ClinicVisitController::class, 'update']);
         Route::delete('/clinic-visit/{id}', [ClinicVisitController::class, 'destroy'])->name('clinic-visit.destroy');
     });
+    
     Route::get('/api/patients/search', [ClinicVisitController::class, 'search'])
-        ->middleware('clinic.role')
+        ->middleware('clinic.role:clinic_nurse,clinic_staff')
         ->name('patients.search');
 
     // ✅ MEDICINE ROUTES
@@ -154,7 +157,9 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
     Route::post('/settings/avatar', [SettingsController::class, 'updateAvatar'])->name('settings.avatar.update');
     Route::delete('/settings/avatar', [SettingsController::class, 'deleteAvatar'])->name('settings.avatar.delete');
     Route::post('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password.update');
-    Route::post('/settings/password/request-otp', [SettingsController::class, 'requestPasswordOtp'])->name('settings.password.request-otp');
+    Route::post('/settings/password/request-otp', [SettingsController::class, 'requestPasswordOtp'])
+        ->middleware('throttle:3,1')
+        ->name('settings.password.request-otp');
     Route::post('/settings/username', [SettingsController::class, 'updateUsername'])->name('settings.username.update');
     Route::post('/settings/clinic', [SettingsController::class, 'updateClinic'])->name('settings.clinic.update');
 

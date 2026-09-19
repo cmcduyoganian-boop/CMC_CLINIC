@@ -219,6 +219,11 @@ class StudentInfo extends Component
     {
         $this->submit();
 
+        // Authorization check using policy
+        if ($this->record) {
+            $this->authorize('exportPdf', $this->record);
+        }
+
         $pdf = Pdf::loadView('pdf.student-health-record', [
             'record' => $this->record,
             'data' => [
