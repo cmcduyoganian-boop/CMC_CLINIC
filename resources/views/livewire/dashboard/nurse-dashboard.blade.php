@@ -191,7 +191,10 @@
                 </div>
             </div>
             <div class="chart-container location-chart-container" id="locationChartWrap">
-                <canvas id="patientLocationChart"></canvas>
+                <canvas id="patientLocationChart"
+                    wire:ignore
+                    data-labels='@json($patientLocationData['labels'])'
+                    data-data='@json($patientLocationData['data'])'></canvas>
             </div>
         </div>
     </div>
@@ -259,7 +262,10 @@
                     </div>
                 </div>
                 <div class="chart-container">
-                    <canvas id="visitsChart"></canvas>
+                    <canvas id="visitsChart"
+                        wire:ignore
+                        data-labels='@json($last7DaysChart['labels'])'
+                        data-data='@json($last7DaysChart['data'])'></canvas>
                 </div>
             </div>
 
@@ -271,7 +277,10 @@
                     </div>
                 </div>
                 <div class="chart-container">
-                    <canvas id="visitsTrendChart"></canvas>
+                    <canvas id="visitsTrendChart"
+                        wire:ignore
+                        data-labels='@json($visitsTrendData['labels'])'
+                        data-data='@json($visitsTrendData['data'])'></canvas>
                 </div>
             </div>
         </div>
@@ -320,7 +329,11 @@
             </div>
             <div class="overview-body">
                 <div class="donut-wrapper">
-                    <canvas id="vitalsDonut"></canvas>
+                    <canvas id="vitalsDonut"
+                        wire:ignore
+                        data-normal="{{ $vitalSignsOverview['normal'] }}"
+                        data-elevated="{{ $vitalSignsOverview['elevated'] }}"
+                        data-abnormal="{{ $vitalSignsOverview['abnormal'] }}"></canvas>
                     <div class="donut-center">
                         <span class="donut-value">{{ $vitalSignsOverview['total'] }}</span>
                         <span class="donut-label">RECORDS</span>
@@ -362,7 +375,12 @@
             </div>
             <div class="overview-body">
                 <div class="donut-wrapper">
-                    <canvas id="appointmentsDonut"></canvas>
+                    <canvas id="appointmentsDonut"
+                        wire:ignore
+                        data-scheduled="{{ $appointmentStats['scheduled'] }}"
+                        data-completed="{{ $appointmentStats['completed'] }}"
+                        data-no-show="{{ $appointmentStats['noShow'] }}"
+                        data-cancelled="{{ $appointmentStats['cancelled'] }}"></canvas>
                     <div class="donut-center">
                         <span class="donut-value">{{ $appointmentStats['total'] }}</span>
                         <span class="donut-label">TOTAL</span>
@@ -411,7 +429,11 @@
             </div>
             <div class="overview-body">
                 <div class="donut-wrapper">
-                    <canvas id="medicineDonut"></canvas>
+                    <canvas id="medicineDonut"
+                        wire:ignore
+                        data-available="{{ $medicineInventory['available'] }}"
+                        data-low-stock="{{ $medicineInventory['lowStock'] }}"
+                        data-expiring="{{ $medicineInventory['expiringSoon'] }}"></canvas>
                     <div class="donut-center">
                         <span class="donut-value">{{ $medicineInventory['total'] }}</span>
                         <span class="donut-label">MEDICINES</span>
@@ -1546,8 +1568,64 @@
     </style>
 
     <script>
-        let clinicNurseCharts = {};
-        let _lastChartData = null;
+        var clinicNurseCharts = window.clinicNurseCharts || {};
+        var _lastChartData = null;
+
+        function parseChartData(value, fallback) {
+            try {
+                return JSON.parse(value || '[]');
+            } catch (error) {
+                return fallback;
+            }
+        }
+
+        function getInitialChartData() {
+            const visits = document.getElementById('visitsChart');
+            const trend = document.getElementById('visitsTrendChart');
+            const location = document.getElementById('patientLocationChart');
+            const vitals = document.getElementById('vitalsDonut');
+            const appointments = document.getElementById('appointmentsDonut');
+            const medicine = document.getElementById('medicineDonut');
+
+            return {
+                visits: visits ? {
+                    labels: parseChartData(visits.dataset.labels, []),
+                    data: parseChartData(visits.dataset.data, []),
+                } : null,
+                trend: trend ? {
+                    labels: parseChartData(trend.dataset.labels, []),
+                    data: parseChartData(trend.dataset.data, []),
+                } : null,
+                location: location ? {
+                    labels: parseChartData(location.dataset.labels, []),
+                    data: parseChartData(location.dataset.data, []),
+                } : null,
+                vitals: vitals ? {
+                    normal: Number(vitals.dataset.normal || 0),
+                    elevated: Number(vitals.dataset.elevated || 0),
+                    abnormal: Number(vitals.dataset.abnormal || 0),
+                } : null,
+                appointments: appointments ? {
+                    scheduled: Number(appointments.dataset.scheduled || 0),
+                    completed: Number(appointments.dataset.completed || 0),
+                    noShow: Number(appointments.dataset.noShow || 0),
+                    cancelled: Number(appointments.dataset.cancelled || 0),
+                } : null,
+                medicine: medicine ? {
+                    available: Number(medicine.dataset.available || 0),
+                    lowStock: Number(medicine.dataset.lowStock || 0),
+                    expiringSoon: Number(medicine.dataset.expiring || 0),
+                } : null,
+            };
+        }
+
+        function whenChartReady(callback) {
+            if (typeof window.Chart !== 'undefined') {
+                callback();
+                return;
+            }
+            window.addEventListener('clinic-chart-ready', callback, { once: true });
+        }
 
         function getThemeColors() {
             const isDark = document.body.getAttribute('data-theme') !== 'light';
@@ -1579,8 +1657,14 @@
             });
         }
 
-        function buildCharts(chartData) {
-            if (!chartData) return;
+        function buildCharts(chartData = null) {
+            if (typeof window.Chart === 'undefined') {
+                whenChartReady(() => buildCharts(chartData));
+                return;
+            }
+            if (!chartData) {
+                chartData = getInitialChartData();
+            }
             _lastChartData = chartData;
             destroyAll();
 
@@ -1699,8 +1783,12 @@
                         },
                     });
                 } else {
-                    const wrap = document.getElementById('locationChartWrap');
-                    if (wrap) wrap.innerHTML = '<div class="empty-state"><i class="fas fa-map-marker-alt"></i><p>No patient location data found.</p></div>';
+                    const ctx2 = locationCtx.getContext('2d');
+                    ctx2.clearRect(0, 0, locationCtx.width, locationCtx.height);
+                    ctx2.fillStyle = tickColor;
+                    ctx2.font = '13px Figtree, sans-serif';
+                    ctx2.textAlign = 'center';
+                    ctx2.fillText('No patient location data for this period.', locationCtx.width / 2, locationCtx.height / 2);
                 }
             }
 
@@ -1753,21 +1841,35 @@
             }
         }
 
-        // ── Listen for Livewire chart-data event ─────────────────────
-        document.addEventListener('livewire:init', () => {
-            Livewire.on('dashboard-charts-update', ({ chartData }) => {
-                buildCharts(chartData);
-            });
-        });
+        function registerLivewireChartHooks() {
+            if (typeof Livewire === 'undefined') return;
 
-        // ── Rebuild on theme change ───────────────────────────────────
-        window.addEventListener('clinic-theme-changed', () => buildCharts(_lastChartData));
+            if (!window._clinicNurseChartListenerRegistered) {
+                Livewire.on('dashboard-charts-update', ({ chartData }) => {
+                    whenChartReady(() => buildCharts(chartData));
+                });
+                window._clinicNurseChartListenerRegistered = true;
+            }
 
-        // ── Navigation: re-init ───────────────────────────────────────
-        document.addEventListener('livewire:navigated', () => setTimeout(() => buildCharts(_lastChartData), 50));
+            if (!window._clinicNurseChartHookRegistered) {
+                Livewire.hook('message.processed', ({ component }) => {
+                    if (component?.el?.querySelector('.dashboard-wrapper')) {
+                        setTimeout(() => buildCharts(_lastChartData), 0);
+                    }
+                });
+                window._clinicNurseChartHookRegistered = true;
+            }
+        }
 
-        // ── Initial render (first page load) ─────────────────────────
-        document.addEventListener('DOMContentLoaded', () => setTimeout(() => buildCharts(_lastChartData), 100));
+        if (typeof Livewire === 'undefined') {
+            document.addEventListener('livewire:init', () => registerLivewireChartHooks(), { once: true });
+        } else {
+            registerLivewireChartHooks();
+        }
+
+        window.addEventListener('clinic-theme-changed', () => whenChartReady(() => buildCharts(_lastChartData)));
+        document.addEventListener('livewire:navigated', () => setTimeout(() => whenChartReady(() => buildCharts()), 50));
+        document.addEventListener('DOMContentLoaded', () => setTimeout(() => whenChartReady(() => buildCharts()), 0));
 
         function navigateToVisits() {
             const dateRangeSelect = Array.from(document.querySelectorAll('.filters-card select'))

@@ -35,29 +35,26 @@ class NurseDashboard extends Component
 
     private function getDateRange(): array
     {
-        $start = now()->startOfDay();
-        $end = now()->endOfDay();
+        $today = now()->startOfDay();
+        $start = $today->copy();
+        $end = $today->copy()->endOfDay();
 
         switch ($this->dateRange) {
             case 'today':
-                $start = now()->startOfDay();
-                $end = now()->endOfDay();
                 break;
             case 'yesterday':
-                $start = now()->subDay()->startOfDay();
-                $end = now()->subDay()->endOfDay();
+                $start = $today->copy()->subDay();
+                $end = $today->copy()->subDay()->endOfDay();
                 break;
             case 'last_7':
-                $start = now()->subDays(7)->startOfDay();
-                $end = now()->endOfDay();
+                $start = $today->copy()->subDays(6);
                 break;
             case 'last_30':
-                $start = now()->subDays(30)->startOfDay();
-                $end = now()->endOfDay();
+                $start = $today->copy()->subDays(29);
                 break;
             case 'this_month':
-                $start = now()->startOfMonth();
-                $end = now()->endOfMonth();
+                $start = $today->copy()->startOfMonth();
+                $end = $today->copy()->endOfMonth();
                 break;
             case 'custom':
                 if ($this->customStartDate && $this->customEndDate) {
@@ -68,6 +65,11 @@ class NurseDashboard extends Component
         }
 
         return [$start, $end];
+    }
+
+    private function getRangeDays(Carbon $start, Carbon $end): int
+    {
+        return max(1, (int) floor($start->diffInDays($end)) + 1);
     }
 
     private function cacheKey(string $method): string
@@ -91,7 +93,7 @@ class NurseDashboard extends Component
             [$start, $end] = $this->getDateRange();
             $total = $this->buildVisitQuery()->count();
 
-            $periodLength = $start->diffInDays($end) + 1;
+            $periodLength = $this->getRangeDays($start, $end);
             $previousStart = (clone $start)->subDays($periodLength);
             $previousEnd = (clone $start)->subDay()->endOfDay();
 
@@ -163,7 +165,7 @@ class NurseDashboard extends Component
     {
         return Cache::remember($this->cacheKey('last_7_days_chart'), 60, function () {
             [$start, $end] = $this->getDateRange();
-            $days = $start->diffInDays($end) + 1;
+            $days = $this->getRangeDays($start, $end);
 
             if ($days > 30) {
                 $visits = $this->buildVisitQuery()
@@ -201,9 +203,10 @@ class NurseDashboard extends Component
     {
         return Cache::remember($this->cacheKey('visits_trend'), 30, function () {
             [$start, $end] = $this->getDateRange();
-            $daysDiff = $start->diffInDays($end);
+            $days = $this->getRangeDays($start, $end);
+            $daysDiff = $days - 1;
 
-            if ($daysDiff < 6) {
+            if ($days <= 7) {
                 $start = now()->subDays(6)->startOfDay();
                 $end = now()->endOfDay();
                 $daysDiff = 6;

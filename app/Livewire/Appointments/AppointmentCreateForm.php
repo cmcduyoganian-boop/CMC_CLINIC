@@ -4,6 +4,7 @@ namespace App\Livewire\Appointments;
 
 use App\Models\Appointment;
 use App\Models\Patient;
+use Carbon\Carbon;
 use Livewire\Component;
 
 class AppointmentCreateForm extends Component
@@ -22,6 +23,8 @@ class AppointmentCreateForm extends Component
     public $appointmentTime = '';
     public $reason = '';
     public $notes = '';
+    public $smsReminder = false;
+    public $smsMessage = '';
 
     public function mount()
     {
@@ -60,6 +63,18 @@ class AppointmentCreateForm extends Component
         $this->showPatientDropdown = true;
     }
 
+    public function updatedSmsReminder()
+    {
+        if ($this->smsReminder) {
+            $patientName = $this->patientName ?: 'Valued Patient';
+            $date = Carbon::parse($this->appointmentDate)->format('F j, Y');
+            $time = $this->appointmentTime ? Carbon::parse($this->appointmentTime)->format('g:i A') : '';
+            $this->smsMessage = "Dear {$patientName}, this is a reminder of your clinic appointment on {$date} at {$time}. Please arrive 10 minutes early. - CMC Clinic";
+        } else {
+            $this->smsMessage = '';
+        }
+    }
+
     public function selectPatient($id)
     {
         $patient = Patient::find($id);
@@ -90,6 +105,8 @@ class AppointmentCreateForm extends Component
             'appointmentTime' => 'required|date_format:H:i',
             'reason' => 'nullable|string',
             'notes' => 'nullable|string',
+            'smsReminder' => 'boolean',
+            'smsMessage' => 'nullable|string|max:160',
         ]);
 
         $patient = $this->patientId
@@ -112,6 +129,9 @@ class AppointmentCreateForm extends Component
             'reason' => $validated['reason'],
             'notes' => $validated['notes'],
             'status' => 'scheduled',
+            'sms_reminder' => $this->smsReminder,
+            'sms_message' => $this->smsReminder ? $this->smsMessage : null,
+            'sms_status' => $this->smsReminder ? 'pending' : null,
         ]);
 
         session()->flash('success', 'Appointment scheduled for ' . $patient->name . ' successfully!');
