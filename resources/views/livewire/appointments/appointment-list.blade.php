@@ -46,13 +46,11 @@
         </div>
     </div>
 
-    <!-- Search & Filter -->
-    <div class="search-section">
-        <div class="search-group">
-            <input type="text" class="search-input" placeholder="Search by patient name..." wire:model.live.debounce.300ms="search">
-            <i class="fas fa-search search-icon"></i>
-        </div>
-        <select class="filter-select" wire:model.live="statusFilter">
+    <!-- Filter bar -->
+    <div class="filter-bar">
+        <input type="hidden" wire:model.live.debounce.300ms="search" class="livewire-search-input">
+        <span class="filter-label"><i class="fas fa-filter"></i> Filter:</span>
+        <select class="filter-chip" wire:model.live="statusFilter">
             <option value="">All Status</option>
             <option value="scheduled">Scheduled</option>
             <option value="completed">Completed</option>
@@ -270,47 +268,10 @@
     }
 
     /* ── Search / Filter bar ── */
-    .search-section {
-        display: flex;
-        gap: 12px;
-        background: var(--bg-card);
-        border: 1px solid var(--border-card);
-        padding: 16px;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        align-items: center;
-    }
 
-    .search-group {
-        flex: 1;
-        position: relative;
-    }
 
-    .search-input {
-        width: 100%;
-        border: 1px solid var(--border-card);
-        border-radius: 8px;
-        padding: 9px 14px 9px 36px;
-        font-size: 13px;
-        font-family: 'Figtree', sans-serif;
-        background: var(--bg-input);
-        color: var(--text-heading);
-        transition: border-color 0.15s;
-    }
 
-    .search-input:focus {
-        outline: none;
-        border-color: #38bdf8;
-    }
 
-    .search-icon {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-muted);
-        pointer-events: none;
-    }
 
     .filter-select {
         border: 1px solid var(--border-card);
@@ -515,8 +476,7 @@
 
     /* ── Pagination ── */
     .pagination-wrapper {
-        padding: 16px 20px;
-        border-top: 1px solid var(--border-inner);
+        /* Styling handled by the custom cmc-pagination view */
     }
 
     /* ── Responsive ── */
@@ -530,9 +490,6 @@
             justify-content: center;
         }
 
-        .search-section {
-            flex-direction: column;
-        }
 
         .appointments-table {
             font-size: 11px;

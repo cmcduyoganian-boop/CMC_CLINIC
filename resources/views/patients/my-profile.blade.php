@@ -144,44 +144,54 @@
         }
 
         .profile-card {
-            background: var(--bg-card);
-            border-radius: 10px;
-            padding: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            background: linear-gradient(135deg, #2a9df5, #1f7ed7);
+            border-radius: 18px;
+            padding: 24px 18px 18px;
+            box-shadow: 0 16px 35px rgba(23, 92, 165, 0.18);
+            color: #ffffff;
+            max-width: 440px;
+            width: min(100%, 440px);
+            margin: 0 auto;
         }
 
         .profile-header {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid var(--border-inner);
+            justify-content: center;
+            text-align: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.22);
         }
 
         .profile-avatar {
-            width: 72px;
-            height: 72px;
+            width: 96px;
+            height: 96px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #3498db, #2980b9);
+            background: rgba(255,255,255,0.12);
+            border: 3px solid rgba(255,255,255,0.8);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
+            font-size: 34px;
             font-weight: 700;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.08);
         }
 
         .profile-header h2 {
             margin: 0;
-            font-size: 24px;
-            color: var(--text-heading);
+            font-size: 26px;
+            line-height: 1.2;
+            color: #ffffff;
         }
 
         .profile-header p {
-            margin: 4px 0 0;
-            color: var(--text-muted);
-            font-size: 12px;
+            margin: 0;
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
         }
 
         .form-grid {

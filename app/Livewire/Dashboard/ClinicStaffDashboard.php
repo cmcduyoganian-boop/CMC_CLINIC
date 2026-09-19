@@ -18,7 +18,6 @@ class ClinicStaffDashboard extends Component
     public $patientType = 'all';
     public ?string $customStartDate = null;
     public ?string $customEndDate = null;
-    public $dashboardSearch = '';
     public $autoRefreshInterval = 60000;
 
     protected $listeners = ['resetFilters'];
@@ -330,32 +329,6 @@ class ClinicStaffDashboard extends Component
         });
     }
 
-    #[Computed]
-    public function dashboardSearchResults(): array
-    {
-        $term = trim($this->dashboardSearch);
-
-        if (strlen($term) < 2) {
-            return [];
-        }
-
-        return Patient::whereHas('clinicVisits')
-            ->where(function ($q) use ($term) {
-                $q->where('name', 'like', "%{$term}%")
-                  ->orWhere('email', 'like', "%{$term}%")
-                  ->orWhere('year_section', 'like', "%{$term}%");
-            })
-            ->orderBy('name')
-            ->limit(8)
-            ->get()
-            ->map(fn ($p) => [
-                'name' => $p->name,
-                'category' => ucfirst($p->category ?? 'Patient'),
-                'visitId' => $p->clinicVisits()->latest('visit_date')->first()?->id,
-            ])
-            ->toArray();
-    }
-
     public function render()
     {
         $data = [
@@ -368,7 +341,6 @@ class ClinicStaffDashboard extends Component
             'visitsTrendData' => $this->visitsTrendData,
             'patientLocationData' => $this->patientLocationData,
             'recentActivities' => $this->recentActivities,
-            'dashboardSearchResults' => $this->dashboardSearchResults,
         ];
 
         $this->dispatch('dashboard-charts-update', chartData: [

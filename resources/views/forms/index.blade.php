@@ -9,10 +9,6 @@
             </div>
         </div>
 
-        <div class="forms-search search-section">
-            <i class="fas fa-search search-icon" aria-hidden="true"></i>
-            <input type="search" class="search-input" placeholder="Search forms..." aria-label="Search forms">
-        </div>
 
         <div class="forms-grid">
             <a href="{{ route('forms.clinic-visit') }}" class="form-card">
@@ -56,14 +52,6 @@
         <livewire:forms.student-records-list />
     </div>
 
-    <script>
-        document.querySelector('.forms-search input')?.addEventListener('input', function () {
-            const term = this.value.trim().toLowerCase();
-            document.querySelectorAll('.forms-page .form-card').forEach((card) => {
-                card.hidden = term !== '' && !card.textContent.toLowerCase().includes(term);
-            });
-        });
-    </script>
 
     <style>
         .forms-page {
@@ -91,48 +79,6 @@
             font-size: 14px;
             color: var(--text-muted);
             font-weight: 500;
-        }
-
-        .forms-search {
-            display: flex;
-            align-items: center;
-            width: min(420px, 100%);
-            min-height: 48px;
-            padding: 0 18px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-card);
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-            transition: all 0.2s;
-        }
-
-        .forms-search:focus-within {
-            border-color: #38bdf8;
-            box-shadow: 0 0 0 3px rgba(56,189,248,0.1);
-        }
-
-        .forms-search .search-icon {
-            position: static;
-            transform: none;
-            flex-shrink: 0;
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-
-        .forms-search .search-input {
-            width: 100%;
-            min-width: 0;
-            border: 0;
-            outline: 0;
-            padding: 12px 0 12px 12px;
-            background: transparent;
-            color: var(--text-heading);
-            font-size: 14px;
-            font-family: 'Figtree', sans-serif;
-        }
-
-        .forms-search .search-input::placeholder {
-            color: var(--text-muted);
         }
 
         .forms-grid {
@@ -260,7 +206,6 @@
                 font-size: 22px;
             }
 
-            .forms-search { width: 100%; }
 
             .forms-grid {
                 grid-template-columns: 1fr;

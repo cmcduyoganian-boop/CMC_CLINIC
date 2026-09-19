@@ -65,20 +65,18 @@
         </div>
     @endif
 
-    <!-- Search & Filter -->
-    <div class="search-section">
-        <div class="search-group">
-            <input type="text" class="search-input" placeholder="Search medicines by name..." wire:model.live.debounce.300ms="search">
-            <i class="fas fa-search search-icon"></i>
-        </div>
-        <select class="filter-select" wire:model.live="statusFilter" wire:change="resetPage">
+    <!-- Filter bar -->
+    <div class="filter-bar">
+        <input type="hidden" wire:model.live.debounce.300ms="search" class="livewire-search-input">
+        <span class="filter-label"><i class="fas fa-filter"></i> Filter:</span>
+        <select class="filter-chip" wire:model.live="statusFilter" wire:change="resetPage">
             <option value="">All Status</option>
             <option value="low">Low Stock</option>
             <option value="out">Out of Stock</option>
             <option value="expired">Expired</option>
             <option value="expiring_soon">Expiring Soon</option>
         </select>
-        <select class="filter-select" wire:model.live="categoryFilter" wire:change="resetPage">
+        <select class="filter-chip" wire:model.live="categoryFilter" wire:change="resetPage">
             <option value="">All Categories</option>
             <option value="medicine_inventory">Medicine Inventory</option>
             <option value="medicine_supply">Medicine Supply</option>
@@ -400,46 +398,10 @@
     }
 
     /* Search / Filter Bar */
-    .search-section {
-        background: var(--bg-card);
-        border: 1px solid var(--border-card);
-        border-radius: 8px;
-        padding: 16px;
-        display: flex;
-        gap: 12px;
-        align-items: center;
-    }
 
-    .search-group {
-        flex: 1;
-        position: relative;
-    }
 
-    .search-input {
-        width: 100%;
-        border: 1px solid var(--border-input);
-        border-radius: 6px;
-        padding: 8px 12px 8px 36px;
-        font-size: 13px;
-        font-family: 'Figtree', sans-serif;
-        background: var(--bg-input);
-        color: var(--text-heading);
-        box-sizing: border-box;
-    }
 
-    .search-input:focus {
-        outline: none;
-        border-color: #38bdf8;
-    }
 
-    .search-icon {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-muted);
-        pointer-events: none;
-    }
 
     .filter-select {
         border: 1px solid var(--border-input);
@@ -627,11 +589,9 @@
     .btn-edit         { color: #f39c12; }
     .btn-edit:hover   { background: rgba(243,156,18,0.1); }
 
-    /* Pagination */
+    /* ── Pagination ── */
     .pagination-wrapper {
-        padding: 16px 20px;
-        border-top: 1px solid var(--border-inner);
-        text-align: center;
+        /* Styling handled by the custom cmc-pagination view */
     }
 
     /* Modals */
@@ -788,7 +748,6 @@
         .status-cards { grid-template-columns: repeat(2, 1fr); }
         .page-header { flex-direction: column; gap: 16px; }
         .btn-add-medicine { width: 100%; justify-content: center; }
-        .search-section { flex-direction: column; }
     }
 
     @media (max-width: 480px) {

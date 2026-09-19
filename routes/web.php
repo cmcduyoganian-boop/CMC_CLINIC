@@ -89,7 +89,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
     Route::resource('patients', PatientController::class)->middleware('clinic.role:clinic_nurse');
 
     // ✅ CLINIC VISIT ROUTES
-    Route::middleware('clinic.role:clinic_nurse')->group(function () {
+    Route::middleware('clinic.role:clinic_nurse,clinic_staff')->group(function () {
         Route::resource('clinic-visit', ClinicVisitController::class)
             ->only(['index', 'create', 'store', 'show'])
             ->parameters(['clinic-visit' => 'id']);
@@ -134,6 +134,31 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
     Route::get('/appointments/scheduler', function () {
         return view('appointments.scheduler');
     })->name('appointments.scheduler');
+
+    Route::get('/recently-deleted', [\App\Http\Controllers\RecentlyDeletedController::class, 'index'])
+        ->middleware('clinic.role:clinic_nurse')
+        ->name('recently-deleted.index');
+    Route::post('/recently-deleted/patient/{id}/restore', [\App\Http\Controllers\RecentlyDeletedController::class, 'restorePatient'])
+        ->middleware('clinic.role:clinic_nurse')
+        ->name('recently-deleted.restore.patient');
+    Route::post('/recently-deleted/patient/{id}/force-delete', [\App\Http\Controllers\RecentlyDeletedController::class, 'forceDeletePatient'])
+        ->middleware('clinic.role:clinic_nurse')
+        ->name('recently-deleted.force-delete.patient');
+    Route::post('/recently-deleted/clinic-visit/{id}/restore', [\App\Http\Controllers\RecentlyDeletedController::class, 'restoreClinicVisit'])
+        ->middleware('clinic.role:clinic_nurse')
+        ->name('recently-deleted.restore.clinic-visit');
+    Route::post('/recently-deleted/clinic-visit/{id}/force-delete', [\App\Http\Controllers\RecentlyDeletedController::class, 'forceDeleteClinicVisit'])
+        ->middleware('clinic.role:clinic_nurse')
+        ->name('recently-deleted.force-delete.clinic-visit');
+    Route::post('/recently-deleted/appointment/{id}/restore', [\App\Http\Controllers\RecentlyDeletedController::class, 'restoreAppointment'])
+        ->middleware('clinic.role:clinic_nurse')
+        ->name('recently-deleted.restore.appointment');
+    Route::post('/recently-deleted/appointment/{id}/force-delete', [\App\Http\Controllers\RecentlyDeletedController::class, 'forceDeleteAppointment'])
+        ->middleware('clinic.role:clinic_nurse')
+        ->name('recently-deleted.force-delete.appointment');
+    Route::post('/recently-deleted/clear-all', [\App\Http\Controllers\RecentlyDeletedController::class, 'clearAll'])
+        ->middleware('clinic.role:clinic_nurse')
+        ->name('recently-deleted.clear-all');
 
     // ✅ REPORT ROUTES
     Route::middleware('clinic.role:clinic_nurse')->group(function () {
@@ -183,7 +208,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
         });
 
     // ✅ FORMS ROUTES
-    Route::middleware('clinic.role:clinic_nurse')->group(function () {
+    Route::middleware('clinic.role:clinic_nurse,clinic_staff')->group(function () {
         Route::get('/forms', fn() => view('forms.index'))->name('forms.index');
         Route::get('/forms/clinic-visit', [FormController::class, 'clinicVisit'])->name('forms.clinic-visit');
         Route::post('/forms/clinic-visit', [FormController::class, 'storeClinicVisit'])->name('forms.clinic-visit.store');

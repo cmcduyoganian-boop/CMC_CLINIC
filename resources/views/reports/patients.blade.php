@@ -135,7 +135,19 @@
         </div>
     </div>
 
+    <script type="application/json" id="patient-report-metrics">
+        {!! json_encode([
+            'students' => (int) $students,
+            'faculty' => (int) $faculty,
+            'staff' => (int) $staff,
+            'activePatients' => (int) $activePatients,
+            'inactivePatients' => (int) $inactivePatients,
+        ]) !!}
+    </script>
+
     <script>
+        const patientMetrics = JSON.parse(document.getElementById('patient-report-metrics').textContent);
+
         // Category Chart
         const categoryCtx = document.getElementById('categoryChart').getContext('2d');
         new Chart(categoryCtx, {
@@ -143,7 +155,7 @@
             data: {
                 labels: ['Students', 'Faculty', 'Staff'],
                 datasets: [{
-                    data: [{{ $students }}, {{ $faculty }}, {{ $staff }}],
+                    data: [patientMetrics.students, patientMetrics.faculty, patientMetrics.staff],
                     backgroundColor: ['#38bdf8', '#8b5cf6', '#27ae60'],
                     borderColor: '#fff',
                     borderWidth: 2
@@ -166,7 +178,7 @@
                 labels: ['Active', 'Inactive'],
                 datasets: [{
                     label: 'Patients',
-                    data: [{{ $activePatients }}, {{ $inactivePatients }}],
+                    data: [patientMetrics.activePatients, patientMetrics.inactivePatients],
                     backgroundColor: ['#27ae60', '#f87171']
                 }]
             },

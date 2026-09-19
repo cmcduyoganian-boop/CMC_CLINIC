@@ -86,7 +86,7 @@
                                 <td>{{ $diag->count }}</td>
                                 <td>
                                     <div class="progress-bar">
-                                        <div class="progress" style="width: {{ ($diag->count / $total) * 100 }}%"></div>
+                                        <div class="progress" data-width="{{ ($diag->count / $total) * 100 }}"></div>
                                     </div>
                                     {{ number_format(($diag->count / $total) * 100, 1) }}%
                                 </td>
@@ -103,15 +103,32 @@
         </div>
     </div>
 
+    <script type="application/json" id="diagnosis-chart-data">
+        {!! json_encode($topDiagnoses->map(fn ($diagnosis) => [
+            'diagnosis' => $diagnosis->diagnosis,
+            'count' => $diagnosis->count,
+        ])->values()->all()) !!}
+    </script>
+
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.progress[data-width]').forEach(function (progress) {
+                progress.style.width = progress.dataset.width + '%';
+            });
+        });
+
+        const diagnosisChartData = JSON.parse(document.getElementById('diagnosis-chart-data').textContent);
         const ctx = document.getElementById('diagnosisChart').getContext('2d');
+        const diagnosisLabels = diagnosisChartData.map(item => item.diagnosis);
+        const diagnosisCounts = diagnosisChartData.map(item => item.count);
+
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: {!! json_encode($topDiagnoses->pluck('diagnosis')) !!},
+                labels: diagnosisLabels,
                 datasets: [{
                     label: 'Cases',
-                    data: {!! json_encode($topDiagnoses->pluck('count')) !!},
+                    data: diagnosisCounts,
                     backgroundColor: '#38bdf8'
                 }]
             },

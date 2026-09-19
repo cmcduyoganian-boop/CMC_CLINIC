@@ -93,21 +93,19 @@
                 <span class="badge badge-red">{{ $stats['clinic_staff'] ?? 0 }}</span>
                 Clinic Staff
             </div>
-        </div>
     </div>
 
     <!-- FILTERS -->
-    <div class="filters-card">
-        <div class="filters-form">
-            <input type="text" class="filter-select" style="flex:1;" placeholder="Search by name, username, or email..." wire:model.live.debounce.300ms="search">
-            <select class="filter-select" wire:model.live="statusFilter">
+    <div class="filter-bar" style="padding:12px 0;">
+        <input type="hidden" class="livewire-search-input" wire:model.live.debounce.300ms="search">
+        <span class="filter-label"><i class="fas fa-filter"></i> Filter:</span>
+        <select class="filter-chip" wire:model.live="statusFilter">
                 <option value="">-- All Users --</option>
                 <option value="pending">Pending Approval</option>
                 <option value="approved">Approved</option>
                 <option value="disabled">Disabled</option>
                 <option value="rejected">Rejected</option>
             </select>
-        </div>
     </div>
 
     @if ($pendingRegistrations->isNotEmpty() && (!$statusFilter || $statusFilter === 'pending'))
@@ -613,10 +611,9 @@
         display: block;
     }
 
-    /* Pagination */
+    /* ── Pagination ── */
     .pagination-wrapper {
-        padding: 16px 20px;
-        border-top: 1px solid var(--border-inner);
+        /* Styling handled by the custom cmc-pagination view */
     }
 
     @media (max-width: 768px) {

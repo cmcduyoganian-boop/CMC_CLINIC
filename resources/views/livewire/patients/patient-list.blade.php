@@ -1,6 +1,10 @@
 <div class="patients-page">
     <!-- Page Header -->
     <div class="page-header">
+        <div class="header-copy">
+            <h1 class="page-title">Patients</h1>
+            <p class="page-subtitle">Manage patient records, visit history, and patient status.</p>
+        </div>
         <a href="{{ route('patients.create') }}" class="btn-new-patient">
             <i class="fas fa-plus"></i> Add New Patient
         </a>
@@ -13,18 +17,59 @@
         </div>
     @endif
 
-    <!-- Search & Filter -->
-    <div class="search-section">
-        <div class="search-group">
-            <input type="search" class="search-input" placeholder="Search patient name, email, or section..." wire:model.live.debounce.300ms="search" aria-label="Search patients">
-            <i class="fas fa-search search-icon"></i>
-        </div>
-        <select class="filter-select" wire:model.live="category">
+    <!-- Filter bar -->
+    <div class="filter-bar">
+        <input type="hidden" wire:model.live.debounce.300ms="search" class="livewire-search-input">
+        <span class="filter-label"><i class="fas fa-filter"></i> Filter:</span>
+        <select class="filter-chip" wire:model.live="category">
             <option value="">All Categories</option>
             <option value="student">Student</option>
             <option value="faculty">Faculty</option>
             <option value="staff">Staff</option>
         </select>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="stats-section">
+        <div class="stat-item stat-total">
+            <div class="stat-icon">
+                <i class="fas fa-user-injured"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Total Patients</h3>
+                <p class="stat-value">{{ $totalPatients }}</p>
+            </div>
+        </div>
+
+        <div class="stat-item stat-students">
+            <div class="stat-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Students</h3>
+                <p class="stat-value">{{ $studentCount }}</p>
+            </div>
+        </div>
+
+        <div class="stat-item stat-faculty">
+            <div class="stat-icon">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Faculty</h3>
+                <p class="stat-value">{{ $facultyCount }}</p>
+            </div>
+        </div>
+
+        <div class="stat-item stat-staff">
+            <div class="stat-icon">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Staff</h3>
+                <p class="stat-value">{{ $staffCount }}</p>
+            </div>
+        </div>
     </div>
 
     <!-- Patients Table -->
@@ -57,7 +102,7 @@
                 </thead>
                 <tbody>
                     @foreach($patients as $patient)
-                        <tr class="patient-row" wire:key="patient-{{ $patient->id }}" onclick="window.location.href='{{ route('patients.show', $patient->id) }}';" style="cursor: pointer;">
+                        <tr class="patient-row" wire:key="patient-{{ $patient->id }}" data-href="{{ route('patients.show', $patient->id) }}">
                             <td>
                                 <div class="patient-info">
                                     <div class="patient-avatar">
@@ -116,31 +161,21 @@
 
             <!-- Pagination -->
             <div class="pagination-wrapper">
-                {{ $patients->links() }}
+                {{ $patients->links('vendor.pagination.tailwind') }}
             </div>
         @endif
     </div>
 
-    <!-- Summary Stats -->
-    <div class="stats-section">
-        <div class="stat-item">
-            <h3>Total Patients</h3>
-            <p class="stat-value">{{ $totalPatients }}</p>
-        </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.patient-row[data-href]').forEach(function (row) {
+                row.addEventListener('click', function () {
+                    window.location.href = row.dataset.href;
+                });
+            });
+        });
+    </script>
 
-                <div class="stat-item">
-            <h3>Students</h3>
-            <p class="stat-value">{{ $studentCount }}</p>
-        </div>
-        <div class="stat-item">
-            <h3>Faculty</h3>
-            <p class="stat-value">{{ $facultyCount }}</p>
-        </div>
-        <div class="stat-item">
-            <h3>Staff</h3>
-            <p class="stat-value">{{ $staffCount }}</p>
-        </div>
-    </div>
 </div>
 
 <style>
@@ -153,11 +188,15 @@
     .page-header {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 8px;
     }
 
-    .header-left {
-        flex: 1;
+    .header-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
     }
 
     .page-title {
@@ -165,6 +204,16 @@
         font-size: 28px;
         font-weight: 700;
         color: var(--text-heading);
+    }
+
+    .page-subtitle {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .header-left {
+        flex: 1;
     }
 
     .page-description {
@@ -211,47 +260,10 @@
     }
 
     /* ── Search / filter bar ── */
-    .search-section {
-        display: flex;
-        justify-content: flex-end;
-        gap: 12px;
-        background: var(--bg-card);
-        border: 1px solid var(--border-card);
-        padding: 16px;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        align-items: center;
-    }
 
-    .search-group {
-        flex: 1;
-        position: relative;
-    }
 
-    .search-input {
-        width: 100%;
-        border: 1px solid var(--border-card);
-        border-radius: 8px;
-        padding: 9px 14px 9px 36px;
-        font-size: 13px;
-        font-family: 'Figtree', sans-serif;
-        background: var(--bg-input);
-        color: var(--text-heading);
-    }
 
-    .search-input:focus {
-        outline: none;
-        border-color: #2980b9;
-    }
 
-    .search-icon {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-muted);
-        pointer-events: none;
-    }
 
     .filter-select {
         border: 1px solid var(--border-card);
@@ -502,25 +514,71 @@
 
     /* ── Pagination ── */
     .pagination-wrapper {
-        padding: 16px 20px;
-        border-top: 1px solid var(--border-inner);
-        text-align: center;
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    .pagination-wrapper nav {
+        width: 100%;
     }
 
     /* ── Stats cards ── */
     .stats-section {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 16px;
     }
 
     .stat-item {
-        background: var(--bg-card);
-        border: 1px solid var(--border-card);
-        border-radius: 12px;
-        padding: 16px 20px;
-        text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(248,250,252,0.96));
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        border-radius: 16px;
+        padding: 16px 18px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .stat-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    .stat-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 18px;
+        box-shadow: inset 0 1px 1px rgba(255,255,255,0.3);
+    }
+
+    .stat-total .stat-icon {
+        background: linear-gradient(135deg, #2f80ed, #56ccf2);
+    }
+
+    .stat-students .stat-icon {
+        background: linear-gradient(135deg, #00b894, #55efc4);
+    }
+
+    .stat-faculty .stat-icon {
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    }
+
+    .stat-staff .stat-icon {
+        background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+    }
+
+    .stat-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
     }
 
     .stat-item h3 {
@@ -533,10 +591,25 @@
     }
 
     .stat-value {
-        margin: 12px 0 0 0;
+        margin: 0;
         font-size: 28px;
         font-weight: 700;
+        line-height: 1.1;
         color: var(--text-heading);
+    }
+
+    body[data-theme="dark"] .stat-item {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.96));
+        border-color: rgba(148, 163, 184, 0.22);
+        box-shadow: 0 10px 25px rgba(2, 6, 23, 0.45);
+    }
+
+    body[data-theme="dark"] .stat-item h3 {
+        color: #cbd5e1;
+    }
+
+    body[data-theme="dark"] .stat-value {
+        color: #f8fafc;
     }
 
     /* ── Responsive ── */
@@ -551,8 +624,23 @@
             justify-content: center;
         }
 
-        .search-section {
-            flex-direction: column;
+        .stats-section {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .stat-item {
+            padding: 14px 12px;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+
+        .stat-value {
+            font-size: 22px;
         }
 
         .patients-table {
@@ -568,6 +656,12 @@
             width: 30px;
             height: 30px;
             font-size: 11px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stats-section {
+            grid-template-columns: 1fr;
         }
     }
 </style>

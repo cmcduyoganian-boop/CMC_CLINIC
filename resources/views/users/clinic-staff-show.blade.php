@@ -10,7 +10,11 @@
         <!-- Staff Profile Card -->
         <div class="profile-card">
             <div class="profile-header">
-                <div class="profile-avatar">{{ substr($staff->name, 0, 1) }}</div>
+                <div class="profile-avatar-wrap">
+                    <div class="profile-avatar">{{ substr($staff->name, 0, 1) }}</div>
+                    <div class="profile-camera"><i class="fas fa-camera"></i></div>
+                </div>
+
                 <div class="profile-info">
                     <h1 class="profile-name">{{ $staff->name }}</h1>
                     <p class="profile-role">{{ $staff->getRoleLabel() }}</p>
@@ -198,56 +202,101 @@
         }
 
         .profile-card {
-            background: var(--bg-card);
-            border-radius: 10px;
-            padding: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            background: linear-gradient(135deg, #2a9df5, #1f7ed7);
+            border-radius: 18px;
+            padding: 30px 24px 24px;
+            box-shadow: 0 16px 35px rgba(23, 92, 165, 0.18);
+            color: #ffffff;
+            max-width: 440px;
+            width: 100%;
+            margin: 0 auto;
         }
 
         .profile-header {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 20px;
+            justify-content: center;
+            text-align: center;
+            gap: 16px;
             margin-bottom: 24px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid var(--border-inner);
+            padding-bottom: 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.22);
+        }
+
+        .profile-avatar-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .profile-avatar {
-            width: 80px;
-            height: 80px;
+            width: 105px;
+            height: 105px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #3498db, #2980b9);
+            background: rgba(255,255,255,0.12);
+            border: 3px solid rgba(255,255,255,0.8);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
+            font-size: 42px;
             font-weight: 700;
             flex-shrink: 0;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.08);
+        }
+
+        .profile-camera {
+            position: absolute;
+            right: -3px;
+            bottom: 2px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #ffffff;
+            color: #2f80ed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.14);
+            border: 2px solid rgba(47, 128, 237, 0.18);
         }
 
         .profile-info {
-            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
         }
 
         .profile-name {
             margin: 0;
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 700;
-            color: var(--text-heading);
+            color: #ffffff;
+            line-height: 1.2;
         }
 
         .profile-role {
-            margin: 4px 0 8px;
-            font-size: 13px;
-            color: var(--text-muted);
+            margin: 0;
+            font-size: 16px;
+            color: rgba(255,255,255,0.88);
         }
 
         .profile-badges {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .profile-badges .badge {
+            background: rgba(255,255,255,0.2);
+            color: #ffffff;
+            border: 1px solid rgba(255,255,255,0.16);
         }
 
         .profile-stats {
@@ -498,9 +547,23 @@
         }
 
         @media (max-width: 768px) {
+            .profile-card {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 16px 16px;
+                border-radius: 20px;
+            }
+
             .profile-header {
                 flex-direction: column;
                 text-align: center;
+                gap: 12px;
+            }
+
+            .profile-avatar {
+                width: 90px;
+                height: 90px;
+                font-size: 36px;
             }
 
             .profile-badges {
@@ -510,6 +573,43 @@
             .activity-item {
                 flex-direction: column;
                 text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .clinic-staff-show-page {
+                padding-bottom: calc(24px + env(safe-area-inset-bottom));
+            }
+
+            .profile-card {
+                padding: 18px 14px 14px;
+                border-radius: 18px;
+            }
+
+            .profile-header {
+                gap: 10px;
+                margin-bottom: 16px;
+                padding-bottom: 14px;
+            }
+
+            .profile-avatar {
+                width: 78px;
+                height: 78px;
+                font-size: 28px;
+            }
+
+            .profile-camera {
+                width: 24px;
+                height: 24px;
+                font-size: 11px;
+            }
+
+            .profile-name {
+                font-size: 22px;
+            }
+
+            .profile-role {
+                font-size: 13px;
             }
         }
     </style>

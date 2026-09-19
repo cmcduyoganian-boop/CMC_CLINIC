@@ -37,24 +37,18 @@
         </div>
     </div>
 
-    <!-- Search & Filters -->
+    <!-- Filters (search driven by topbar) -->
     <div class="card mt-6">
         <div class="card-filters">
-            <input type="text"
-                   wire:model.live="searchTerm"
-                   placeholder="Search patient name..."
-                   class="filter-input">
-            
-            <select wire:model.live="filterStatus" class="filter-select">
+            <input type="hidden" wire:model.live="searchTerm" class="livewire-search-input">
+            <span class="filter-label"><i class="fas fa-filter"></i> Filter:</span>
+            <select wire:model.live="filterStatus" class="filter-chip">
                 <option value="">All Status</option>
                 <option value="scheduled">Scheduled</option>
                 <option value="completed">Completed</option>
                 <option value="missed">Missed</option>
             </select>
-
-            <input type="date"
-                   wire:model.live="filterDate"
-                   class="filter-input">
+            <input type="date" wire:model.live="filterDate" class="filter-chip" style="padding:6px 10px;">
         </div>
     </div>
 

@@ -76,39 +76,50 @@ return new class extends Migration
     private function addIndexIfNotExists(string $table, string $name, array $columns): void
     {
         $indexName = $table . '_' . $name . '_index';
-        
-        // Check if index already exists
-        $exists = DB::select("
-            SELECT COUNT(*) as count 
-            FROM information_schema.statistics 
-            WHERE table_schema = DATABASE() 
-            AND table_name = ? 
-            AND index_name = ?
-        ", [$table, $indexName]);
 
-        if (($exists[0]->count ?? 0) === 0) {
-            Schema::table($table, function (Blueprint $table) use ($name, $columns) {
-                $table->index($columns, $name);
-            });
+        if ($this->indexExists($table, $indexName)) {
+            return;
         }
+
+        Schema::table($table, function (Blueprint $table) use ($columns, $indexName) {
+            $table->index($columns, $indexName);
+        });
     }
 
     private function dropIndexIfExists(string $table, string $name): void
     {
         $indexName = $table . '_' . $name . '_index';
-        
-        $exists = DB::select("
-            SELECT COUNT(*) as count 
-            FROM information_schema.statistics 
-            WHERE table_schema = DATABASE() 
-            AND table_name = ? 
-            AND index_name = ?
-        ", [$table, $indexName]);
 
-        if (($exists[0]->count ?? 0) > 0) {
-            Schema::table($table, function (Blueprint $table) use ($name) {
-                $table->dropIndex($name);
-            });
+        if (!$this->indexExists($table, $indexName)) {
+            return;
         }
+
+        Schema::table($table, function (Blueprint $table) use ($indexName) {
+            $table->dropIndex($indexName);
+        });
+    }
+
+    private function indexExists(string $table, string $indexName): bool
+    {
+        $driver = Schema::getConnection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            $indexes = DB::select("PRAGMA index_list('" . $table . "')");
+
+            foreach ($indexes as $index) {
+                if (($index->name ?? '') === $indexName) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        $exists = DB::select(
+            "SELECT COUNT(*) as count FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = ? AND index_name = ?",
+            [$table, $indexName]
+        );
+
+        return ($exists[0]->count ?? 0) > 0;
     }
 };

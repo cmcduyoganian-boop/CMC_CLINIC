@@ -2,6 +2,13 @@
     <x-slot name="header">Clinic Staff Management</x-slot>
 
     <div class="clinic-staff-page">
+        <div class="page-header">
+            <div class="header-copy">
+                <h1 class="page-title">Clinic Staff</h1>
+                <p class="page-subtitle">Manage clinic staff records, status, and recent activity.</p>
+            </div>
+        </div>
+
         <!-- Stats Cards -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -52,10 +59,7 @@
         <!-- Filters -->
         <div class="filters-card">
             <form method="GET" action="{{ route('clinic-staff.index') }}" class="filters-form">
-                <div class="filter-group">
-                    <label class="filter-label">Search</label>
-                    <input type="text" name="search" class="filter-input" placeholder="Search by name, email, username..." value="{{ $search }}">
-                </div>
+                <input type="hidden" name="search" value="{{ $search }}" class="clinic-staff-search-input">
                 <div class="filter-group">
                     <label class="filter-label">Status</label>
                     <select name="status" class="filter-input">
@@ -151,7 +155,15 @@
         .page-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .header-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .page-title {
@@ -159,6 +171,12 @@
             font-size: 28px;
             font-weight: 700;
             color: var(--text-heading);
+        }
+
+        .page-subtitle {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-muted);
         }
 
         .page-description {
@@ -497,17 +515,27 @@
         }
     </style>
 
+    <script type="application/json" id="staff-status-chart-data">
+        {!! json_encode($chartData['status']) !!}
+    </script>
+    <script type="application/json" id="top-staff-chart-data">
+        {!! json_encode($chartData['topStaff']) !!}
+    </script>
+
     <script>
         (function () {
+            const statusChartData = JSON.parse(document.getElementById('staff-status-chart-data').textContent);
+            const topStaffChartData = JSON.parse(document.getElementById('top-staff-chart-data').textContent);
+
             const statusCtx = document.getElementById('staffStatusChart');
             if (statusCtx) {
                 new Chart(statusCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: @json($chartData['status']['labels']),
+                        labels: statusChartData.labels,
                         datasets: [{
-                            data: @json($chartData['status']['data']),
-                            backgroundColor: @json($chartData['status']['colors']),
+                            data: statusChartData.data,
+                            backgroundColor: statusChartData.colors,
                             borderWidth: 3,
                             borderColor: '#ffffff',
                             hoverOffset: 8,
@@ -545,8 +573,8 @@
 
             const topStaffCtx = document.getElementById('topStaffChart');
             if (topStaffCtx) {
-                const labels = @json($chartData['topStaff']['labels']);
-                const data = @json($chartData['topStaff']['data']);
+                const labels = topStaffChartData.labels;
+                const data = topStaffChartData.data;
 
                 new Chart(topStaffCtx, {
                     type: 'bar',

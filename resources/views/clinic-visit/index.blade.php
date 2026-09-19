@@ -3,9 +3,9 @@
 
     <div class="clinic-visit-list-page">
         <div class="table-toolbar">
-            <form class="records-search" method="GET" action="{{ route('clinic-visit.index') }}" role="search">
-                <i class="fas fa-search records-search-icon" aria-hidden="true"></i>
-                <input type="search" name="q" value="{{ request('q') }}" placeholder="Search clinic records..." aria-label="Search clinic records" oninput="clearTimeout(this.searchTimer); this.searchTimer = setTimeout(() => this.form.requestSubmit(), 350)">
+            {{-- Hidden search input — driven by the topbar global search --}}
+            <form class="records-search" method="GET" action="{{ route('clinic-visit.index') }}" role="search" style="display:none;">
+                <input type="hidden" name="q" value="{{ request('q') }}" class="topbar-driven-q">
             </form>
             <a href="{{ route('clinic-visit.create') }}" class="btn-new-visit">
                 <i class="fas fa-plus"></i> New Visit
@@ -162,27 +162,37 @@
                 @foreach(request()->except(['per_page', 'page']) as $key => $value)
                     <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                 @endforeach
+
                 <div class="pagination-section">
+                    {{-- Left: summary + per-page --}}
                     <div class="pagination-left">
-                        <p class="pagination-info">
-                            Showing {{ $visits->firstItem() ?? 0 }} to {{ $visits->lastItem() ?? 0 }} of {{ $visits->total() }} visits
+                        <p class="cmc-page-info">
+                            Showing
+                            <span class="cmc-page-info-bold">{{ $visits->firstItem() ?? 0 }}</span>
+                            to
+                            <span class="cmc-page-info-bold">{{ $visits->lastItem() ?? 0 }}</span>
+                            of
+                            <span class="cmc-page-info-bold">{{ $visits->total() }}</span>
+                            visits
                         </p>
                         <div class="per-page-selector">
-                            <label for="perPage" class="visually-hidden">Results per page</label>
-                            <select id="perPage" name="per_page" onchange="this.form.submit()" class="per-page-select">
+                            <label for="perPage" class="filter-label" style="font-size:10px;">Per page:</label>
+                            <select id="perPage" name="per_page" onchange="this.form.submit()" class="filter-chip" style="height:30px;font-size:12px;">
                                 @foreach([10, 25, 50, 100] as $option)
-                                    <option value="{{ $option }}" {{ $perPage == $option ? 'selected' : '' }}>{{ $option }} per page</option>
+                                    <option value="{{ $option }}" {{ $perPage == $option ? 'selected' : '' }}>{{ $option }}</option>
                                 @endforeach
                             </select>
-                            <noscript><button type="submit" class="btn-apply-small">Apply</button></noscript>
                         </div>
                     </div>
-                    <div class="pagination">
+
+                    {{-- Right: page links (uses new cmc-pagination view) --}}
+                    <div class="pagination-links">
                         {{ $visits->appends(request()->except('page'))->links() }}
                     </div>
                 </div>
             </form>
         @endif
+
     </div>
 
     <style>
@@ -458,9 +468,7 @@
         .btn-delete:hover{ background: rgba(231,76,60,.12); }
 
         /* ── Pagination ─────────────────────────────────────── */
-        .pagination-form {
-            width: 100%;
-        }
+        .pagination-form { width: 100%; }
 
         .pagination-section {
             display: flex;
@@ -468,108 +476,36 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 12px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-card);
-            border-radius: 10px;
-            padding: 14px 20px;
+            padding: 4px 0;
         }
 
         .pagination-left {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
             flex-wrap: wrap;
+            min-width: 0;
         }
 
-        .pagination-info {
+        .cmc-page-info {
             margin: 0;
-            font-size: 12px;
-            color: var(--text-muted);
-            font-weight: 600;
+            white-space: normal;
+            line-height: 1.5;
+            word-break: break-word;
         }
 
         .per-page-selector {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        .per-page-select {
-            background: var(--bg-input);
-            border: 1px solid var(--border-input);
-            border-radius: 6px;
-            padding: 6px 28px 6px 10px;
-            font-size: 12px;
-            color: var(--text-heading);
-            font-weight: 500;
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 8px center;
-            background-size: 12px;
-            min-width: 140px;
-        }
-
-        .per-page-select:focus {
-            outline: none;
-            border-color: #38bdf8;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
-        }
-
-        .btn-apply-small {
-            background: var(--bg-input);
-            border: 1px solid var(--border-input);
-            border-radius: 6px;
-            padding: 6px 12px;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-body);
-            cursor: pointer;
-        }
-
-        .pagination { display: flex; gap: 4px; align-items: center; }
-
-        .pagination a,
-        .pagination span {
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border-card);
-            background: var(--bg-card);
-            color: var(--text-body);
-            font-size: 13px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.15s;
-            min-width: 40px;
-            text-align: center;
-        }
-
-        .pagination a:hover {
-            background: #38bdf8;
-            color: #fff;
-            border-color: #38bdf8;
-            transform: translateY(-1px);
-        }
-
-        .pagination .active {
-            background: linear-gradient(135deg, #38bdf8, #2563eb);
-            color: #fff;
-            border-color: transparent;
-            box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
-        }
-
-        .pagination .disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-
-        .pagination .page-ellipsis {
-            border: none;
-            background: transparent;
-            color: var(--text-muted);
-            padding: 8px 4px;
+        /* The .pagination-links div: let cmc-pagination from tailwind.blade.php render inline */
+        .pagination-links nav.cmc-pagination {
+            /* override: no border-top, no extra padding — it's inside our card already */
+            border-top: none;
+            padding: 0;
         }
 
         /* ── Responsive ─────────────────────────────────────── */
@@ -577,11 +513,52 @@
             .table-toolbar { flex-direction: column; align-items: stretch; }
             .records-search, .btn-new-visit { width: 100%; }
             .btn-new-visit { justify-content: center; }
-            .pagination-section { flex-direction: column; gap: 10px; }
-            .pagination-left { flex-direction: column; align-items: flex-start; gap: 10px; width: 100%; }
-            .pagination { width: 100%; justify-content: center; flex-wrap: wrap; }
-            .pagination-info { font-size: 11px; }
-            .per-page-select { padding: 8px 32px 8px 12px; font-size: 13px; }
+            .pagination-section { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .pagination-links nav.cmc-pagination { padding: 0; }
+            .clinic-visit-list-page {
+                gap: 16px;
+            }
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
         }
+
+        @media (max-width: 420px) {
+            .table-toolbar {
+                gap: 10px;
+            }
+            .btn-new-visit {
+                padding: 10px 14px;
+                font-size: 12px;
+            }
+            .visits-table {
+                min-width: 1180px;
+            }
+            .pagination-section {
+                width: 100%;
+            }
+            .pagination-left {
+                flex-direction: column;
+                align-items: flex-start;
+                width: 100%;
+            }
+            .per-page-selector {
+                width: 100%;
+            }
+            .per-page-selector .filter-chip {
+                width: 100%;
+            }
+            .pagination-links {
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .pagination-links nav.cmc-pagination {
+                width: max-content;
+                min-width: 100%;
+            }
+        }
+
     </style>
 </x-app-with-sidebar>

@@ -2,11 +2,6 @@
     <x-slot name="header">Reports & Analytics</x-slot>
 
     <div class="reports-page">
-        <div class="reports-search search-section">
-            <i class="fas fa-search search-icon" aria-hidden="true"></i>
-            <input type="search" class="search-input" placeholder="Search reports and analytics..." aria-label="Search reports and analytics">
-        </div>
-
         <!-- Quick Stats -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -216,15 +211,6 @@
         </div>
     </div>
 
-    <script>
-        document.querySelector('.reports-search input')?.addEventListener('input', function () {
-            const term = this.value.trim().toLowerCase();
-            document.querySelectorAll('.reports-page .stat-card, .reports-page .report-card').forEach((card) => {
-                card.hidden = term !== '' && !card.textContent.toLowerCase().includes(term);
-            });
-        });
-    </script>
-
     <style>
         .reports-page {
             display: flex;
@@ -232,39 +218,6 @@
             gap: 24px;
         }
 
-        /* ── Search bar ───────────────────────────── */
-        .reports-search {
-            display: flex;
-            align-items: center;
-            width: min(420px, 100%);
-            min-height: 46px;
-            padding: 0 16px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-card);
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-            gap: 10px;
-        }
-
-        .reports-search .search-icon {
-            position: static;
-            transform: none;
-            flex-shrink: 0;
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-
-        .reports-search .search-input {
-            flex: 1;
-            min-width: 0;
-            border: 0;
-            outline: 0;
-            padding: 10px 0;
-            background: transparent;
-            color: var(--text-heading);
-            font-size: 13px;
-            font-family: 'Figtree', sans-serif;
-        }
 
         /* ── Stat cards (top row) ─────────────────── */
         .stats-grid {

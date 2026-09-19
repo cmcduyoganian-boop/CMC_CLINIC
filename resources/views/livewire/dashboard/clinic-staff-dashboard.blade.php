@@ -1,29 +1,5 @@
 <div class="dashboard-wrapper" wire:poll-60000ms x-data="{ dateRange: @entangle('dateRange') }">
     @section('subtitle', "Here's what's happening in your clinic today.")
-    <div class="dashboard-search" x-data="{ open: false }" @click.outside="open = false">
-        <div class="dashboard-search-input-wrap">
-            <i class="fas fa-search"></i>
-            <input type="search" wire:model.live.debounce.300ms="dashboardSearch"
-                @focus="open = true" placeholder="Search patient name, email, or section..."
-                aria-label="Search patients">
-        </div>
-        @if (strlen(trim($dashboardSearch)) >= 2)
-            <div class="dashboard-search-results" x-show="open" x-cloak>
-                @forelse ($dashboardSearchResults as $result)
-                    <a href="{{ $result['visitId'] ? route('clinic-visit.show', $result['visitId']) : route('clinic-visit.index') }}" class="dashboard-search-result">
-                        <span class="dashboard-search-avatar">{{ strtoupper(substr($result['name'], 0, 1)) }}</span>
-                        <span class="dashboard-search-result-info">
-                            <strong>{{ $result['name'] }}</strong>
-                            <small>{{ $result['category'] }}</small>
-                        </span>
-                        <span class="dashboard-search-view">View <i class="fas fa-arrow-right"></i></span>
-                    </a>
-                @empty
-                    <div class="dashboard-search-empty">No patient records found.</div>
-                @endforelse
-            </div>
-        @endif
-    </div>
 
     <!-- EYEBROW LABEL -->
     <div class="eyebrow-label">
@@ -428,76 +404,6 @@
             margin-bottom: -8px;
             width: fit-content;
         }
-
-        .dashboard-search {
-            position: relative;
-            max-width: 620px;
-            margin-bottom: 18px;
-            z-index: 20;
-        }
-
-        .dashboard-search-input-wrap {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-card);
-            border-radius: 8px;
-            padding: 0 14px;
-        }
-
-        .dashboard-search-input-wrap i { color: var(--text-muted); }
-
-        .dashboard-search-input-wrap input {
-            width: 100%;
-            height: 42px;
-            border: 0;
-            outline: 0;
-            background: transparent;
-            color: var(--text-heading);
-            font-size: 13px;
-        }
-
-        .dashboard-search-results {
-            position: absolute;
-            top: 50px;
-            left: 0;
-            right: 0;
-            overflow: hidden;
-            background: var(--bg-card);
-            border: 1px solid var(--border-card);
-            border-radius: 8px;
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
-        }
-
-        .dashboard-search-result {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            color: var(--text-heading);
-            text-decoration: none;
-        }
-
-        .dashboard-search-result:hover { background: var(--bg-input); }
-
-        .dashboard-search-avatar {
-            display: grid;
-            place-items: center;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: rgba(56, 189, 248, 0.15);
-            color: #38bdf8;
-            font-weight: 700;
-        }
-
-        .dashboard-search-result-info { display: grid; flex: 1; gap: 2px; }
-        .dashboard-search-result-info strong { font-size: 13px; }
-        .dashboard-search-result-info small { color: var(--text-muted); font-size: 11px; }
-        .dashboard-search-view { color: #38bdf8; font-size: 11px; font-weight: 600; }
-        .dashboard-search-empty { padding: 14px; color: var(--text-muted); font-size: 13px; }
-        [x-cloak] { display: none !important; }
 
         /* GREETING */
         .greeting-section {
@@ -1214,6 +1120,104 @@
 
             .overview-legend {
                 width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-wrapper {
+                gap: 14px;
+                min-width: 0;
+            }
+
+            .eyebrow-label {
+                font-size: 9px;
+                letter-spacing: 0.8px;
+                padding: 4px 8px;
+            }
+
+            .greeting-title {
+                font-size: 22px;
+                line-height: 1.2;
+            }
+
+            .greeting-subtitle {
+                font-size: 12px;
+            }
+
+            .kpi-section {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .kpi-card {
+                padding: 14px 12px;
+                min-width: 0;
+            }
+
+            .kpi-icon {
+                width: 34px;
+                height: 34px;
+                font-size: 16px;
+            }
+
+            .kpi-value {
+                font-size: 22px;
+            }
+
+            .kpi-label {
+                font-size: 10px;
+                letter-spacing: 0.3px;
+                line-height: 1.4;
+                white-space: normal;
+            }
+
+            .location-insights-grid,
+            .main-grid,
+            .overview-grid,
+            .quick-actions-grid,
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filters-card,
+            .chart-card,
+            .activities-card,
+            .overview-card,
+            .location-kpi-card {
+                padding: 14px;
+            }
+
+            .chart-container {
+                height: 200px;
+            }
+
+            .location-kpi-card {
+                flex-direction: column;
+            }
+
+            .date-selector {
+                padding: 7px 10px;
+                font-size: 11px;
+                white-space: nowrap;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .greeting-title {
+                font-size: 18px;
+            }
+
+            .kpi-card {
+                padding: 12px 10px;
+            }
+
+            .kpi-value {
+                font-size: 20px;
+            }
+
+            .date-selector {
+                font-size: 10px;
+                padding: 6px 8px;
             }
         }
     </style>

@@ -3,11 +3,6 @@
     .shr-list-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
     .shr-list-title { font-size: 16px; font-weight: 700; color: #2d3e50; margin: 0 0 2px 0; }
     .shr-list-subtitle { font-size: 12px; color: #95a5a6; margin: 0; }
-    .shr-search {
-        width: 260px; max-width: 100%; font-size: 13px; padding: 9px 12px;
-        border: 1px solid #d1d5db; border-radius: 8px; outline: none; background: #fff;
-    }
-    .shr-search:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,.15); }
 
     .shr-card {
         background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
@@ -37,8 +32,7 @@
             <p class="shr-list-title">Submitted Student Health Records</p>
             <p class="shr-list-subtitle">Names of students who have saved a Student Information Form.</p>
         </div>
-        <input type="search" wire:model.live.debounce.300ms="search"
-            placeholder="Search name, code, or course..." class="shr-search">
+        <input type="hidden" wire:model.live.debounce.300ms="search" class="livewire-search-input">
     </div>
 
     <div class="shr-card">

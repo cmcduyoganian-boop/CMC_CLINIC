@@ -2,6 +2,13 @@
     <x-slot name="header">Settings</x-slot>
 
     <div class="settings-page">
+        <div class="page-header">
+            <div class="header-copy">
+                <h1 class="page-title">Settings</h1>
+                <p class="page-subtitle">Manage your profile, password, and account preferences.</p>
+            </div>
+        </div>
+
         <!-- Alert Messages -->
         @if (session('success'))
             <div class="alert alert-success" id="successAlert">
@@ -259,6 +266,12 @@
             margin-bottom: 10px;
         }
 
+        .header-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
         .page-title {
             margin: 0;
             font-size: 28px;
@@ -267,7 +280,7 @@
         }
 
         .page-subtitle {
-            margin: 4px 0 0 0;
+            margin: 0;
             font-size: 13px;
             color: #95a5a6;
         }
@@ -630,13 +643,19 @@
                 grid-template-columns: 1fr;
             }
 
-            .settings-content {
+            .settings-profile-panel {
                 order: 1;
+                position: static;
+                width: 100%;
             }
 
-            .settings-profile-panel {
+            .settings-content {
                 order: 2;
-                position: static;
+            }
+
+            .settings-profile-panel .user-info-card {
+                width: 100%;
+                max-width: 100%;
             }
 
             .section-card {
