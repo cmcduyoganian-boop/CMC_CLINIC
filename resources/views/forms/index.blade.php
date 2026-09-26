@@ -48,8 +48,8 @@
             </a>
         </div>
 
-        {{-- ===================== SAVED STUDENT HEALTH RECORDS ===================== --}}
-        <livewire:forms.student-records-list />
+        {{-- ===================== ALL FORM SUBMISSIONS ===================== --}}
+        <livewire:forms.form-submissions-list />
     </div>
 
 
