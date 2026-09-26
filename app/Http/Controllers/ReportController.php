@@ -165,16 +165,26 @@ class ReportController extends Controller
         $baseQuery = fn() => Appointment::query();
         $filteredQuery = (clone $baseQuery())->when($dateFrom || $dateTo, fn($q) => $this->applyDateFilter($q, $dateFrom, $dateTo, 'appointment_date'));
 
+        $total = $filteredQuery->count() ?: 1;
+        $scheduled = (clone $baseQuery())->where('status', 'scheduled')->count();
+        $completed = (clone $baseQuery())->where('status', 'completed')->count();
+        $noShow = (clone $baseQuery())->where('status', 'no-show')->count();
+        $cancelled = (clone $baseQuery())->where('status', 'cancelled')->count();
+
         return view('reports.appointments', [
-            'totalAppointments' => $filteredQuery->count(),
-            'scheduled'         => (clone $baseQuery())->where('status', 'scheduled')->count(),
-            'completed'         => (clone $baseQuery())->where('status', 'completed')->count(),
-            'noShow'            => (clone $baseQuery())->where('status', 'no-show')->count(),
-            'cancelled'         => (clone $baseQuery())->where('status', 'cancelled')->count(),
+            'totalAppointments' => $total,
+            'scheduled'         => $scheduled,
+            'completed'         => $completed,
+            'noShow'            => $noShow,
+            'cancelled'         => $cancelled,
             'appointments'      => $apptQuery->get(),
-            'date'          => $request->date ?? '',
+            'date'              => $request->date ?? '',
             'preset'            => $request->preset ?? '',
             'filteredCount'     => $apptQuery->count(),
+            'schedRate'         => round(($scheduled / $total) * 100),
+            'compRate'          => round(($completed / $total) * 100),
+            'noShowRate'        => round(($noShow / $total) * 100),
+            'canxRate'          => round(($cancelled / $total) * 100),
         ]);
     }
 
