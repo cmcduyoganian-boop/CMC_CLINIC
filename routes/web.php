@@ -86,6 +86,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
     Route::put('/my-profile', [PatientController::class, 'updateMyProfile'])->name('patient.profile.update');
     Route::patch('/my-profile', [PatientController::class, 'updateMyProfile']);
     Route::get('/my-records', [PatientController::class, 'myRecords'])->name('patient.records');
+    Route::get('/my-appointments', [PatientController::class, 'myAppointments'])->name('patient.appointments');
     Route::resource('patients', PatientController::class)->middleware('clinic.role:clinic_nurse');
 
     // ✅ CLINIC VISIT ROUTES
@@ -129,8 +130,13 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
         ->name('medicines.add-stock');
 
     // ✅ APPOINTMENT ROUTES
-    Route::resource('appointments', AppointmentController::class)->except(['show'])->middleware('clinic.role:clinic_nurse');
-    Route::get('/appointments/{id}', [AppointmentController::class, 'show'])->name('appointments.show');
+    Route::middleware('auth')->group(function () {
+        Route::get('/appointments/create', [AppointmentController::class, 'create'])->name('appointments.create');
+        Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
+        Route::get('/appointments/{id}', [AppointmentController::class, 'show'])->name('appointments.show');
+    });
+
+    Route::resource('appointments', AppointmentController::class)->except(['show', 'create', 'store'])->middleware('clinic.role:clinic_nurse');
     Route::get('/appointments/scheduler', function () {
         return view('appointments.scheduler');
     })->name('appointments.scheduler');
@@ -172,6 +178,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
         Route::get('/reports/diagnosis', [ReportController::class, 'diagnosis'])->name('reports.diagnosis');
         Route::get('/reports/medicines', [ReportController::class, 'medicines'])->name('reports.medicines');
         Route::get('/reports/appointments', [ReportController::class, 'appointments'])->name('reports.appointments');
+        Route::post('/reports/appointment/{id}/status', [ReportController::class, 'updateAppointmentStatus'])->name('reports.appointment.status');
         Route::get('/reports/vital-signs', [ReportController::class, 'vitalSigns'])->name('reports.vital-signs');
         Route::get('/reports/download/{type}', [ReportController::class, 'download'])->name('reports.download');
     });
@@ -216,9 +223,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckApprovalStatus:
         Route::post('/forms/research-consent', [FormController::class, 'storeResearchConsent'])->name('forms.research-consent.store');
         Route::get('/forms/consent', [FormController::class, 'consent'])->name('forms.consent');
         Route::post('/forms/consent', [FormController::class, 'storeConsent'])->name('forms.consent.store');
-        Route::get('/forms/student-info', function () {
-            return view('forms.student-info');
-        })->name('forms.student-info');
+        Route::get('/forms/student-info', [FormController::class, 'studentInfo'])->name('forms.student-info');
+        Route::post('/forms/student-info', [FormController::class, 'storeStudentInfo'])->name('forms.student-info.store');
     });
 
     // ✅ PROFILE ROUTES

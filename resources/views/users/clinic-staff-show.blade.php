@@ -1,6 +1,11 @@
 <x-app-with-sidebar>
     <x-slot name="header">Clinic Staff Details</x-slot>
 
+    @php
+        $staffAvatar = $staff->getAvatarUrl();
+        $staffInitial = strtoupper(substr($staff->name, 0, 1));
+    @endphp
+
     <div class="clinic-staff-show-page">
         <!-- Back Button -->
         <a href="{{ route('clinic-staff.index') }}" class="btn-back">
@@ -11,7 +16,13 @@
         <div class="profile-card">
             <div class="profile-header">
                 <div class="profile-avatar-wrap">
-                    <div class="profile-avatar">{{ substr($staff->name, 0, 1) }}</div>
+                    <div class="profile-avatar">
+                        @if ($staffAvatar)
+                            <img src="{{ $staffAvatar }}" alt="{{ $staff->name }}">
+                        @else
+                            <span>{{ $staffInitial }}</span>
+                        @endif
+                    </div>
                     <div class="profile-camera"><i class="fas fa-camera"></i></div>
                 </div>
 
@@ -202,14 +213,15 @@
         }
 
         .profile-card {
-            background: linear-gradient(135deg, #2a9df5, #1f7ed7);
-            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(42, 157, 245, 1) 0%, rgba(28, 126, 216, 1) 100%);
+            border-radius: 28px;
             padding: 30px 24px 24px;
-            box-shadow: 0 16px 35px rgba(23, 92, 165, 0.18);
+            box-shadow: 0 24px 50px rgba(30, 96, 170, 0.22);
             color: #ffffff;
-            max-width: 440px;
-            width: 100%;
+            max-width: 640px;
+            width: min(100%, 640px);
             margin: 0 auto;
+            border: 1px solid rgba(255,255,255,0.18);
         }
 
         .profile-header {

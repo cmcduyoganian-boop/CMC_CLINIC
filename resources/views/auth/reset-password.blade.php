@@ -106,7 +106,7 @@
                 </button>
             </div>
             @error('password')<div class="err-msg">{{ $message }}</div>@enderror
-            <div class="hint">6-8 characters, must include uppercase, lowercase, number, and special character</div>
+            <div class="hint">Use 6-8 characters with uppercase, lowercase, number, and special character.</div>
         </div>
 
         <div class="field">

@@ -5,10 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\PasswordResetOtp;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rules\Password;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 
 class SettingsController extends Controller
@@ -16,7 +15,11 @@ class SettingsController extends Controller
     // ============ SHOW SETTINGS ============
     public function index()
     {
-        $user = auth()->user();
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
         return view('settings.index', compact('user'));
     }
 
@@ -28,7 +31,10 @@ class SettingsController extends Controller
         ]);
 
         try {
-            $user = auth()->user();
+            $user = Auth::user();
+            if (! $user instanceof User) {
+                abort(403);
+            }
 
             // Delete the old avatar file if one exists
             if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
@@ -49,7 +55,10 @@ class SettingsController extends Controller
     public function deleteAvatar(Request $request)
     {
         try {
-            $user = auth()->user();
+            $user = Auth::user();
+            if (! $user instanceof User) {
+                abort(403);
+            }
 
             if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
                 Storage::disk('public')->delete($user->avatar);
@@ -66,14 +75,19 @@ class SettingsController extends Controller
     // ============ UPDATE PROFILE ============
     public function updateProfile(Request $request)
     {
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . auth()->id(),
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'required|string|max:20',
         ]);
 
         try {
-            auth()->user()->update($validated);
+            $user->update($validated);
             return back()->with('success', 'Profile updated successfully!');
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to update profile.');
@@ -83,12 +97,17 @@ class SettingsController extends Controller
     // ============ UPDATE USERNAME ============
     public function updateUsername(Request $request)
     {
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
         $validated = $request->validate([
-            'username' => 'required|string|max:255|unique:users,username,' . auth()->id(),
+            'username' => 'required|string|max:255|unique:users,username,' . $user->id,
         ]);
 
         try {
-            auth()->user()->update($validated);
+            $user->update($validated);
             return back()->with('success', 'Username updated successfully!');
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to update username.');
@@ -102,7 +121,10 @@ class SettingsController extends Controller
             'current_password' => 'required|string',
         ]);
 
-        $user = auth()->user();
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
 
         // Verify current password
         if (!Hash::check($request->current_password, $user->password)) {
@@ -139,17 +161,18 @@ class SettingsController extends Controller
     // ============ UPDATE PASSWORD WITH OTP VERIFICATION ============
     public function updatePassword(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
 
             // If OTP is set, this is password change request
             if ($request->has('otp')) {
                 $request->validate([
                     'otp' => 'required|string|size:6',
-                    'password' => ['required', 'confirmed', 'regex:/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/', 'min:6', 'max:8'],
+                    'password' => ['required', 'confirmed', 'min:6'],
                 ], [
-                    'password.regex' => 'Password must contain uppercase, lowercase, number, and special character.',
                     'password.min' => 'Password must be at least 6 characters.',
-                    'password.max' => 'Password cannot exceed 8 characters.',
                 ]);
 
             // Verify OTP
@@ -187,6 +210,11 @@ class SettingsController extends Controller
     // ============ UPDATE CLINIC INFO ============
     public function updateClinic(Request $request)
     {
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
         $validated = $request->validate([
             'clinic_name' => 'nullable|string|max:255',
             'clinic_phone' => 'nullable|string|max:20',
@@ -195,7 +223,7 @@ class SettingsController extends Controller
         ]);
 
         try {
-            auth()->user()->update($validated);
+            $user->update($validated);
             return back()->with('success', 'Clinic information updated successfully!');
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to update clinic information.');
@@ -203,7 +231,7 @@ class SettingsController extends Controller
     }
 
     // ============ SEND OTP EMAIL ============
-    private function sendOtpEmail($user, $otp)
+    private function sendOtpEmail(User $user, string $otp): void
     {
         $subject = 'Password Change Verification - CMC Clinic';
         $message = "

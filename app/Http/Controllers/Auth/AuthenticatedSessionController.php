@@ -36,7 +36,7 @@ class AuthenticatedSessionController extends Controller
         // ✅ Bulk-created freshmen must change their default password on first login
         $user = \Illuminate\Support\Facades\Auth::user();
         if ($user && $user->must_change_password) {
-            return redirect()->route('profile.change-password')
+            return redirect()->route('settings.index')
                 ->with('info', '⚠️ You are using a default password. Please change it before continuing.');
         }
 

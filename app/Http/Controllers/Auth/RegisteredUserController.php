@@ -7,8 +7,10 @@ use App\Models\PendingRegistration;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
@@ -31,21 +33,23 @@ class RegisteredUserController extends Controller
         $validated = $request->validate(
             [
                 'name' => 'required|string|max:255',
-                'username' => 'required|string|min:3|max:50',
-                'email' => 'required|string|email|max:255',
-                'phone' => 'required|string|max:20',
-                'role' => 'required|in:student,faculty,staff,clinic_staff',
-                'password' => 'required|string|min:6|max:8|confirmed|regex:/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/',
+                'username' => 'nullable|string|min:3|max:50|unique:users,username',
+                'email' => 'required|string|email|max:255|unique:users,email',
+                'phone' => 'nullable|string|max:20',
+                'role' => 'nullable|in:student,faculty,staff,clinic_staff',
+                'password' => ['required', 'string', 'min:6', 'confirmed'],
             ],
             [
                 'username.unique' => 'This username is already taken.',
                 'email.unique' => 'This email is already registered.',
                 'password.min' => 'Password must be at least 6 characters.',
-                'password.max' => 'Password cannot exceed 8 characters.',
-                'password.regex' => 'Password must contain uppercase, lowercase, number, and special character.',
                 'password.confirmed' => 'Passwords do not match.',
             ]
         );
+
+        $validated['username'] ??= $this->generateUsername($validated['name'], $validated['email']);
+        $validated['phone'] ??= '';
+        $validated['role'] ??= 'student';
 
         // Check if user already exists with this email/username
         $existingUser = User::where('email', $validated['email'])
@@ -89,36 +93,26 @@ class RegisteredUserController extends Controller
         try {
             Log::info('✅ Validation passed');
 
-            // ✅ Create pending registration with username
-            $pending = PendingRegistration::create([
+            $user = User::create([
                 'name' => $validated['name'],
                 'username' => $validated['username'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
                 'role' => $validated['role'],
                 'password' => Hash::make($validated['password']),
-                'otp_verified' => false,
+                'approval_status' => 'approved',
+                'is_active' => true,
+                'otp_verified' => true,
+                'email_verified_at' => now(),
+                'must_change_password' => false,
             ]);
 
-            Log::info('✅ Pending registration created', ['id' => $pending->id]);
+            Auth::login($user);
 
-            // Generate OTP
-            $otp = $pending->generateOtp();
-            Log::info('✅ OTP generated: ' . $otp);
+            Log::info('✅ User created and authenticated', ['id' => $user->id, 'email' => $user->email]);
 
-            // Send OTP email
-            try {
-                $pending->sendOtpEmail();
-                Log::info('✅ OTP email sent successfully!');
-            } catch (\Exception $emailError) {
-                Log::error('❌ Email send failed', ['error' => $emailError->getMessage()]);
-                return redirect()->route('otp.show', $pending->email)
-                    ->with('error', 'We could not send the verification code. Please try Resend OTP.');
-            }
-
-            // Redirect to OTP verification page
-            return redirect()->route('otp.show', $pending->email)->with([
-                'success' => '✅ Check your email for a 6-digit verification code!',
+            return redirect()->route('dashboard')->with([
+                'success' => 'Welcome! Your account has been created successfully.',
             ]);
 
         } catch (\Exception $e) {
@@ -127,6 +121,24 @@ class RegisteredUserController extends Controller
                 ->withInput()
                 ->with('error', 'Registration failed: ' . $e->getMessage());
         }
+    }
+
+    protected function generateUsername(string $name, string $email): string
+    {
+        $base = Str::slug(str_replace(['.', '_'], ' ', $name), '');
+        $base = $base !== '' ? $base : Str::before($email, '@');
+        $base = preg_replace('/[^A-Za-z0-9]/', '', $base) ?: 'user';
+        $base = strtolower(substr($base, 0, 20));
+
+        $candidate = $base;
+        $counter = 1;
+
+        while (User::where('username', $candidate)->exists()) {
+            $candidate = $base . $counter;
+            $counter++;
+        }
+
+        return $candidate;
     }
 
     /**

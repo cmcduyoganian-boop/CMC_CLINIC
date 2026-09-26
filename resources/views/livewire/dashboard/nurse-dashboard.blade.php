@@ -277,7 +277,7 @@
                                 </div>
                                 <div class="activity-text">
                                     <p class="activity-name">{{ Str::limit($activity['message'], 40) }}</p>
-                                    <span class="activity-time">{{ $activity['timestamp']->diffForHumans() }}</span>
+                                    <span class="activity-time">{{ \Carbon\Carbon::parse($activity['timestamp'] ?? now())->diffForHumans() }}</span>
                                 </div>
                             </div>
                         @endforeach
@@ -516,8 +516,8 @@
                                     @endif
                                     <div class="activity-row-time">
                                         <i class="fas fa-clock"></i>
-                                        {{ $activity['timestamp']->diffForHumans() }}
-                                        · {{ $activity['timestamp']->format('M d, Y h:i A') }}
+                                        {{ \Carbon\Carbon::parse($activity['timestamp'] ?? now())->diffForHumans() }}
+                                        · {{ \Carbon\Carbon::parse($activity['timestamp'] ?? now())->format('M d, Y h:i A') }}
                                     </div>
                                 </div>
                             </a>

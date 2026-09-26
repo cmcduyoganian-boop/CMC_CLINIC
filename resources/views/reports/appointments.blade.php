@@ -101,40 +101,33 @@
                 </div>
             </div>
 
-            <div class="appt-stats-card">
+            <div class="appt-stats-card" style="--sched-rate: {{ $schedRate }}%; --comp-rate: {{ $compRate }}%; --noshow-rate: {{ $noShowRate }}%; --cancel-rate: {{ $canxRate }}%;">
                 <h2 class="section-title"><i class="fas fa-info-circle"></i> Quick Stats</h2>
-                @php
-                    $total      = $totalAppointments ?: 1;
-                    $compRate   = round(($completed / $total) * 100);
-                    $noShowRate = round(($noShow    / $total) * 100);
-                    $schedRate  = round(($scheduled / $total) * 100);
-                    $canxRate   = round((($cancelled ?? 0) / $total) * 100);
-                @endphp
                 <div class="stat-row">
                     <span class="stat-label"><span class="stat-dot dot-blue"></span>Scheduled</span>
                     <div class="stat-bar-wrap">
-                        <div class="stat-bar" style="width: {{ $schedRate }}%; background: #38bdf8;"></div>
+                        <div class="stat-bar stat-bar-scheduled"></div>
                     </div>
                     <span class="stat-pct">{{ $schedRate }}%</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label"><span class="stat-dot dot-green"></span>Completed</span>
                     <div class="stat-bar-wrap">
-                        <div class="stat-bar" style="width: {{ $compRate }}%; background: #27ae60;"></div>
+                        <div class="stat-bar stat-bar-completed"></div>
                     </div>
                     <span class="stat-pct">{{ $compRate }}%</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label"><span class="stat-dot dot-yellow"></span>No-Show</span>
                     <div class="stat-bar-wrap">
-                        <div class="stat-bar" style="width: {{ $noShowRate }}%; background: #f39c12;"></div>
+                        <div class="stat-bar stat-bar-noshow"></div>
                     </div>
                     <span class="stat-pct">{{ $noShowRate }}%</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label"><span class="stat-dot dot-red"></span>Cancelled</span>
                     <div class="stat-bar-wrap">
-                        <div class="stat-bar" style="width: {{ $canxRate }}%; background: #e74c3c;"></div>
+                        <div class="stat-bar stat-bar-cancelled"></div>
                     </div>
                     <span class="stat-pct">{{ $canxRate }}%</span>
                 </div>
@@ -187,7 +180,15 @@
                         <tbody>
                             @foreach($appointments as $appt)
                                 @php $filters = ['all', strtolower($appt->status)]; @endphp
-                                <tr class="data-row" data-filters="{{ implode(',', $filters) }}">
+                                <tr class="data-row clickable-row" data-filters="{{ implode(',', $filters) }}" 
+                                    data-id="{{ $appt->id }}"
+                                    data-patient="{{ $appt->patient->name ?? '' }}"
+                                    data-category="{{ $appt->patient->category ?? '' }}"
+                                    data-date="{{ $appt->appointment_date }}"
+                                    data-time="{{ $appt->appointment_time }}"
+                                    data-reason="{{ $appt->reason ?? '' }}"
+                                    data-notes="{{ $appt->notes ?? '' }}"
+                                    data-status="{{ $appt->status }}">
                                     <td>
                                         <span class="date-main">{{ \Carbon\Carbon::parse($appt->appointment_date)->format('M d, Y') }}</span>
                                     </td>
@@ -231,6 +232,59 @@
                     </table>
                 </div>
             @endif
+        </div>
+
+        {{-- ── Appointment Detail Modal ── --}}
+        <div id="apptModal" class="appt-modal-overlay" style="display:none;">
+            <div class="appt-modal">
+                <div class="appt-modal-header">
+                    <h3 class="appt-modal-title">Appointment Details</h3>
+                    <button type="button" class="appt-modal-close" onclick="closeApptModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="appt-modal-body">
+                    <div class="appt-detail-row">
+                        <span class="appt-detail-label">Patient</span>
+                        <span class="appt-detail-value" id="modalPatient"><i class="fas fa-user"></i> —</span>
+                    </div>
+                    <div class="appt-detail-row">
+                        <span class="appt-detail-label">Category</span>
+                        <span class="appt-detail-value" id="modalCategory"><i class="fas fa-tag"></i> —</span>
+                    </div>
+                    <div class="appt-detail-row">
+                        <span class="appt-detail-label">Date</span>
+                        <span class="appt-detail-value" id="modalDate"><i class="far fa-calendar-alt"></i> —</span>
+                    </div>
+                    <div class="appt-detail-row">
+                        <span class="appt-detail-label">Time</span>
+                        <span class="appt-detail-value" id="modalTime"><i class="far fa-clock"></i> —</span>
+                    </div>
+                    <div class="appt-detail-row">
+                        <span class="appt-detail-label">Status</span>
+                        <span class="appt-detail-value" id="modalStatus">—</span>
+                    </div>
+                    <div class="appt-reason-box" id="modalReasonBox" style="display:none;">
+                        <p class="appt-reason-label"><i class="fas fa-stethoscope"></i> Reason for Visit</p>
+                        <p class="appt-reason-text" id="modalReason">—</p>
+                    </div>
+                    <div class="appt-reason-box" id="modalNotesBox" style="display:none; margin-top:12px;">
+                        <p class="appt-reason-label"><i class="fas fa-sticky-note"></i> Notes</p>
+                        <p class="appt-reason-text" id="modalNotes">—</p>
+                    </div>
+                </div>
+                <div class="appt-modal-footer" id="modalFooter" style="display:none;">
+                    <button type="button" class="btn-appt-action btn-check" onclick="updateApptStatus('completed')">
+                        <i class="fas fa-check"></i> Check (Arrived)
+                    </button>
+                    <button type="button" class="btn-appt-action btn-no-show" onclick="updateApptStatus('no-show')">
+                        <i class="fas fa-times"></i> No Show
+                    </button>
+                    <button type="button" class="btn-appt-action btn-cancel" onclick="updateApptStatus('cancelled')">
+                        <i class="fas fa-ban"></i> Cancel
+                    </button>
+                </div>
+            </div>
         </div>
 
         {{-- ── Footer ── --}}
@@ -312,6 +366,135 @@
                 this.style.display = 'none';
             });
         }
+
+        // Appointment row click - show modal
+        document.querySelectorAll('.clickable-row').forEach(row => {
+            row.style.cursor = 'pointer';
+            row.addEventListener('click', function(e) {
+                // Don't open modal if clicking on a link/button inside
+                if (e.target.closest('a, button, .status-pill')) return;
+                openApptModal(this);
+            });
+        });
+    });
+
+    function openApptModal(row) {
+        const modal = document.getElementById('apptModal');
+        document.getElementById('modalPatient').innerHTML = '<i class="fas fa-user"></i> ' + (row.dataset.patient || '—');
+        document.getElementById('modalCategory').innerHTML = '<i class="fas fa-tag"></i> ' + (row.dataset.category ? row.dataset.category.charAt(0).toUpperCase() + row.dataset.category.slice(1) : '—');
+        
+        const date = row.dataset.date ? new Date(row.dataset.date) : null;
+        document.getElementById('modalDate').innerHTML = '<i class="far fa-calendar-alt"></i> ' + (date ? date.toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'}) : '—');
+        
+        document.getElementById('modalTime').innerHTML = '<i class="far fa-clock"></i> ' + (row.dataset.time ? formatTime(row.dataset.time) : '—');
+        
+        const status = row.dataset.status;
+        const statusLabels = { scheduled: 'Scheduled', completed: 'Completed', 'no-show': 'No-Show', cancelled: 'Cancelled' };
+        const statusIcons = { scheduled: 'fa-clock', completed: 'fa-check', 'no-show': 'fa-user-times', cancelled: 'fa-times' };
+        document.getElementById('modalStatus').innerHTML = '<span class="status-pill status-' + status + '"><i class="fas ' + (statusIcons[status] || 'fa-circle') + '"></i> ' + (statusLabels[status] || status) + '</span>';
+        
+        const reason = row.dataset.reason;
+        const reasonBox = document.getElementById('modalReasonBox');
+        if (reason && reason !== '—') {
+            document.getElementById('modalReason').textContent = reason;
+            reasonBox.style.display = 'block';
+        } else {
+            reasonBox.style.display = 'none';
+        }
+        
+        const notes = row.dataset.notes;
+        const notesBox = document.getElementById('modalNotesBox');
+        if (notes && notes !== '—') {
+            document.getElementById('modalNotes').textContent = notes;
+            notesBox.style.display = 'block';
+        } else {
+            notesBox.style.display = 'none';
+        }
+        
+        const footer = document.getElementById('modalFooter');
+        footer.style.display = (status === 'scheduled') ? 'flex' : 'none';
+        footer.dataset.appointmentId = row.dataset.id;
+        
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeApptModal() {
+        const modal = document.getElementById('apptModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+    
+    function formatTime(timeStr) {
+        const [h, m] = timeStr.split(':');
+        const hour = parseInt(h);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        return hour12 + ':' + m + ' ' + ampm;
+    }
+    
+    function updateApptStatus(newStatus) {
+        const footer = document.getElementById('modalFooter');
+        const appointmentId = footer.dataset.appointmentId;
+        if (!appointmentId) return;
+        
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+        
+        fetch('/reports/appointment/' + appointmentId + '/status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the row in the table
+                const row = document.querySelector('.clickable-row[data-id="' + appointmentId + '"]');
+                if (row) {
+                    row.dataset.status = newStatus;
+                    const statusLabels = { completed: 'Completed', 'no-show': 'No-Show', cancelled: 'Cancelled' };
+                    const statusIcons = { completed: 'fa-check', 'no-show': 'fa-user-times', cancelled: 'fa-ban' };
+                    row.querySelector('.status-pill').className = 'status-pill status-' + newStatus;
+                    row.querySelector('.status-pill').innerHTML = '<i class="fas ' + statusIcons[newStatus] + '"></i> ' + statusLabels[newStatus];
+                }
+                closeApptModal();
+                showToast('Appointment marked as ' + statusLabels[newStatus] + '!', 'success');
+            } else {
+                showToast(data.message || 'Failed to update status', 'error');
+            }
+        })
+        .catch(err => {
+            showToast('Error updating appointment', 'error');
+            console.error(err);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    }
+    
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = 'toast toast-' + type;
+        toast.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + '"></i> ' + message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
+    // Close modal on overlay click
+    document.getElementById('apptModal')?.addEventListener('click', function(e) {
+        if (e.target === this) closeApptModal();
     });
     </script>
 
@@ -454,6 +637,10 @@
             border-radius: 4px; overflow: hidden;
         }
         .stat-bar { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+        .stat-bar-scheduled  { width: var(--sched-rate, 0%);  background: #38bdf8; }
+        .stat-bar-completed  { width: var(--comp-rate, 0%);   background: #27ae60; }
+        .stat-bar-noshow     { width: var(--noshow-rate, 0%);  background: #f39c12; }
+        .stat-bar-cancelled  { width: var(--cancel-rate, 0%);  background: #e74c3c; }
         .stat-pct { font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: right; }
 
         .completion-highlight {
@@ -601,6 +788,96 @@
         @media print {
             .header-actions, .clear-filter-btn, .date-filter-bar { display: none !important; }
         }
+
+        /* ── Clickable Row ─────────────────────────────────────────── */
+        .clickable-row { transition: background 0.15s; }
+        .clickable-row:hover { background: var(--bg-input) !important; }
+
+        /* ── Appointment Detail Modal ── */
+        .appt-modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px; animation: fadeIn 0.2s ease;
+        }
+        .appt-modal {
+            background: var(--bg-card); border-radius: 16px;
+            width: 100%; max-width: 500px; max-height: 90vh;
+            overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .appt-modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 24px; border-bottom: 1px solid var(--border-inner);
+            position: sticky; top: 0; background: var(--bg-card); z-index: 1;
+            border-radius: 16px 16px 0 0;
+        }
+        .appt-modal-title { margin: 0; font-size: 18px; font-weight: 800; color: var(--text-heading); }
+        .appt-modal-close {
+            background: none; border: none; cursor: pointer;
+            color: var(--text-muted); font-size: 20px;
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .appt-modal-close:hover { background: var(--bg-input); color: var(--text-heading); }
+
+        .appt-modal-body { padding: 24px; }
+        .appt-detail-row { display: flex; gap: 16px; margin-bottom: 16px; }
+        .appt-detail-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; min-width: 80px; margin-top: 4px; }
+        .appt-detail-value { font-size: 14px; color: var(--text-heading); font-weight: 500; flex: 1; }
+        .appt-detail-value i { color: #2980b9; margin-right: 8px; width: 18px; text-align: center; }
+        .appt-reason-box {
+            background: var(--bg-input); border: 1px solid var(--border-card);
+            border-radius: 10px; padding: 16px; margin-top: 8px;
+        }
+        .appt-reason-label { margin: 0 0 8px; font-size: 11px; font-weight: 800; letter-spacing: .6px; color: var(--text-muted); }
+        .appt-reason-text { margin: 0; font-size: 14px; color: var(--text-body); line-height: 1.6; white-space: pre-wrap; }
+        .appt-reason-text i { color: #27ae60; margin-right: 6px; }
+
+        .appt-modal-footer {
+            display: flex; gap: 12px; padding: 20px 24px;
+            border-top: 1px solid var(--border-inner);
+            background: var(--bg-card); border-radius: 0 0 16px 16px;
+        }
+        .btn-appt-action {
+            flex: 1; padding: 14px 20px; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: 800; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-check {
+            background: linear-gradient(135deg, #27ae60, #1e8a49);
+            color: #fff; box-shadow: 0 4px 14px rgba(39,174,96,0.4);
+        }
+        .btn-check:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(39,174,96,0.5); }
+        .btn-no-show {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: #fff; box-shadow: 0 4px 14px rgba(231,76,60,0.4);
+        }
+        .btn-no-show:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(231,76,60,0.5); }
+        .btn-cancel {
+            background: linear-gradient(135deg, #f39c12, #d68910);
+            color: #fff; box-shadow: 0 4px 14px rgba(243,156,18,0.4);
+        }
+        .btn-cancel:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(243,156,18,0.5); }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed; bottom: 24px; right: 24px; z-index: 1100;
+            display: flex; align-items: center; gap: 10px;
+            padding: 14px 20px; border-radius: 10px;
+            font-size: 13px; font-weight: 600; color: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: translateY(100px); opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast-success { background: linear-gradient(135deg, #27ae60, #1e8a49); }
+        .toast-error { background: linear-gradient(135deg, #e74c3c, #c0392b); }
     </style>
 
 </x-app-with-sidebar>

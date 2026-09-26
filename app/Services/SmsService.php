@@ -34,7 +34,8 @@ class SmsService
         $result = match ($this->provider) {
             'semaphore' => $this->sendViaSemaphore($phone, $message),
             'android' => $this->sendViaAndroid($phone, $message),
-            'log', default => $this->sendViaLog($phone, $message, $metadata),
+            'log' => $this->sendViaLog($phone, $message, $metadata),
+            default => $this->sendViaLog($phone, $message, $metadata),
         };
 
         Log::info('SMS sent', array_merge([

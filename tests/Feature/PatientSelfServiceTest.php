@@ -2,6 +2,7 @@
 
 use App\Livewire\ClinicVisit\ClinicVisitCreateForm;
 use App\Livewire\ClinicVisit\ClinicVisitEditForm;
+use App\Models\Appointment;
 use App\Models\ClinicVisit;
 use App\Models\Patient;
 use App\Models\User;
@@ -104,6 +105,66 @@ test('patient can view their own visit records', function () {
         ->assertOk()
         ->assertSee('Seasonal Flu')
         ->assertSee('My Records');
+});
+
+test('patient can view their own appointment page', function () {
+    $user = User::factory()->create([
+        'name' => 'Patient Appointment User',
+        'email' => 'patient-appointments@example.com',
+        'role' => 'student',
+        'approval_status' => 'approved',
+        'is_active' => true,
+        'otp_verified' => true,
+    ]);
+
+    $patient = Patient::create([
+        'name' => 'Patient Appointment User',
+        'email' => 'patient-appointments@example.com',
+        'phone' => '09123456789',
+        'age' => 20,
+        'category' => 'student',
+        'program' => 'BSCS',
+        'year_section' => '2-A',
+        'address' => 'Tagbilaran City',
+        'status' => 'active',
+    ]);
+
+    Appointment::create([
+        'patient_id' => $patient->id,
+        'appointment_date' => '2026-10-15',
+        'appointment_time' => '09:30:00',
+        'reason' => 'Follow-up consultation',
+        'status' => 'scheduled',
+        'sms_reminder' => false,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get('/my-appointments');
+
+    $response
+        ->assertOk()
+        ->assertSee('My Appointments')
+        ->assertSee('Follow-up consultation');
+});
+
+test('patient can access the self-service appointment creation page', function () {
+    $user = User::factory()->create([
+        'name' => 'Patient Schedule User',
+        'email' => 'patient-schedule@example.com',
+        'role' => 'student',
+        'approval_status' => 'approved',
+        'is_active' => true,
+        'otp_verified' => true,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get('/appointments/create');
+
+    $response
+        ->assertOk()
+        ->assertSee('Schedule Appointment');
 });
 
 test('clinic visit address falls back to the patient address when empty', function () {

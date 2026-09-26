@@ -65,7 +65,7 @@
                             $isToday = $appt->appointment_date->isToday();
                             $isTomorrow = $appt->appointment_date->isTomorrow();
                         @endphp
-                        <div class="upc-item">
+                        <div class="upc-item" wire:click="viewAppointment({{ $appt->id }})" style="cursor: pointer;">
                             <div class="upc-avatar">
                                 <i class="fas fa-user-circle"></i>
                             </div>
@@ -76,6 +76,12 @@
                                     @if($isToday) Today @elseif($isTomorrow) Tomorrow @else {{ $appt->appointment_date->format('M d') }} @endif
                                     {{ date('g:i A', strtotime($appt->appointment_time)) }}
                                 </p>
+                                @if($appt->reason)
+                                <p class="upc-reason">
+                                    <i class="fas fa-stethoscope"></i>
+                                    {{ $appt->reason }}
+                                </p>
+                                @endif
                             </div>
                             <span class="upc-badge {{ $isToday ? 'badge-today' : 'badge-upcoming' }}">
                                 {{ $isToday ? 'Today' : 'Upcoming' }}
@@ -198,7 +204,92 @@
             </div>
         </div>
     </div>
+
+    {{-- Appointment Detail Modal — INSIDE root div so Livewire controls it --}}
+    @if($showAppointmentDetail && $selectedAppointment)
+<div class="appt-modal-overlay" wire:click="closeAppointmentDetail">
+    <div class="appt-modal" wire:click="$event.stopPropagation()">
+        <div class="appt-modal-header">
+            <h3 class="appt-modal-title">Appointment Details</h3>
+            <button type="button" class="appt-modal-close" wire:click="closeAppointmentDetail">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="appt-modal-body">
+            <div class="appt-detail-row">
+                <span class="appt-detail-label">Patient</span>
+                <span class="appt-detail-value"><i class="fas fa-user"></i> {{ $selectedAppointment->patient->name }}</span>
+            </div>
+            <div class="appt-detail-row">
+                <span class="appt-detail-label">Category</span>
+                <span class="appt-detail-value"><i class="fas fa-tag"></i> {{ ucfirst($selectedAppointment->patient->category) }}</span>
+            </div>
+            <div class="appt-detail-row">
+                <span class="appt-detail-label">Date</span>
+                <span class="appt-detail-value"><i class="far fa-calendar-alt"></i> {{ $selectedAppointment->appointment_date->format('F j, Y') }}</span>
+            </div>
+            <div class="appt-detail-row">
+                <span class="appt-detail-label">Time</span>
+                <span class="appt-detail-value"><i class="far fa-clock"></i> {{ date('g:i A', strtotime($selectedAppointment->appointment_time)) }}</span>
+            </div>
+            <div class="appt-detail-row">
+                <span class="appt-detail-label">Status</span>
+                <span class="appt-detail-value">
+                    <span class="badge {{ $selectedAppointment->statusBadgeClass }}">{{ $selectedAppointment->statusLabel }}</span>
+                </span>
+            </div>
+            @if($selectedAppointment->reason)
+            <div class="appt-reason-box">
+                <p class="appt-reason-label"><i class="fas fa-stethoscope"></i> Reason for Visit</p>
+                <p class="appt-reason-text">{{ $selectedAppointment->reason }}</p>
+            </div>
+            @endif
+            @if($selectedAppointment->notes)
+            <div class="appt-reason-box" style="margin-top:12px;">
+                <p class="appt-reason-label"><i class="fas fa-sticky-note"></i> Notes</p>
+                <p class="appt-reason-text">{{ $selectedAppointment->notes }}</p>
+            </div>
+            @endif
+        </div>
+        @if($selectedAppointment->status === 'scheduled')
+        <div class="appt-modal-footer">
+            <p class="appt-footer-hint"><i class="fas fa-info-circle"></i> Update appointment status:</p>
+            <div class="appt-footer-actions">
+                <button type="button" class="btn-appt-action btn-check" wire:click="markCompleted">
+                    <i class="fas fa-check-circle"></i>
+                    <span>
+                        <strong>Completed</strong>
+                        <small>Patient came in</small>
+                    </span>
+                </button>
+                <button type="button" class="btn-appt-action btn-no-show" wire:click="markNoShow">
+                    <i class="fas fa-user-slash"></i>
+                    <span>
+                        <strong>No-Show</strong>
+                        <small>Didn't arrive</small>
+                    </span>
+                </button>
+                <button type="button" class="btn-appt-action btn-cancel-appt" wire:click="markCancelled"
+                    wire:confirm="Cancel this appointment for {{ $selectedAppointment->patient->name }}?">
+                    <i class="fas fa-ban"></i>
+                    <span>
+                        <strong>Cancel</strong>
+                        <small>Admin cancel</small>
+                    </span>
+                </button>
+            </div>
+        </div>
+        @else
+        <div class="appt-modal-footer appt-footer-readonly">
+            <span class="badge {{ $selectedAppointment->getStatusBadgeClass() }}" style="font-size:13px;padding:6px 14px;">
+                {{ $selectedAppointment->getStatusLabel() }}
+            </span>
+            <span style="font-size:12px;color:var(--text-muted);">This appointment has already been resolved.</span>
+        </div>
+        @endif
+    </div>
 </div>
+    @endif
 
 <style>
 /* ── Page layout ────────────────────────────────────────────────── */
@@ -377,6 +468,8 @@
 .upc-name { margin: 0; font-size: 13px; font-weight: 700; color: var(--text-heading); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .upc-time { margin: 2px 0 0; font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
 .upc-time i { color: #2980b9; font-size: 10px; }
+.upc-reason { margin: 4px 0 0; font-size: 11px; color: var(--text-heading); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+.upc-reason i { color: #27ae60; font-size: 9px; margin-right: 4px; }
 
 .upc-badge {
     font-size: 10px; font-weight: 800; padding: 3px 10px;
@@ -384,6 +477,13 @@
 }
 .badge-today    { background: rgba(39,174,96,0.12); color: #27ae60; border: 1px solid rgba(39,174,96,0.25); }
 .badge-upcoming { background: rgba(41,128,185,0.12); color: #2980b9; border: 1px solid rgba(41,128,185,0.2); }
+
+/* Status badges */
+.badge-scheduled  { background: rgba(41,128,185,0.12); color: #2980b9; border: 1px solid rgba(41,128,185,0.2); }
+.badge-completed  { background: rgba(39,174,96,0.12); color: #27ae60; border: 1px solid rgba(39,174,96,0.25); }
+.badge-no-show    { background: rgba(231,76,60,0.12); color: #e74c3c; border: 1px solid rgba(231,76,60,0.25); }
+.badge-cancelled  { background: rgba(149,165,166,0.12); color: #95a5a6; border: 1px solid rgba(149,165,166,0.25); }
+.badge-gray       { background: rgba(149,165,166,0.12); color: #95a5a6; border: 1px solid rgba(149,165,166,0.25); }
 
 .upc-empty {
     text-align: center; padding: 36px 20px;
@@ -516,4 +616,88 @@
     .fg-row   { grid-template-columns: 1fr; }
 }
 @media print { .asch-right { display: none; } }
+
+/* Appointment Detail Modal */
+.appt-modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; animation: fadeIn 0.2s ease;
+}
+.appt-modal {
+    background: var(--bg-card); border-radius: 16px;
+    width: 100%; max-width: 500px; max-height: 90vh;
+    overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: slideUp 0.3s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.appt-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px; border-bottom: 1px solid var(--border-inner);
+    position: sticky; top: 0; background: var(--bg-card); z-index: 1;
+    border-radius: 16px 16px 0 0;
+}
+.appt-modal-title { margin: 0; font-size: 18px; font-weight: 800; color: var(--text-heading); }
+.appt-modal-close {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted); font-size: 20px;
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+}
+.appt-modal-close:hover { background: var(--bg-input); color: var(--text-heading); }
+
+.appt-modal-body { padding: 24px; }
+.appt-detail-row { display: flex; gap: 16px; margin-bottom: 16px; }
+.appt-detail-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; min-width: 80px; margin-top: 4px; }
+.appt-detail-value { font-size: 14px; color: var(--text-heading); font-weight: 500; flex: 1; }
+.appt-detail-value i { color: #2980b9; margin-right: 8px; width: 18px; text-align: center; }
+.appt-reason-box {
+    background: var(--bg-input); border: 1px solid var(--border-card);
+    border-radius: 10px; padding: 16px; margin-top: 8px;
+}
+.appt-reason-label { margin: 0 0 8px; font-size: 11px; font-weight: 800; letter-spacing: .6px; color: var(--text-muted); }
+.appt-reason-text { margin: 0; font-size: 14px; color: var(--text-body); line-height: 1.6; white-space: pre-wrap; }
+.appt-reason-text i { color: #27ae60; margin-right: 6px; }
+
+.appt-modal-footer {
+    padding: 16px 24px 20px;
+    border-top: 1px solid var(--border-inner);
+    background: var(--bg-card); border-radius: 0 0 16px 16px;
+}
+.appt-footer-hint {
+    margin: 0 0 10px; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .5px;
+    color: var(--text-muted); display: flex; align-items: center; gap: 6px;
+}
+.appt-footer-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.appt-footer-readonly { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.btn-appt-action {
+    flex: 1; min-width: 110px; padding: 12px 16px; border: none;
+    border-radius: 10px; font-family: inherit; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    transition: all 0.2s; text-align: left;
+}
+.btn-appt-action i { font-size: 18px; flex-shrink: 0; }
+.btn-appt-action span { display: flex; flex-direction: column; gap: 2px; }
+.btn-appt-action strong { font-size: 13px; font-weight: 700; line-height: 1; }
+.btn-appt-action small { font-size: 10px; opacity: .8; font-weight: 500; }
+.btn-check {
+    background: linear-gradient(135deg, #27ae60, #1e8a49);
+    color: #fff; box-shadow: 0 4px 12px rgba(39,174,96,0.35);
+}
+.btn-check:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(39,174,96,0.45); }
+.btn-no-show {
+    background: linear-gradient(135deg, #f39c12, #d68910);
+    color: #fff; box-shadow: 0 4px 12px rgba(243,156,18,0.35);
+}
+.btn-no-show:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(243,156,18,0.45); }
+.btn-cancel-appt {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: #fff; box-shadow: 0 4px 12px rgba(231,76,60,0.35);
+}
+.btn-cancel-appt:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(231,76,60,0.45); }
 </style>
+</div>{{-- close .asch-page root div --}}

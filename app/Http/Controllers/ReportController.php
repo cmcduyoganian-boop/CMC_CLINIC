@@ -178,6 +178,36 @@ class ReportController extends Controller
         ]);
     }
 
+    public function updateAppointmentStatus(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:completed,no-show,cancelled',
+        ]);
+
+        $appointment = Appointment::findOrFail($id);
+
+        // Only allow updating from scheduled to completed, no-show, or cancelled
+        if ($appointment->status !== 'scheduled') {
+            return response()->json(['success' => false, 'message' => 'Can only update scheduled appointments'], 400);
+        }
+
+        $appointment->update(['status' => $validated['status']]);
+
+        // Audit log
+        \Illuminate\Support\Facades\Log::warning('Appointment status updated from reports', [
+            'user_id' => auth()->id(),
+            'user_name' => auth()->user()->name ?? 'Unknown',
+            'user_role' => auth()->user()->role ?? 'Unknown',
+            'appointment_id' => $appointment->id,
+            'patient_name' => $appointment->patient->name ?? 'Unknown',
+            'old_status' => 'scheduled',
+            'new_status' => $validated['status'],
+            'ip_address' => $request->ip(),
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
     public function vitalSigns(Request $request)
     {
         [$dateFrom, $dateTo] = $this->parseDateRange($request);

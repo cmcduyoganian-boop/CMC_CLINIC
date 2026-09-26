@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Forms;
 
+use App\Models\FormSubmission;
 use App\Models\StudentHealthRecord;
 use App\Models\User;
 use Livewire\Component;
@@ -211,8 +212,15 @@ class StudentInfo extends Component
             $message = 'Student health record saved successfully.';
         }
 
+        FormSubmission::updateOrCreate(
+            ['user_id' => $user?->id, 'form_type' => 'student_medical_history'],
+            ['data' => $data, 'submitted_at' => now()]
+        );
+
         session()->flash('message', $message);
         $this->dispatch('notify', type: 'success', message: $message);
+
+        $this->redirect(route('forms.index'));
     }
 
     public function exportPdf()

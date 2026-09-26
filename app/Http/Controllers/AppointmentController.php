@@ -47,6 +47,14 @@ class AppointmentController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        // Additional validation: if appointment is for today, time must be in the future
+        if ($validated['appointment_date'] === now()->toDateString()) {
+            $currentTime = now()->format('H:i');
+            if ($validated['appointment_time'] <= $currentTime) {
+                return back()->withErrors(['appointment_time' => 'For same-day appointments, the time must be after the current time (' . $currentTime . ').'])->withInput();
+            }
+        }
+
         try {
             $appointment->update($validated);
 

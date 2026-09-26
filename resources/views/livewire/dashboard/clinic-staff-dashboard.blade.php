@@ -253,7 +253,7 @@
                                 </div>
                                 <div class="activity-text">
                                     <p class="activity-name">{{ Str::limit($activity['message'], 40) }}</p>
-                                    <span class="activity-time">{{ $activity['timestamp']->diffForHumans() }}</span>
+                                    <span class="activity-time">{{ \Carbon\Carbon::parse($activity['timestamp'] ?? now())->diffForHumans() }}</span>
                                 </div>
                             </div>
                         @endforeach

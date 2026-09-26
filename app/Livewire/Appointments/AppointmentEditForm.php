@@ -38,6 +38,15 @@ class AppointmentEditForm extends Component
             'notes' => 'nullable|string',
         ]);
 
+        // Additional validation: if appointment is for today, time must be in the future
+        if ($validated['appointmentDate'] === now()->toDateString()) {
+            $currentTime = now()->format('H:i');
+            if ($validated['appointmentTime'] <= $currentTime) {
+                $this->addError('appointmentTime', 'For same-day appointments, the time must be after the current time (' . $currentTime . ').');
+                return;
+            }
+        }
+
         $this->appointment->update([
             'appointment_date' => $validated['appointmentDate'],
             'appointment_time' => $validated['appointmentTime'],

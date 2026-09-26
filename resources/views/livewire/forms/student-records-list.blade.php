@@ -40,29 +40,25 @@
             <table class="shr-table">
                 <thead>
                     <tr>
-                        <th>Student Code</th>
                         <th>Name</th>
                         <th>Course</th>
                         <th>Year &amp; Section</th>
-                        <th>Contact Number</th>
                         <th>Date Saved</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($records as $record)
-                        <tr wire:key="shr-{{ $record->id }}">
-                            <td>{{ $record->student_code ?: '—' }}</td>
+                        <tr wire:key="shr-{{ $record['id'] }}">
                             <td class="shr-name">
-                                {{ trim($record->last_name . ', ' . $record->first_name . ' ' . $record->middle_name) }}
+                                {{ trim(($record['last_name'] ?? '') . ', ' . ($record['first_name'] ?? '') . ' ' . ($record['middle_name'] ?? '')) ?: '—' }}
                             </td>
-                            <td>{{ $record->course ?: '—' }}</td>
-                            <td>{{ $record->year_section ?: '—' }}</td>
-                            <td>{{ $record->contact_number ?: '—' }}</td>
-                            <td>{{ $record->updated_at?->format('M d, Y g:i A') }}</td>
+                            <td>{{ $record['course'] ?: '—' }}</td>
+                            <td>{{ $record['year_section'] ?: '—' }}</td>
+                            <td>{{ isset($record['saved_at']) && $record['saved_at'] ? \Carbon\Carbon::parse($record['saved_at'])->format('M d, Y g:i A') : '—' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="shr-empty">No student health records saved yet.</td>
+                            <td colspan="4" class="shr-empty">No student health records saved yet.</td>
                         </tr>
                     @endforelse
                 </tbody>

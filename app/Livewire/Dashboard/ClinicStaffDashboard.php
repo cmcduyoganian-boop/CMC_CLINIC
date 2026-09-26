@@ -286,7 +286,7 @@ class ClinicStaffDashboard extends Component
                     'icon' => 'fa-stethoscope',
                     'color' => 'blue',
                     'message' => ($v->patient->name ?? 'Patient') . ' - New Clinic Visit Recorded',
-                    'timestamp' => $v->created_at,
+                    'timestamp' => $v->created_at?->toDateTimeString(),
                 ]);
 
             $lowStock = Medicine::whereRaw('quantity <= minimum_stock')
@@ -298,7 +298,7 @@ class ClinicStaffDashboard extends Component
                     'icon' => 'fa-exclamation-triangle',
                     'color' => 'orange',
                     'message' => $m->name . ' - Low Stock Alert',
-                    'timestamp' => $m->updated_at,
+                    'timestamp' => $m->updated_at?->toDateTimeString(),
                 ]);
 
             $expiringSoon = Medicine::where('status', 'active')
@@ -313,7 +313,7 @@ class ClinicStaffDashboard extends Component
                     'icon' => 'fa-hourglass-half',
                     'color' => 'orange',
                     'message' => $m->name . ' - Expiring on ' . $m->expiration_date->format('M d, Y'),
-                    'timestamp' => $m->updated_at,
+                    'timestamp' => $m->updated_at?->toDateTimeString(),
                 ]);
 
             $all = collect()

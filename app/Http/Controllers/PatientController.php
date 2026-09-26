@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PatientController extends Controller
 {
@@ -13,7 +15,7 @@ class PatientController extends Controller
         return view('patients.index');
     }
 
-    public function show($id)
+    public function show(int|string $id)
     {
         $patient = Patient::with(['clinicVisits' => function ($query) {
             $query->orderBy('visit_date', 'desc');
@@ -30,7 +32,7 @@ class PatientController extends Controller
         return view('patients.create');
     }
 
-    public function edit($id)
+    public function edit(int|string $id)
     {
         $patient = Patient::findOrFail($id);
         $this->authorize('update', $patient);
@@ -39,7 +41,11 @@ class PatientController extends Controller
 
     public function myProfile()
     {
-        $user = auth()->user();
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
         $patient = Patient::where('email', $user->email)->first();
 
         // Verify ownership by checking name similarity
@@ -63,7 +69,11 @@ class PatientController extends Controller
 
     public function myRecords()
     {
-        $user = auth()->user();
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
         $patient = Patient::where('email', $user->email)->with(['clinicVisits' => function ($query) {
             $query->orderBy('visit_date', 'desc');
         }])->first();
@@ -91,9 +101,46 @@ class PatientController extends Controller
         return view('patients.my-records', compact('patient'));
     }
 
+    public function myAppointments()
+    {
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
+        $patient = Patient::where('email', $user->email)->with(['appointments' => function ($query) {
+            $query->orderBy('appointment_date', 'desc')->orderBy('appointment_time', 'desc');
+        }])->first();
+
+        if ($patient) {
+            $patientName = strtolower(trim($patient->name));
+            $userName = strtolower(trim($user->name));
+            similar_text($patientName, $userName, $percent);
+            if ($percent < 70) {
+                \Illuminate\Support\Facades\Log::warning('MyAppointments access denied - name mismatch', [
+                    'user_id' => $user->id,
+                    'user_email' => $user->email,
+                    'patient_id' => $patient->id,
+                    'similarity_percent' => $percent,
+                ]);
+                $patient = null;
+            }
+        }
+
+        if (!$patient) {
+            return redirect()->route('dashboard')->with('info', 'You do not have a patient record yet.');
+        }
+
+        return view('patients.my-appointments', compact('patient'));
+    }
+
     public function updateMyProfile(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
         $patient = Patient::where('email', $user->email)->first();
 
         if (!$patient) {

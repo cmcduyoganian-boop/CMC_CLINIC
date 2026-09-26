@@ -386,7 +386,7 @@ class NurseDashboard extends Component
                 ->map(fn ($v) => [
                     'type' => 'visit', 'icon' => 'fa-stethoscope', 'color' => 'blue',
                     'message' => ($v->patient->name ?? 'Patient') . ' - New Clinic Visit Recorded',
-                    'timestamp' => $v->created_at,
+                    'timestamp' => $v->created_at?->toDateTimeString(),
                 ]);
 
             $appointments = Appointment::whereBetween('created_at', [$start, $end])
@@ -397,7 +397,7 @@ class NurseDashboard extends Component
                 ->map(fn ($a) => [
                     'type' => 'appointment', 'icon' => 'fa-calendar-check', 'color' => 'green',
                     'message' => ($a->patient->name ?? 'Patient') . ' - Follow-up Appointment Scheduled',
-                    'timestamp' => $a->created_at,
+                    'timestamp' => $a->created_at?->toDateTimeString(),
                 ]);
 
             $lowStock = Medicine::whereRaw('quantity <= minimum_stock')
@@ -407,7 +407,7 @@ class NurseDashboard extends Component
                 ->map(fn ($m) => [
                     'type' => 'inventory', 'icon' => 'fa-exclamation-triangle', 'color' => 'orange',
                     'message' => $m->name . ' - Low Stock Alert',
-                    'timestamp' => $m->updated_at,
+                    'timestamp' => $m->updated_at?->toDateTimeString(),
                 ]);
 
             $expiringSoon = Medicine::where('status', 'active')
@@ -420,7 +420,7 @@ class NurseDashboard extends Component
                 ->map(fn ($m) => [
                     'type' => 'inventory', 'icon' => 'fa-hourglass-half', 'color' => 'orange',
                     'message' => $m->name . ' - Expiring on ' . $m->expiration_date->format('M d, Y'),
-                    'timestamp' => $m->updated_at,
+                    'timestamp' => $m->updated_at?->toDateTimeString(),
                 ]);
 
             $pendingUsers = User::where('approval_status', 'pending')
@@ -430,7 +430,7 @@ class NurseDashboard extends Component
                 ->map(fn ($u) => [
                     'type' => 'user', 'icon' => 'fa-user-clock', 'color' => 'blue',
                     'message' => $u->name . ' - Pending Account Approval',
-                    'timestamp' => $u->created_at,
+                    'timestamp' => $u->created_at?->toDateTimeString(),
                 ]);
 
             return collect()
@@ -464,7 +464,7 @@ class NurseDashboard extends Component
                     'type' => 'visit', 'icon' => 'fa-stethoscope', 'color' => 'blue',
                     'message' => ($v->patient->name ?? 'Patient') . ' — Clinic Visit Recorded',
                     'detail' => $v->visit_type ? ucfirst(str_replace('_', ' ', $v->visit_type)) : null,
-                    'timestamp' => $v->created_at, 'link' => route('clinic-visit.index'),
+                    'timestamp' => $v->created_at?->toDateTimeString(), 'link' => route('clinic-visit.index'),
                 ]);
 
             $appointments = Appointment::with('patient:id,name')
@@ -475,7 +475,7 @@ class NurseDashboard extends Component
                     'type' => 'appointment', 'icon' => 'fa-calendar-check', 'color' => 'green',
                     'message' => ($a->patient->name ?? 'Patient') . ' — Appointment ' . ucfirst($a->status ?? 'Scheduled'),
                     'detail' => $a->appointment_date ? Carbon::parse($a->appointment_date)->format('M d, Y') : null,
-                    'timestamp' => $a->created_at, 'link' => route('appointments.index'),
+                    'timestamp' => $a->created_at?->toDateTimeString(), 'link' => route('appointments.index'),
                 ]);
 
             $lowStock = Medicine::whereRaw('quantity <= minimum_stock')
@@ -487,7 +487,7 @@ class NurseDashboard extends Component
                     'type' => 'inventory', 'icon' => 'fa-exclamation-triangle', 'color' => 'orange',
                     'message' => $m->name . ' — Low Stock Alert',
                     'detail' => 'Qty: ' . $m->quantity . ' (Min: ' . $m->minimum_stock . ')',
-                    'timestamp' => $m->updated_at, 'link' => route('medicines.index'),
+                    'timestamp' => $m->updated_at?->toDateTimeString(), 'link' => route('medicines.index'),
                 ]);
 
             $expiringSoon = Medicine::where('status', 'active')
@@ -501,7 +501,7 @@ class NurseDashboard extends Component
                     'type' => 'inventory', 'icon' => 'fa-hourglass-half', 'color' => 'orange',
                     'message' => $m->name . ' — Expiring Soon',
                     'detail' => 'Expires: ' . $m->expiration_date->format('M d, Y'),
-                    'timestamp' => $m->updated_at, 'link' => route('medicines.index'),
+                    'timestamp' => $m->updated_at?->toDateTimeString(), 'link' => route('medicines.index'),
                 ]);
 
             $pendingUsers = User::where('approval_status', 'pending')
@@ -512,7 +512,7 @@ class NurseDashboard extends Component
                     'type' => 'user', 'icon' => 'fa-user-clock', 'color' => 'purple',
                     'message' => $u->name . ' — Pending Account Approval',
                     'detail' => $u->email ?? null,
-                    'timestamp' => $u->created_at, 'link' => route('admin.users'),
+                    'timestamp' => $u->created_at?->toDateTimeString(), 'link' => route('admin.users'),
                 ]);
 
             return collect()

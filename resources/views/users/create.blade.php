@@ -164,7 +164,7 @@
                         class="form-input @error('password') is-invalid @enderror"
                         placeholder="Enter custom password (6-8 characters)"
                     >
-                    <small class="form-hint">Must include uppercase, lowercase, number, and special character</small>
+                    <small class="form-hint">Use 6-8 characters with uppercase, lowercase, number, and special character.</small>
                     @error('password')
                         <span class="error-message">{{ $message }}</span>
                     @enderror

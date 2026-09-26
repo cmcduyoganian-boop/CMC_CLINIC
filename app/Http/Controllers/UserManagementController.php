@@ -7,6 +7,7 @@ use App\Models\Patient;
 use App\Models\UserActivity;
 use App\Utilities\PasswordGenerator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserManagementController extends Controller
@@ -80,7 +81,7 @@ class UserManagementController extends Controller
     }
 
     // ============ CLINIC STAFF - SHOW DETAIL ============
-    public function clinicStaffShow($id)
+    public function clinicStaffShow(int|string $id)
     {
         $staff = User::clinicStaff()->findOrFail($id);
 
@@ -118,11 +119,9 @@ class UserManagementController extends Controller
             'role' => 'required|in:student,faculty,staff,clinic_nurse,clinic_staff',
             'year_section' => 'nullable|string|max:50',
             'auto_generate_password' => 'nullable',
-            'password' => 'nullable|string|min:6|max:8|regex:/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/',
+            'password' => 'nullable|string|min:6',
         ], [
-            'password.regex' => 'Password must contain uppercase, lowercase, number, and special character.',
             'password.min' => 'Password must be at least 6 characters.',
-            'password.max' => 'Password cannot exceed 8 characters.',
         ]);
 
         try {
@@ -188,21 +187,21 @@ class UserManagementController extends Controller
     }
 
     // ============ SHOW - VIEW USER DETAILS ============
-    public function show($id)
+    public function show(int|string $id)
     {
         $user = User::findOrFail($id);
         return view('users.show', compact('user'));
     }
 
     // ============ EDIT - SHOW EDIT FORM ============
-    public function edit($id)
+    public function edit(int|string $id)
     {
         $user = User::findOrFail($id);
         return view('users.edit', compact('user'));
     }
 
     // ============ UPDATE - SAVE CHANGES ============
-    public function update(Request $request, $id)
+    public function update(Request $request, int|string $id)
     {
         $user = User::findOrFail($id);
 
@@ -225,7 +224,7 @@ class UserManagementController extends Controller
     }
 
     // ============ APPROVE - APPROVE PENDING USER ============
-    public function approve($id)
+    public function approve(int|string $id)
     {
         $user = User::findOrFail($id);
         $user->update(['approval_status' => 'approved', 'is_active' => true]);
@@ -252,7 +251,7 @@ class UserManagementController extends Controller
     }
 
     // ============ REJECT - REJECT PENDING USER ============
-    public function reject($id)
+    public function reject(int|string $id)
     {
         $user = User::findOrFail($id);
         $user->update(['approval_status' => 'rejected', 'is_active' => false]);
@@ -261,9 +260,9 @@ class UserManagementController extends Controller
     }
 
     // ============ DISABLE - DISABLE USER ACCOUNT ============
-    public function disable($id)
+    public function disable(int|string $id)
     {
-        if ($id == auth()->id()) {
+        if ((int) $id === Auth::id()) {
             return back()->with('error', 'You cannot disable your own account!');
         }
 
@@ -274,7 +273,7 @@ class UserManagementController extends Controller
     }
 
     // ============ RESET PASSWORD ============
-    public function resetPassword($id)
+    public function resetPassword(int|string $id)
     {
         $user = User::findOrFail($id);
         $newPassword = PasswordGenerator::generate();
@@ -294,9 +293,9 @@ class UserManagementController extends Controller
     }
 
     // ============ DESTROY - DELETE USER ============
-    public function destroy($id)
+    public function destroy(int|string $id)
     {
-        if ($id == auth()->id()) {
+        if ((int) $id === Auth::id()) {
             return back()->with('error', 'You cannot delete your own account!');
         }
 

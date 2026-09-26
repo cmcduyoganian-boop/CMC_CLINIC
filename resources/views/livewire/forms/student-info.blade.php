@@ -87,17 +87,38 @@
     .form-actions button {
         padding: 9px 15px;
         border: 1px solid #cbd5e1;
-        border-radius: 6px;
+        border-radius: 8px;
         background: #fff;
         text-decoration: none;
         cursor: pointer;
         color: #1e293b;
         font: inherit;
         font-size: 13px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .signature-readonly {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 8px 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        background: #f9fafb;
+        color: #334155;
+        font-weight: 600;
+        text-align: center;
+    }
+    .form-actions a:hover,
+    .form-actions button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
     }
     .form-actions button:last-child {
-        background: #1683b9;
-        border-color: #1683b9;
+        background: linear-gradient(135deg, #1d9bf0, #0f7ed8);
+        border-color: #0f7ed8;
         color: #fff;
     }
 
@@ -394,16 +415,17 @@
 
             {{-- SIGNATURE --}}
             <tr>
-                <td colspan="2" class="center" style="font-weight:700;">SIGNATURE OVER PRINTED NAME/ DATE</td>
+                <td colspan="2" class="center" style="font-weight:700;">SIGNATURE OVER PRINTED NAME/DATE</td>
                 <td colspan="2" class="center" style="font-weight:700;">NAME OF HEALTHCARE PROVIDER</td>
             </tr>
             <tr>
                 <td colspan="2">
-                    <input type="text" wire:model="signature_name" placeholder="Printed Name" style="margin-bottom:4px;">
-                    <input type="date" wire:model="signature_date">
+                    <div class="signature-readonly">{{ $signature_name ?: '' }}</div>
+                    <input type="hidden" wire:model="signature_name">
                 </td>
                 <td colspan="2">
-                    <input type="text" wire:model="healthcare_provider_name">
+                    <div class="signature-readonly">{{ $healthcare_provider_name ?: '' }}</div>
+                    <input type="hidden" wire:model="healthcare_provider_name">
                 </td>
             </tr>
         </table>

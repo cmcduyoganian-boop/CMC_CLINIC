@@ -39,19 +39,27 @@
             <p>By signing below, I acknowledge that I have read and understood the purpose of this consent and voluntarily agree to participate.</p>
 
             <div class="signature-fields">
-                <label>Personnel Name: <input type="text" name="personnel_name" value="{{ old('personnel_name', auth()->user()->name) }}" required></label>
-                <label>Course/Year: <input type="text" name="course_year" value="{{ old('course_year') }}"></label>
-                <label>Student ID Number: <input type="text" name="student_id" value="{{ old('student_id') }}"></label>
-                <label>Signature: <input type="text" name="signature" value="{{ old('signature') }}"></label>
-                <label>Date: <input type="date" name="consent_date" value="{{ old('consent_date', now()->format('Y-m-d')) }}" required></label>
+                <label>Personnel Name: <input type="text" name="personnel_name" value="{{ old('personnel_name', $savedData['personnel_name'] ?? auth()->user()->name) }}" required></label>
+                <label>Course/Year: <input type="text" name="course_year" value="{{ old('course_year', $savedData['course_year'] ?? '') }}"></label>
+                <label>Student ID Number: <input type="text" name="student_id" value="{{ old('student_id', $savedData['student_id'] ?? '') }}"></label>
+                <div class="signature-block">
+                    <span>Signature</span>
+                    <span class="signature-line-paper">{{ old('signature', $savedData['signature'] ?? '') ?: '' }}</span>
+                    <input type="hidden" name="signature" value="{{ old('signature', $savedData['signature'] ?? '') }}">
+                </div>
+                <label>Date: <input type="date" name="consent_date" value="{{ old('consent_date', $savedData['consent_date'] ?? now()->format('Y-m-d')) }}" required></label>
             </div>
 
             <h4 class="witness-title">Witnessed by:</h4>
             <div class="signature-fields witness-fields">
-                <label>Name: <input type="text" name="witness_name" value="{{ old('witness_name') }}"></label>
-                <label>Position: <input type="text" name="witness_position" value="{{ old('witness_position') }}"></label>
-                <label>Signature: <input type="text" name="witness_signature" value="{{ old('witness_signature') }}"></label>
-                <label>Date: <input type="date" name="witness_date" value="{{ old('witness_date') }}"></label>
+                <label>Name: <input type="text" name="witness_name" value="{{ old('witness_name', $savedData['witness_name'] ?? '') }}"></label>
+                <label>Position: <input type="text" name="witness_position" value="{{ old('witness_position', $savedData['witness_position'] ?? '') }}"></label>
+                <div class="signature-block">
+                    <span>Signature</span>
+                    <span class="signature-line-paper">{{ old('witness_signature', $savedData['witness_signature'] ?? '') ?: '' }}</span>
+                    <input type="hidden" name="witness_signature" value="{{ old('witness_signature', $savedData['witness_signature'] ?? '') }}">
+                </div>
+                <label>Date: <input type="date" name="witness_date" value="{{ old('witness_date', $savedData['witness_date'] ?? '') }}"></label>
             </div>
         </form>
 
@@ -160,6 +168,26 @@
             border-bottom-color: #1683b9;
         }
 
+        .signature-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 9px 0;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .signature-line-paper {
+            display: inline-block;
+            min-width: 220px;
+            min-height: 24px;
+            border-bottom: 1px solid #94a3b8;
+            color: #334155;
+            font-weight: 600;
+            padding: 2px 4px;
+            flex: 1;
+        }
+
         .witness-title {
             margin: 44px 0 12px;
             font-size: 13px;
@@ -183,17 +211,26 @@
         .form-actions button {
             padding: 9px 15px;
             border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            background: #fff;
+            border-radius: 8px;
+            background: #ffffff;
             text-decoration: none;
             cursor: pointer;
             font-family: inherit;
+            font-weight: 600;
             color: #1e293b;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        }
+
+        .form-actions a:hover,
+        .form-actions button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
         }
 
         .form-actions button:last-child {
-            background: #1683b9;
-            border-color: #1683b9;
+            background: linear-gradient(135deg, #1d9bf0, #0f7ed8);
+            border-color: #0f7ed8;
             color: #fff;
         }
 

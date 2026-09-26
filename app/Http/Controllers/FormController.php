@@ -3,13 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\FormSubmission;
+use App\Models\StudentHealthRecord;
 use Illuminate\Http\Request;
 
 class FormController extends Controller
 {
     public function consent()
     {
-        return view('forms.consent');
+        $submission = FormSubmission::where('user_id', \Illuminate\Support\Facades\Auth::id())
+            ->where('form_type', 'client_research_consent')
+            ->latest('submitted_at')
+            ->first();
+
+        return view('forms.consent', ['savedData' => $submission?->data ?? []]);
     }
 
     public function storeConsent(Request $request)
@@ -22,23 +28,35 @@ class FormController extends Controller
             'emergency_contact_name' => ['nullable', 'string', 'max:255'],
             'emergency_contact_number' => ['nullable', 'string', 'max:40'],
             'client_signature' => ['required', 'string', 'max:255'],
-            'client_signature_date' => ['required', 'date'],
+            'client_signature_date' => ['nullable', 'date'],
             'guardian_signature' => ['nullable', 'string', 'max:255'],
             'guardian_signature_date' => ['nullable', 'date'],
         ]);
 
-        FormSubmission::create([
-            'user_id' => \Illuminate\Support\Facades\Auth::id(),
-            'form_type' => 'client_research_consent',
-            'data' => $data,
-        ]);
+        if (empty($data['client_signature_date'])) {
+            $data['client_signature_date'] = now()->toDateString();
+        }
+
+        if (empty($data['guardian_signature_date'])) {
+            $data['guardian_signature_date'] = null;
+        }
+
+        FormSubmission::updateOrCreate(
+            ['user_id' => \Illuminate\Support\Facades\Auth::id(), 'form_type' => 'client_research_consent'],
+            ['data' => $data, 'submitted_at' => now()]
+        );
 
         return redirect()->route('forms.consent')->with('success', 'Consent form saved successfully.');
     }
 
     public function clinicVisit()
     {
-        return view('forms.clinic-visit');
+        $submission = FormSubmission::where('user_id', \Illuminate\Support\Facades\Auth::id())
+            ->where('form_type', 'clinic_visit_log')
+            ->latest('submitted_at')
+            ->first();
+
+        return view('forms.clinic-visit', ['savedData' => $submission?->data ?? []]);
     }
 
     public function studentInfo()
@@ -48,7 +66,13 @@ class FormController extends Controller
             ->latest('submitted_at')
             ->first();
 
-        return view('forms.student-info', ['savedData' => $submission?->data ?? []]);
+        $record = StudentHealthRecord::where('user_id', \Illuminate\Support\Facades\Auth::id())
+            ->latest('updated_at')
+            ->first();
+
+        $savedData = $submission?->data ?? $record?->toArray() ?? [];
+
+        return view('forms.student-info', ['savedData' => $savedData]);
     }
 
     public function storeStudentInfo(Request $request)
@@ -101,18 +125,22 @@ class FormController extends Controller
             'signature' => ['nullable', 'string', 'max:255'],
         ]);
 
-        FormSubmission::create([
-            'user_id' => \Illuminate\Support\Facades\Auth::id(),
-            'form_type' => 'clinic_visit_log',
-            'data' => $data,
-        ]);
+        FormSubmission::updateOrCreate(
+            ['user_id' => \Illuminate\Support\Facades\Auth::id(), 'form_type' => 'clinic_visit_log'],
+            ['data' => $data, 'submitted_at' => now()]
+        );
 
         return redirect()->route('forms.clinic-visit')->with('success', 'Clinic visit form saved successfully.');
     }
 
     public function researchConsent()
     {
-        return view('forms.research-consent');
+        $submission = FormSubmission::where('user_id', \Illuminate\Support\Facades\Auth::id())
+            ->where('form_type', 'research_data_consent')
+            ->latest('submitted_at')
+            ->first();
+
+        return view('forms.research-consent', ['savedData' => $submission?->data ?? []]);
     }
 
     public function storeResearchConsent(Request $request)
@@ -129,11 +157,10 @@ class FormController extends Controller
             'witness_date' => ['nullable', 'date'],
         ]);
 
-        FormSubmission::create([
-            'user_id' => \Illuminate\Support\Facades\Auth::id(),
-            'form_type' => 'research_data_consent',
-            'data' => $data,
-        ]);
+        FormSubmission::updateOrCreate(
+            ['user_id' => \Illuminate\Support\Facades\Auth::id(), 'form_type' => 'research_data_consent'],
+            ['data' => $data, 'submitted_at' => now()]
+        );
 
         return redirect()->route('forms.research-consent')->with('success', 'Research consent form saved successfully.');
     }

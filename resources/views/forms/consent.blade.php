@@ -33,33 +33,43 @@
                 <tr><th class="section-title" colspan="2">I. PERSONAL INFORMATION</th></tr>
                 <tr>
                     <td class="label-cell">Full Name</td>
-                    <td class="input-cell"><input type="text" name="full_name" value="{{ old('full_name') }}" required></td>
+                    <td class="input-cell"><input type="text" name="full_name" value="{{ old('full_name', $savedData['full_name'] ?? '') }}" required></td>
                 </tr>
                 <tr>
                     <td class="label-cell">Date of Birth</td>
-                    <td class="input-cell"><input type="date" name="date_of_birth" value="{{ old('date_of_birth') }}"></td>
+                    <td class="input-cell"><input type="date" name="date_of_birth" value="{{ old('date_of_birth', $savedData['date_of_birth'] ?? '') }}"></td>
                 </tr>
                 <tr>
                     <td class="label-cell">Address</td>
-                    <td class="input-cell"><input type="text" name="address" value="{{ old('address') }}"></td>
+                    <td class="input-cell"><input type="text" name="address" value="{{ old('address', $savedData['address'] ?? '') }}"></td>
                 </tr>
                 <tr>
                     <td class="label-cell">Phone Number</td>
-                    <td class="input-cell"><input type="text" name="phone_number" value="{{ old('phone_number') }}"></td>
+                    <td class="input-cell"><input type="text" name="phone_number" value="{{ old('phone_number', $savedData['phone_number'] ?? '') }}"></td>
                 </tr>
                 <tr>
                     <td class="label-cell">Emergency Contact Name</td>
-                    <td class="input-cell"><input type="text" name="emergency_contact_name" value="{{ old('emergency_contact_name') }}"></td>
+                    <td class="input-cell"><input type="text" name="emergency_contact_name" value="{{ old('emergency_contact_name', $savedData['emergency_contact_name'] ?? '') }}"></td>
                 </tr>
                 <tr>
                     <td class="label-cell">Emergency Contact Number</td>
-                    <td class="input-cell"><input type="text" name="emergency_contact_number" value="{{ old('emergency_contact_number') }}"></td>
+                    <td class="input-cell"><input type="text" name="emergency_contact_number" value="{{ old('emergency_contact_number', $savedData['emergency_contact_number'] ?? '') }}"></td>
                 </tr>
 
                 <tr><th class="section-title" colspan="2">II. CONSENT FOR TREATMENT</th></tr>
                 <tr>
                     <td class="paragraph-row" colspan="2">
-                        I, <span class="fill-line"><input type="text" name="client_signature" value="{{ old('client_signature') }}" class="inline-signature-input"></span>, hereby consent to receive medical treatment and services at the Carmen Municipal College School Clinic.
+                        I,
+                        <span class="fill-line">
+                            <input
+                                type="text"
+                                name="client_signature"
+                                class="inline-signature-input"
+                                value="{{ old('client_signature', $savedData['client_signature'] ?? '') }}"
+                                placeholder=""
+                            >
+                        </span>
+                        , hereby consent to receive medical treatment and services at the Carmen Municipal College School Clinic.
                     </td>
                 </tr>
 
@@ -87,11 +97,13 @@
             <table class="signatures">
                 <tr>
                     <td>
-                        <div class="signature-line"><input type="text" name="client_signature_date" value="{{ old('client_signature_date') }}" class="signature-input"></div>
+                        <div class="signature-line signature-readonly">{{ old('client_signature_date', $savedData['client_signature_date'] ?? '') ?: '' }}</div>
+                        <input type="hidden" name="client_signature_date" value="{{ old('client_signature_date', $savedData['client_signature_date'] ?? '') }}">
                         <div class="signature-caption">CLIENT'S SIGNATURE OVER PRINTED NAME / DATE</div>
                     </td>
                     <td>
-                        <div class="signature-line"><input type="text" name="guardian_signature" value="{{ old('guardian_signature') }}" class="signature-input"></div>
+                        <div class="signature-line signature-readonly">{{ old('guardian_signature', $savedData['guardian_signature'] ?? '') ?: '' }}</div>
+                        <input type="hidden" name="guardian_signature" value="{{ old('guardian_signature', $savedData['guardian_signature'] ?? '') }}">
                         <div class="signature-caption">PARENT/GUARDIAN SIGNATURE (if applicable) / DATE</div>
                     </td>
                 </tr>
@@ -262,13 +274,29 @@
 
         .form-actions a,
         .form-actions button {
-            padding: 8px 14px;
-            border: 1px solid #111;
-            background: #fff;
+            padding: 9px 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #ffffff;
             cursor: pointer;
             font: inherit;
+            font-weight: 600;
             text-decoration: none;
-            color: #111;
+            color: #1e293b;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        }
+
+        .form-actions a:hover,
+        .form-actions button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+        }
+
+        .form-actions button:last-child {
+            background: linear-gradient(135deg, #1d9bf0, #0f7ed8);
+            border-color: #0f7ed8;
+            color: #fff;
         }
 
         .form-success {

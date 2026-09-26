@@ -28,6 +28,14 @@ class AppointmentScheduler extends Component
     public $smsReminder = false;
     public $smsMessage = '';
 
+    // Appointment detail modal
+    public $selectedAppointment = null;
+    public $showAppointmentDetail = false;
+
+    // Left panel tab: 'upcoming' | 'history' | 'day'
+    public $listTab = 'upcoming';
+    public $selectedDayLabel = '';
+
     public function mount()
     {
         $this->currentMonth = now()->month;
@@ -43,6 +51,9 @@ class AppointmentScheduler extends Component
             $this->currentYear--;
         }
         $this->selectedDate = null;
+        if ($this->listTab === 'day') {
+            $this->listTab = 'upcoming';
+        }
     }
 
     public function nextMonth()
@@ -53,6 +64,9 @@ class AppointmentScheduler extends Component
             $this->currentYear++;
         }
         $this->selectedDate = null;
+        if ($this->listTab === 'day') {
+            $this->listTab = 'upcoming';
+        }
     }
 
     public function selectDate($day)
@@ -60,6 +74,18 @@ class AppointmentScheduler extends Component
         $this->selectedDate = sprintf('%04d-%02d-%02d', $this->currentYear, $this->currentMonth, $day);
         $this->appointmentDate = $this->selectedDate;
         $this->showScheduleForm = true;
+
+        // Switch panel to show appointments on this day
+        $this->selectedDayLabel = \Carbon\Carbon::parse($this->selectedDate)->format('F j, Y');
+        $this->listTab = 'day';
+    }
+
+    public function setTab($tab)
+    {
+        $this->listTab = $tab;
+        if ($tab !== 'day') {
+            $this->selectedDate = null;
+        }
     }
 
     public function updatedPatientName()
@@ -159,6 +185,45 @@ class AppointmentScheduler extends Component
         $this->dispatch('notify', type: 'success', message: 'Appointment scheduled successfully!');
     }
 
+    public function viewAppointment($appointmentId)
+    {
+        $this->selectedAppointment = Appointment::with('patient')->find($appointmentId);
+        $this->showAppointmentDetail = true;
+    }
+
+    public function closeAppointmentDetail()
+    {
+        $this->showAppointmentDetail = false;
+        $this->selectedAppointment = null;
+    }
+
+    public function markCompleted()
+    {
+        if ($this->selectedAppointment) {
+            Appointment::findOrFail($this->selectedAppointment->id)->update(['status' => 'completed']);
+            $this->dispatch('notify', type: 'success', message: 'Appointment marked as completed!');
+            $this->closeAppointmentDetail();
+        }
+    }
+
+public function markNoShow()
+    {
+        if ($this->selectedAppointment) {
+            $this->selectedAppointment->update(['status' => 'no-show']);
+            $this->dispatch('notify', type: 'warning', message: 'Appointment marked as no-show!');
+            $this->closeAppointmentDetail();
+        }
+    }
+
+    public function markCancelled()
+    {
+        if ($this->selectedAppointment) {
+            $this->selectedAppointment->update(['status' => 'cancelled']);
+            $this->dispatch('notify', type: 'warning', message: 'Appointment cancelled!');
+            $this->closeAppointmentDetail();
+        }
+    }
+
     public function getCalendarDaysProperty()
     {
         $firstDay = Carbon::create($this->currentYear, $this->currentMonth, 1);
@@ -190,6 +255,30 @@ class AppointmentScheduler extends Component
             ->orderBy('appointment_date', 'asc')
             ->orderBy('appointment_time', 'asc')
             ->limit(20)
+            ->limit(30)
+            ->get();
+    }
+
+    public function getHistoryAppointmentsProperty()
+    {
+        return Appointment::with('patient')
+            ->where(function ($q) {
+                $q->where('appointment_date', '<', now()->toDateString())
+                  ->orWhereIn('status', ['completed', 'no-show', 'cancelled']);
+            })
+            ->orderBy('appointment_date', 'desc')
+            ->orderBy('appointment_time', 'desc')
+            ->limit(50)
+            ->get();
+    }
+
+    public function getDayAppointmentsProperty()
+    {
+        if (!$this->selectedDate) return collect();
+
+        return Appointment::with('patient')
+            ->whereDate('appointment_date', $this->selectedDate)
+            ->orderBy('appointment_time', 'asc')
             ->get();
     }
 
@@ -197,7 +286,10 @@ class AppointmentScheduler extends Component
     {
         return view('livewire.appointments.appointment-scheduler', [
             'calendarDays' => $this->calendarDays,
+            'calendarDays'         => $this->calendarDays,
             'upcomingAppointments' => $this->upcomingAppointments,
+            'historyAppointments'  => $this->historyAppointments,
+            'dayAppointments'      => $this->dayAppointments,
         ]);
     }
 }

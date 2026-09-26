@@ -1,10 +1,15 @@
 <div class="patient-dashboard">
     @section('subtitle', "Good {{ now()->hour < 12 ? 'morning' : (now()->hour < 18 ? 'afternoon' : 'evening') }}, {{ auth()->user()->name }}")
     <!-- Page Header -->
-    <div class="page-header">
+    <div class="page-header premium-header">
         <div>
-            <h1 class="page-title">My Health Records</h1>
+            <p class="eyebrow">Welcome back</p>
+            <h1 class="page-title">Patient Dashboard</h1>
             <p class="page-subtitle">Good {{ now()->hour < 12 ? 'morning' : (now()->hour < 18 ? 'afternoon' : 'evening') }}, {{ auth()->user()->name }}</p>
+        </div>
+        <div class="header-pill">
+            <i class="fas fa-shield-heart"></i>
+            Health overview
         </div>
     </div>
 
@@ -250,25 +255,56 @@
             display: flex;
             flex-direction: column;
             gap: 24px;
+            color: var(--text-heading);
         }
 
-        .page-header {
+        .premium-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
+            gap: 16px;
+            padding: 22px 22px 18px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, rgba(14,116,144,0.12), rgba(59,130,246,0.08), rgba(255,255,255,0.04));
+            border: 1px solid rgba(56,189,248,0.15);
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        }
+
+        .eyebrow {
+            margin: 0 0 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-size: 10px;
+            font-weight: 800;
+            color: #38bdf8;
         }
 
         .page-title {
             margin: 0;
-            font-size: 28px;
-            font-weight: 700;
+            font-size: clamp(26px, 3vw, 36px);
+            font-weight: 800;
+            letter-spacing: -0.04em;
             color: var(--text-heading);
         }
 
         .page-subtitle {
-            margin: 4px 0 0 0;
-            font-size: 13px;
+            margin: 8px 0 0 0;
+            font-size: 14px;
             color: var(--text-muted);
+        }
+
+        .header-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(56,189,248,0.09);
+            border: 1px solid rgba(56,189,248,0.2);
+            color: #0ea5e9;
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
         }
 
         .alert {
@@ -295,9 +331,10 @@
 
         .stat-card {
             background: var(--bg-card);
-            border-radius: 10px;
+            border: 1px solid var(--border-card);
+            border-radius: 20px;
             padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
             display: flex;
             align-items: center;
             gap: 16px;
@@ -305,8 +342,8 @@
         }
 
         .stat-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
+            box-shadow: 0 20px 36px rgba(15, 23, 42, 0.12);
+            transform: translateY(-3px);
         }
 
         .stat-icon {
@@ -382,9 +419,10 @@
 
         .card-section {
             background: var(--bg-card);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-card);
+            border-radius: 22px;
+            padding: 22px;
+            box-shadow: 0 18px 36px rgba(15, 23, 42, 0.06);
         }
 
         .card-header {
@@ -578,6 +616,7 @@
             gap: 16px;
             padding: 12px;
             background: var(--bg-input);
+            border: 1px solid var(--border-card);
             border-radius: 8px;
             transition: all 0.2s;
         }
@@ -661,6 +700,7 @@
             gap: 16px;
             padding: 12px;
             background: var(--bg-input);
+            border: 1px solid var(--border-card);
             border-radius: 8px;
             border-left: 4px solid #27ae60;
             transition: all 0.2s;
@@ -740,9 +780,10 @@
 
         .quick-actions {
             background: var(--bg-card);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-card);
+            border-radius: 22px;
+            padding: 22px;
+            box-shadow: 0 18px 36px rgba(15, 23, 42, 0.06);
         }
 
         .actions-title {
@@ -759,18 +800,19 @@
         }
 
         .action-card {
-            background: linear-gradient(135deg, #f9fafb, #ecf0f1);
-            border: 1px solid #e8ecf1;
-            border-radius: 8px;
-            padding: 16px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-card);
+            border-radius: 16px;
+            padding: 18px 14px;
             text-align: center;
             text-decoration: none;
-            color: #2d3e50;
+            color: var(--text-heading);
             transition: all 0.2s;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 8px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
         }
 
         .action-card i {

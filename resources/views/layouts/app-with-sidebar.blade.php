@@ -163,7 +163,8 @@
 
         @media(max-width:1023px) {
             .clinic-sidebar {
-                transform: translateX(-256px);
+                width: min(78vw, 256px);
+                transform: translateX(-100%);
                 padding-bottom: calc(18px + env(safe-area-inset-bottom));
             }
             .clinic-sidebar.sidebar-open { transform: translateX(0); }
@@ -463,6 +464,8 @@
             .app-topbar {
                 height: 60px;
                 gap: 8px;
+                padding-left: calc(12px + env(safe-area-inset-left));
+                padding-right: calc(12px + env(safe-area-inset-right));
             }
             .topbar-right {
                 gap: 4px;
@@ -487,6 +490,16 @@
             .notification-dropdown {
                 width: min(260px, calc(100vw - 18px));
                 right: -10px;
+            }
+            .sidebar-brand {
+                padding: 18px 12px 14px;
+            }
+            .sidebar-link {
+                padding: 9px 10px;
+                font-size: 12px;
+            }
+            .sidebar-nav {
+                padding: 10px 8px;
             }
         }
 
@@ -761,7 +774,7 @@
                 <a href="{{ route('patient.profile') }}" class="sidebar-link {{ request()->routeIs('patient.profile') || request()->routeIs('patient.profile.update') ? 'active' : '' }}">
                     <i class="fas fa-user sidebar-icon"></i> Profile
                 </a>
-                <a href="{{ route('dashboard') }}#appointments" class="sidebar-link">
+                <a href="{{ route('patient.appointments') }}" class="sidebar-link {{ request()->routeIs('patient.appointments') ? 'active' : '' }}">
                     <i class="fas fa-calendar-alt sidebar-icon"></i> Appointments
                 </a>
             @else
@@ -841,8 +854,10 @@
                     <i class="fas fa-bars"></i>
                 </button>
 
-                {{-- Global search (Livewire command-palette) --}}
-                @livewire('global-search')
+                @unless (in_array(auth()->user()->role, ['student', 'faculty', 'staff'], true))
+                    {{-- Global search (Livewire command-palette) --}}
+                    @livewire('global-search')
+                @endunless
 
                 {{-- Right: theme + notif + user --}}
                 @php
@@ -895,35 +910,37 @@
                     <button type="button" class="theme-toggle-btn" id="themeToggle" title="Toggle theme">
                         <i class="fas fa-sun"></i>
                     </button>
-                    <div class="notification-wrapper">
-                        <button type="button" class="topbar-icon-btn" id="notificationToggle" title="System Notifications" style="display:inline-flex; align-items:center; justify-content:center; text-decoration:none;">
-                            <i class="fas fa-bell"></i>
-                            @if($totalSystemNotifications > 0)
-                                <span class="notification-badge">{{ $totalSystemNotifications > 9 ? '9+' : $totalSystemNotifications }}</span>
-                            @endif
-                        </button>
-                        <div class="notification-dropdown" id="notificationDropdown">
-                            <div class="notification-header">
-                                <span>System Alerts</span>
-                                <span class="count-pill">{{ $totalSystemNotifications }}</span>
-                            </div>
-                            @if(count($notificationItems) > 0)
-                                <div class="notification-list">
-                                    @foreach($notificationItems as $item)
-                                        <a href="{{ $item['route'] }}" class="notification-item">
-                                            <span class="notification-icon"><i class="fas {{ $item['icon'] }}"></i></span>
-                                            <span class="notification-text">
-                                                <strong>{{ $item['title'] }}</strong>
-                                                <small>{{ $item['subtitle'] }}</small>
-                                            </span>
-                                        </a>
-                                    @endforeach
+                    @unless (in_array(auth()->user()->role, ['student', 'faculty', 'staff'], true))
+                        <div class="notification-wrapper">
+                            <button type="button" class="topbar-icon-btn" id="notificationToggle" title="System Notifications" style="display:inline-flex; align-items:center; justify-content:center; text-decoration:none;">
+                                <i class="fas fa-bell"></i>
+                                @if($totalSystemNotifications > 0)
+                                    <span class="notification-badge">{{ $totalSystemNotifications > 9 ? '9+' : $totalSystemNotifications }}</span>
+                                @endif
+                            </button>
+                            <div class="notification-dropdown" id="notificationDropdown">
+                                <div class="notification-header">
+                                    <span>System Alerts</span>
+                                    <span class="count-pill">{{ $totalSystemNotifications }}</span>
                                 </div>
-                            @else
-                                <div class="notification-empty">No active alerts.</div>
-                            @endif
+                                @if(count($notificationItems) > 0)
+                                    <div class="notification-list">
+                                        @foreach($notificationItems as $item)
+                                            <a href="{{ $item['route'] }}" class="notification-item">
+                                                <span class="notification-icon"><i class="fas {{ $item['icon'] }}"></i></span>
+                                                <span class="notification-text">
+                                                    <strong>{{ $item['title'] }}</strong>
+                                                    <small>{{ $item['subtitle'] }}</small>
+                                                </span>
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="notification-empty">No active alerts.</div>
+                                @endif
+                            </div>
                         </div>
-                    </div>
+                    @endunless
                     <div class="user-profile" id="topbarUserProfile">
                         <div class="user-avatar">
                             @if (auth()->user()->getAvatarUrl())

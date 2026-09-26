@@ -4,7 +4,9 @@ namespace App\Livewire\Appointments;
 
 use App\Models\Appointment;
 use App\Models\Patient;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class AppointmentCreateForm extends Component
@@ -13,8 +15,8 @@ class AppointmentCreateForm extends Component
     public $lockedPatientName = '';
     public $lockedPatientCategory = '';
 
-    public $patientId = null;
-    public $patientName = '';
+    public int|string|null $patientId = null;
+    public string $patientName = '';
     public $patientCategory = '';
     public $patientYearSection = '';
     public $showPatientDropdown = false;
@@ -28,13 +30,18 @@ class AppointmentCreateForm extends Component
 
     public function mount()
     {
-        $this->isSelfService = auth()->user()->role !== 'clinic_nurse';
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
+        $this->isSelfService = $user->role !== 'clinic_nurse';
 
         if ($this->isSelfService) {
-            $patientRecord = Patient::where('email', auth()->user()->email)->first();
+            $patientRecord = Patient::where('email', $user->email)->first();
 
-            $this->lockedPatientName = $patientRecord ? $patientRecord->name : auth()->user()->name;
-            $this->lockedPatientCategory = auth()->user()->role;
+            $this->lockedPatientName = $patientRecord ? $patientRecord->name : $user->name;
+            $this->lockedPatientCategory = $user->role;
 
             $this->patientName = $this->lockedPatientName;
             $this->patientCategory = $this->lockedPatientCategory;
@@ -75,7 +82,7 @@ class AppointmentCreateForm extends Component
         }
     }
 
-    public function selectPatient($id)
+    public function selectPatient(int|string $id)
     {
         $patient = Patient::find($id);
 
@@ -101,13 +108,24 @@ class AppointmentCreateForm extends Component
             'patientName' => 'required|string|max:255',
             'patientCategory' => 'required|in:student,faculty,staff',
             'patientYearSection' => 'nullable|string',
-            'appointmentDate' => 'required|date|after:today',
+            'appointmentDate' => 'required|date|after_or_equal:today',
             'appointmentTime' => 'required|date_format:H:i',
             'reason' => 'nullable|string',
             'notes' => 'nullable|string',
             'smsReminder' => 'boolean',
             'smsMessage' => 'nullable|string|max:160',
+        ], [
+            'appointmentDate.after_or_equal' => 'The appointment date must be today or a future date.',
         ]);
+
+        // Additional validation: if appointment is for today, time must be in the future
+        if ($validated['appointmentDate'] === now()->toDateString()) {
+            $currentTime = now()->format('H:i');
+            if ($validated['appointmentTime'] <= $currentTime) {
+                $this->addError('appointmentTime', 'For same-day appointments, the time must be after the current time (' . $currentTime . ').');
+                return;
+            }
+        }
 
         $patient = $this->patientId
             ? Patient::find($this->patientId)
@@ -135,6 +153,15 @@ class AppointmentCreateForm extends Component
         ]);
 
         session()->flash('success', 'Appointment scheduled for ' . $patient->name . ' successfully!');
+
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
+        if (in_array($user->role, ['student', 'faculty', 'staff'], true)) {
+            return redirect()->route('patient.appointments');
+        }
 
         return redirect()->route('appointments.index');
     }

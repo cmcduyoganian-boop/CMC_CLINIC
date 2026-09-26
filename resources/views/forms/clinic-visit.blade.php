@@ -39,24 +39,27 @@
                     <tbody>
                         {{-- ===== Row 1: the actual fillable/savable entry ===== --}}
                         <tr>
-                            <td><input type="date" name="visit_date" value="{{ old('visit_date', now()->format('Y-m-d')) }}" required></td>
-                            <td><input type="number" name="age" value="{{ old('age') }}"></td>
+                            <td><input type="date" name="visit_date" value="{{ old('visit_date', $savedData['visit_date'] ?? now()->format('Y-m-d')) }}" required></td>
+                            <td><input type="number" name="age" value="{{ old('age', $savedData['age'] ?? '') }}"></td>
                             <td class="vitals-cell">
                                 <table class="vitals-subtable">
-                                    <tr><td class="vs-label">T-</td><td><input type="number" step="0.1" name="temperature" value="{{ old('temperature') }}"></td></tr>
-                                    <tr><td class="vs-label">PR-</td><td><input type="number" name="pulse_rate" value="{{ old('pulse_rate') }}"></td></tr>
-                                    <tr><td class="vs-label">RR-</td><td><input type="number" name="respiratory_rate" value="{{ old('respiratory_rate') }}"></td></tr>
-                                    <tr><td class="vs-label">BP-</td><td><input type="text" name="blood_pressure" value="{{ old('blood_pressure') }}"></td></tr>
-                                    <tr><td class="vs-label">HT-</td><td><input type="number" step="0.01" name="height" value="{{ old('height') }}"></td></tr>
-                                    <tr><td class="vs-label">WT-</td><td><input type="number" step="0.01" name="weight" value="{{ old('weight') }}"></td></tr>
-                                    <tr><td class="vs-label">BMI-</td><td><input type="number" step="0.1" name="bmi" value="{{ old('bmi') }}"></td></tr>
-                                    <tr><td class="vs-label">SpO2-</td><td><input type="number" step="0.1" name="spo2" value="{{ old('spo2') }}"></td></tr>
+                                    <tr><td class="vs-label">T-</td><td><input type="number" step="0.1" name="temperature" value="{{ old('temperature', $savedData['temperature'] ?? '') }}"></td></tr>
+                                    <tr><td class="vs-label">PR-</td><td><input type="number" name="pulse_rate" value="{{ old('pulse_rate', $savedData['pulse_rate'] ?? '') }}"></td></tr>
+                                    <tr><td class="vs-label">RR-</td><td><input type="number" name="respiratory_rate" value="{{ old('respiratory_rate', $savedData['respiratory_rate'] ?? '') }}"></td></tr>
+                                    <tr><td class="vs-label">BP-</td><td><input type="text" name="blood_pressure" value="{{ old('blood_pressure', $savedData['blood_pressure'] ?? '') }}"></td></tr>
+                                    <tr><td class="vs-label">HT-</td><td><input type="number" step="0.01" name="height" value="{{ old('height', $savedData['height'] ?? '') }}"></td></tr>
+                                    <tr><td class="vs-label">WT-</td><td><input type="number" step="0.01" name="weight" value="{{ old('weight', $savedData['weight'] ?? '') }}"></td></tr>
+                                    <tr><td class="vs-label">BMI-</td><td><input type="number" step="0.1" name="bmi" value="{{ old('bmi', $savedData['bmi'] ?? '') }}"></td></tr>
+                                    <tr><td class="vs-label">SpO2-</td><td><input type="number" step="0.1" name="spo2" value="{{ old('spo2', $savedData['spo2'] ?? '') }}"></td></tr>
                                 </table>
                             </td>
-                            <td><textarea name="complaints">{{ old('complaints') }}</textarea></td>
-                            <td><textarea name="management">{{ old('management') }}</textarea></td>
-                            <td><textarea name="diagnosis">{{ old('diagnosis') }}</textarea></td>
-                            <td><input type="text" name="signature" value="{{ old('signature', auth()->user()->name) }}"></td>
+                            <td><textarea name="complaints">{{ old('complaints', $savedData['complaints'] ?? '') }}</textarea></td>
+                            <td><textarea name="management">{{ old('management', $savedData['management'] ?? '') }}</textarea></td>
+                            <td><textarea name="diagnosis">{{ old('diagnosis', $savedData['diagnosis'] ?? '') }}</textarea></td>
+                            <td>
+                                <div class="signature-readonly">{{ old('signature', $savedData['signature'] ?? auth()->user()->name) ?: 'Signature over Printed Name' }}</div>
+                                <input type="hidden" name="signature" value="{{ old('signature', $savedData['signature'] ?? auth()->user()->name) }}">
+                            </td>
                         </tr>
 
                         {{-- ===== Rows 2-4: blank reference rows, matching the printed log sheet =====
@@ -213,6 +216,19 @@
             -moz-appearance: none;
         }
 
+        .signature-readonly {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 120px;
+            padding: 8px;
+            font-weight: 700;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            text-align: center;
+        }
+
         .form-actions {
             display: flex;
             justify-content: flex-end;
@@ -227,17 +243,26 @@
         .form-actions button {
             padding: 9px 15px;
             border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            background: #fff;
+            border-radius: 8px;
+            background: #ffffff;
             text-decoration: none;
             cursor: pointer;
             color: #1e293b;
             font: inherit;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        }
+
+        .form-actions a:hover,
+        .form-actions button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
         }
 
         .form-actions button:last-child {
-            background: #1683b9;
-            border-color: #1683b9;
+            background: linear-gradient(135deg, #1d9bf0, #0f7ed8);
+            border-color: #0f7ed8;
             color: #fff;
         }
 
