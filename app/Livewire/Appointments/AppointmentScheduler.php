@@ -282,6 +282,27 @@ public function markNoShow()
             ->get();
     }
 
+    public function getPatientHistoryProperty()
+    {
+        if (!$this->patientId) return collect();
+
+        return Appointment::with('patient')
+            ->where('patient_id', $this->patientId)
+            ->orderBy('appointment_date', 'desc')
+            ->orderBy('appointment_time', 'desc')
+            ->get();
+    }
+
+    public function deleteAppointment($appointmentId)
+    {
+        $appointment = Appointment::find($appointmentId);
+        if ($appointment) {
+            $patientName = $appointment->patient->name;
+            $appointment->delete();
+            $this->dispatch('notify', type: 'success', message: 'Appointment for ' . $patientName . ' deleted!');
+        }
+    }
+
     public function render()
     {
         return view('livewire.appointments.appointment-scheduler', [

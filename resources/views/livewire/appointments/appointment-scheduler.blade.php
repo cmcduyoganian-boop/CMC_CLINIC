@@ -195,6 +195,34 @@
                         </div>
                     @endif
 
+                    {{-- Patient Appointment History --}}
+                    @if($patientId && $patientHistory->count() > 0)
+                        <div class="patient-history-block">
+                            <p class="ph-label"><i class="fas fa-history"></i> Appointment History for {{ $patientName }} ({{ $patientHistory->count() }} visits)</p>
+                            <div class="ph-list">
+                                @foreach($patientHistory as $appt)
+                                    <div class="ph-item">
+                                        <div class="ph-date">
+                                            <span class="ph-date-main">{{ $appt->appointment_date->format('M d, Y') }}</span>
+                                            <span class="ph-date-time">{{ date('g:i A', strtotime($appt->appointment_time)) }}</span>
+                                        </div>
+                                        <div class="ph-details">
+                                            @if($appt->reason)
+                                                <span class="ph-reason">{{ $appt->reason }}</span>
+                                            @endif
+                                            <span class="ph-status status-{{ $appt->status }}">
+                                                {{ ucfirst($appt->status) }}
+                                            </span>
+                                        </div>
+                                        <button type="button" class="ph-delete" wire:click="deleteAppointment({{ $appt->id }})" wire:confirm="Delete this appointment for {{ $appt->patient->name }} on {{ $appt->appointment_date->format('M d, Y') }}?">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Submit --}}
                     <button type="submit" class="btn-schedule">
                         <i class="fas fa-calendar-check"></i> SCHEDULE
@@ -588,6 +616,72 @@
     background: var(--bg-input); border: 1px solid var(--border-card);
     border-radius: 10px; padding: 12px; font-size: 12px;
     color: var(--text-body); line-height: 1.5;
+}
+
+/* Patient History Block */
+.patient-history-block {
+    margin: 20px 0;
+    padding: 16px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-card);
+    border-radius: 10px;
+}
+.ph-label {
+    margin: 0 0 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-heading);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ph-label i { color: #38bdf8; }
+.ph-list { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; }
+.ph-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-inner);
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.ph-item:hover { border-color: rgba(41,128,185,0.3); }
+.ph-date { display: flex; flex-direction: column; min-width: 90px; }
+.ph-date-main { font-size: 12px; font-weight: 700; color: var(--text-heading); }
+.ph-date-time { font-size: 10px; color: var(--text-muted); }
+.ph-details { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.ph-reason { font-size: 12px; color: var(--text-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ph-status {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    width: fit-content;
+}
+.ph-status.status-scheduled { background: rgba(41,128,185,0.15); color: #2980b9; }
+.ph-status.status-completed { background: rgba(39,174,96,0.15); color: #27ae60; }
+.ph-status.status-no-show { background: rgba(231,76,60,0.15); color: #e74c3c; }
+.ph-status.status-cancelled { background: rgba(149,165,166,0.15); color: #95a5a6; }
+.ph-delete {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid var(--border-inner);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+.ph-delete:hover {
+    background: rgba(231,76,60,0.15);
+    border-color: #e74c3c;
+    color: #e74c3c;
 }
 
 /* Schedule button */

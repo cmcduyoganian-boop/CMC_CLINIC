@@ -66,7 +66,7 @@
                                 name="client_signature"
                                 class="inline-signature-input"
                                 value="{{ old('client_signature', $savedData['client_signature'] ?? '') }}"
-                                placeholder=""
+                                placeholder="Signature over Printed Name"
                             >
                         </span>
                         , hereby consent to receive medical treatment and services at the Carmen Municipal College School Clinic.
